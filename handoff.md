@@ -1,6 +1,6 @@
 # Issabel Analytics Dashboard — Project Handoff
 
-**Date:** May 19, 2026
+**Date:** May 20, 2026
 **Location:** `/home/site/vm-issabel`
 **GitHub:** https://github.com/Ahmed-Emad02/issabel-dashboard
 **Stack:** Node.js 22 + Express 4, MySQL (Issabel/Asterisk CDR), Socket.io v4, Asterisk AMI, EJS, Tailwind CSS v4, ECharts 5
@@ -119,18 +119,35 @@ Served by the `/cdr` route (deprecated — not directly routed). Displays KPI ca
 
 ---
 
-## 6. File Inventory
+## 6. Session 2 — May 20, 2026
+
+### Done
+- **Created README.md** — Full project documentation: features, prerequisites, install, `.env` config, auto-start (systemd + pm2), routes table, project structure, tech stack, notes
+- **Uploaded all files to GitHub** — `server.js`, `views/operator.ejs`, `README.md`, `handoff.md` pushed to `Ahmed-Emad02/issabel-dashboard`
+- **Fixed empty upload bug** — First upload failed due to SSHFS disconnect; re-uploaded with correct content after remount
+- **Documented auto-start** — Added systemd service unit and pm2 instructions to README
+- **handoff.md now on GitHub** — Can be loaded into a new AI session via `read handoff.md from the repo`
+
+### Still open
+- Online/offline detection: all extensions still show online when only some should be (need direct AMI/DB access to debug)
+- `dashboard.ejs` still has no dedicated route
+- No `npm start` script in `package.json`
+
+---
+
+## 7. File Inventory
 
 | File | Lines | Key Role |
 |---|---|---|
-| `server.js` | 244 | Backend: Express, AMI, Socket.io, routes |
+| `server.js` | 301 | Backend: Express, AMI, Socket.io, routes |
 | `views/sidebar.ejs` | 50 | Shared nav, EN/AR, clock widget |
 | `views/cdr.ejs` | 147 | CDR table with 6 filters, audio download |
 | `views/employees.ejs` | 114 | Employee perf table, inbound/outbound split |
-| `views/operator.ejs` | 204 | Live real-time switchboard, WebSocket |
+| `views/operator.ejs` | 200 | Live real-time switchboard, WebSocket |
 | `views/dashboard.ejs` | 207 | KPI cards, ECharts, employee table |
 | `package.json` | 20 | Dependencies (express, mysql2, socket.io, etc.) |
 | `.gitignore` | 3 | node_modules, .env, *.log |
+| `README.md` | ~170 | Installation, config, routes, auto-start guide |
 
 ---
 
