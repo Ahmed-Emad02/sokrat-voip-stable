@@ -73,16 +73,19 @@ For the Live Operator panel's Listen (ChanSpy), Whisper (ChanSpy with whisper op
 ```asterisk
 [from-internal-custom]
 exten => _222X.,1,NoOp(Spying on extension ${EXTEN:3} in Listen-only mode)
+exten => _222X.,n,Answer()
 exten => _222X.,n,ChanSpy(PJSIP/${EXTEN:3},q)
 exten => _222X.,n,ChanSpy(SIP/${EXTEN:3},q)
 exten => _222X.,n,Hangup()
 
 exten => _223X.,1,NoOp(Spying on extension ${EXTEN:3} in Whisper mode)
+exten => _223X.,n,Answer()
 exten => _223X.,n,ChanSpy(PJSIP/${EXTEN:3},qw)
 exten => _223X.,n,ChanSpy(SIP/${EXTEN:3},qw)
 exten => _223X.,n,Hangup()
 
 exten => _224X.,1,NoOp(Spying on extension ${EXTEN:3} in Barge mode)
+exten => _224X.,n,Answer()
 exten => _224X.,n,ChanSpy(PJSIP/${EXTEN:3},qB)
 exten => _224X.,n,ChanSpy(SIP/${EXTEN:3},qB)
 exten => _224X.,n,Hangup()
