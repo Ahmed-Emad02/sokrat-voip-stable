@@ -7,17 +7,15 @@ const sbT = sidebarWords[currentLang] || sidebarWords['en'];
 const isRtl = currentLang === 'ar';
 %>
 
-<div class="w-full bg-[#161b22] border-b border-[#30363d] flex flex-row items-center justify-between px-8 py-4 shadow-lg shrink-0 <%= isRtl ? 'flex-row-reverse' : '' %>">
+<div class="w-full bg-[#09090b] border-b border-[#27272a] flex flex-row items-center justify-between px-8 py-4 shadow-lg shrink-0 <%= isRtl ? 'flex-row-reverse' : '' %>">
     <!-- Brand Logo and Title -->
     <div class="flex items-center space-x-3 <%= isRtl ? 'space-x-reverse' : '' %>">
-        <div class="w-9 h-9 rounded-lg bg-[#58a6ff]/10 border border-[#58a6ff]/30 flex items-center justify-center text-[#58a6ff] font-bold shadow-inner">
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-        </div>
+        <img src="/logo.png" alt="SPT Logo" class="w-9 h-9 object-contain rounded-lg">
         <div>
-            <h1 class="text-base font-black text-[#f0f6fc] tracking-wider font-vibrant-display leading-none">
-                ISSABEL <span class="text-[#58a6ff]">ANALYTICS</span>
+            <h1 class="text-base font-black text-[#ffffff] tracking-wider font-vibrant-display leading-none">
+                SPT-<span class="text-[#ff3b30]">ANALYTICS</span>
             </h1>
-            <span class="text-[9px] text-[#8b949e] uppercase tracking-widest block mt-1 font-bold">Telemetry Console</span>
+            <span class="text-[9px] text-[#a1a1aa] uppercase tracking-widest block mt-1 font-bold">Telemetry Console</span>
         </div>
     </div>
 
@@ -25,45 +23,44 @@ const isRtl = currentLang === 'ar';
     <nav class="flex items-center space-x-1 md:space-x-2 <%= isRtl ? 'space-x-reverse' : '' %>">
         <a href="/?lang=<%= currentLang %>" 
            class="nav-item flex items-center px-4 py-2.5 rounded-lg transition-all duration-150 text-sm font-semibold relative
-           <%= currentPage === '/' ? 'bg-[#21262e] text-[#f0f6fc] border border-[#30363d] shadow-sm' : 'text-[#8b949e] hover:bg-[#21262e]/50 hover:text-[#f0f6fc]' %>">
+           <%= currentPage === '/' ? 'bg-[#18181b] text-[#ffffff] border border-[#27272a] shadow-sm' : 'text-[#a1a1aa] hover:bg-[#18181b]/50 hover:text-[#ffffff]' %>">
             <svg class="w-4 h-4 <%= isRtl ? 'ml-2' : 'mr-2' %>" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
             <span class="hidden sm:inline"><%= sbT.dashLink %></span>
             <% if (currentPage === '/') { %>
-                <div class="absolute bottom-0 left-4 right-4 h-[2px] bg-[#58a6ff] rounded-t"></div>
+                <div class="absolute bottom-0 left-4 right-4 h-[2px] bg-[#ff3b30] rounded-t"></div>
             <% } %>
         </a>
 
         <a href="/cdr?lang=<%= currentLang %>" 
            class="nav-item flex items-center px-4 py-2.5 rounded-lg transition-all duration-150 text-sm font-semibold relative
-           <%= currentPage === '/cdr' ? 'bg-[#21262e] text-[#f0f6fc] border border-[#30363d] shadow-sm' : 'text-[#8b949e] hover:bg-[#21262e]/50 hover:text-[#f0f6fc]' %>">
+           <%= currentPage === '/cdr' ? 'bg-[#18181b] text-[#ffffff] border border-[#27272a] shadow-sm' : 'text-[#a1a1aa] hover:bg-[#18181b]/50 hover:text-[#ffffff]' %>">
             <svg class="w-4 h-4 <%= isRtl ? 'ml-2' : 'mr-2' %>" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
             <span class="hidden sm:inline"><%= sbT.cdrLink %></span>
             <% if (currentPage === '/cdr') { %>
-                <div class="absolute bottom-0 left-4 right-4 h-[2px] bg-[#58a6ff] rounded-t"></div>
+                <div class="absolute bottom-0 left-4 right-4 h-[2px] bg-[#ff3b30] rounded-t"></div>
             <% } %>
         </a>
 
-
         <a href="/ext-stats?lang=<%= currentLang %>" 
            class="nav-item flex items-center px-4 py-2.5 rounded-lg transition-all duration-150 text-sm font-semibold relative
-           <%= currentPage === '/ext-stats' ? 'bg-[#21262e] text-[#f0f6fc] border border-[#30363d] shadow-sm' : 'text-[#8b949e] hover:bg-[#21262e]/50 hover:text-[#f0f6fc]' %>">
+           <%= currentPage === '/ext-stats' ? 'bg-[#18181b] text-[#ffffff] border border-[#27272a] shadow-sm' : 'text-[#a1a1aa] hover:bg-[#18181b]/50 hover:text-[#ffffff]' %>">
             <svg class="w-4 h-4 <%= isRtl ? 'ml-2' : 'mr-2' %>" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             <span class="hidden sm:inline"><%= sbT.extLink %></span>
             <% if (currentPage === '/ext-stats') { %>
-                <div class="absolute bottom-0 left-4 right-4 h-[2px] bg-[#58a6ff] rounded-t"></div>
+                <div class="absolute bottom-0 left-4 right-4 h-[2px] bg-[#ff3b30] rounded-t"></div>
             <% } %>
         </a>
 
         <a href="/operator?lang=<%= currentLang %>" 
            class="nav-item flex items-center px-4 py-2.5 rounded-lg transition-all duration-150 text-sm font-semibold relative
-           <%= currentPage === '/operator' ? 'bg-[#21262e] text-[#f0f6fc] border border-[#30363d] shadow-sm' : 'text-[#8b949e] hover:bg-[#21262e]/50 hover:text-[#f0f6fc]' %>">
+           <%= currentPage === '/operator' ? 'bg-[#18181b] text-[#ffffff] border border-[#27272a] shadow-sm' : 'text-[#a1a1aa] hover:bg-[#18181b]/50 hover:text-[#ffffff]' %>">
             <div class="relative flex items-center justify-center <%= isRtl ? 'ml-2' : 'mr-2' %>">
-                <span class="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-[#f85149] opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-2 w-2 bg-[#f85149]"></span>
+                <span class="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-[#ff3b30] opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-[#ff3b30]"></span>
             </div>
             <span class="hidden sm:inline"><%= sbT.opLink %></span>
             <% if (currentPage === '/operator') { %>
-                <div class="absolute bottom-0 left-4 right-4 h-[2px] bg-[#58a6ff] rounded-t"></div>
+                <div class="absolute bottom-0 left-4 right-4 h-[2px] bg-[#ff3b30] rounded-t"></div>
             <% } %>
         </a>
 
@@ -73,19 +70,19 @@ const isRtl = currentLang === 'ar';
     <div class="flex items-center space-x-4 <%= isRtl ? 'space-x-reverse' : '' %>">
         <!-- Digital Clock -->
         <div class="text-right hidden md:block">
-            <span class="text-[9px] font-black uppercase text-[#8b949e] tracking-widest block"><%= sbT.liveClock %></span>
-            <div id="digitalClock" class="text-sm font-mono font-bold text-[#f0f6fc] tracking-widest text-[#58a6ff]">00:00:00</div>
+            <span class="text-[9px] font-black uppercase text-[#a1a1aa] tracking-widest block"><%= sbT.liveClock %></span>
+            <div id="digitalClock" class="text-sm font-mono font-bold text-[#ff3b30] tracking-widest">00:00:00</div>
         </div>
         
-        <div class="h-4 w-[2px] bg-[#30363d] hidden md:block"></div>
+        <div class="h-4 w-[2px] bg-[#27272a] hidden md:block"></div>
 
         <!-- Language Selector -->
         <div class="relative">
-            <select onchange="location.href=window.location.pathname + '?lang=' + this.value" class="appearance-none bg-[#1c2128] text-[#f0f6fc] border border-[#30363d] rounded-lg pl-3 pr-8 py-1.5 text-xs font-bold shadow-sm focus:outline-none focus:border-[#58a6ff] cursor-pointer">
+            <select onchange="location.href=window.location.pathname + '?lang=' + this.value" class="appearance-none bg-[#18181b] text-[#ffffff] border border-[#27272a] rounded-lg pl-3 pr-8 py-1.5 text-xs font-bold shadow-sm focus:outline-none focus:border-[#ff3b30] cursor-pointer">
                 <option value="en" <%= currentLang === 'en' ? 'selected' : '' %>>EN</option>
                 <option value="ar" <%= currentLang === 'ar' ? 'selected' : '' %>>AR</option>
             </select>
-            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#8b949e]">
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#a1a1aa]">
                 <svg class="fill-current h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
             </div>
         </div>

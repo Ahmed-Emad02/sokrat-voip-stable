@@ -25,27 +25,28 @@ const isRtl = currentLang === 'ar';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enterprise Analytics - Call Logs</title>
+    <title>SPT-ANALYTICS - Call Logs</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-            <style>
+    <style>
         :root {
-            --bg-primary: #0f1117;
-            --bg-secondary: #161b22;
-            --bg-card: #1a1f26;
-            --bg-hover: #21262e;
-            --border-primary: #30363d;
-            --border-accent: #484f58;
-            --text-primary: #f0f6fc;
-            --text-secondary: #8b949e;
-            --text-muted: #6e7681;
-            --accent-color: #58a6ff;
-            --accent-hover: #79c0ff;
-            --status-online: #3fb950;
-            --status-offline: #6e7681;
-            --status-active: #58a6ff;
+            --bg-primary: #09090b;
+            --bg-secondary: #121212;
+            --bg-card: #18181b;
+            --bg-hover: #27272a;
+            --border-primary: #27272a;
+            --border-accent: #3f3f46;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --accent-color: #ff3b30;
+            --accent-hover: #ff453a;
+            --status-online: #ff3b30;
+            --status-offline: #71717a;
+            --status-active: #ff3b30;
         }
         body { 
             background-color: var(--bg-primary); 
@@ -61,8 +62,8 @@ const isRtl = currentLang === 'ar';
             right: 0;
             bottom: 0;
             background: 
-                radial-gradient(circle at 10% 20%, rgba(88, 166, 255, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(57, 197, 207, 0.04) 0%, transparent 45%);
+                radial-gradient(circle at 10% 20%, rgba(255, 59, 48, 0.06) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.02) 0%, transparent 45%);
             pointer-events: none;
             z-index: -1;
         }
@@ -81,14 +82,14 @@ const isRtl = currentLang === 'ar';
         .card-stat:hover { 
             transform: translateY(-2px); 
             border-color: var(--border-accent); 
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); 
+            box-shadow: 0 8px 24px rgba(255, 59, 48, 0.1); 
         }
         input, select, button { 
             transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1); 
         }
     </style>
 </head>
-<body class="bg-[#0f1117] text-slate-100 flex flex-col min-h-screen m-0 p-0">
+<body class="bg-[#09090b] text-slate-100 flex flex-col min-h-screen m-0 p-0">
     <%- include('sidebar') %>
     <div class="flex-1 p-8 relative">
         
@@ -100,15 +101,15 @@ const isRtl = currentLang === 'ar';
             <input type="hidden" name="lang" value="<%= currentLang %>">
             <div>
                 <label class="block text-xs font-black uppercase text-zinc-400 mb-2 tracking-wider"><%= t.startTime %></label>
-                <input type="datetime-local" name="startDate" value="<%= moment(filters.startDate).format('YYYY-MM-DDTHH:mm') %>" class="w-full bg-[#0f1117] border border-[#30363d] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#58a6ff]">
+                <input type="datetime-local" name="startDate" value="<%= moment(filters.startDate).format('YYYY-MM-DDTHH:mm') %>" class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#ff3b30]">
             </div>
             <div>
                 <label class="block text-xs font-black uppercase text-zinc-400 mb-2 tracking-wider"><%= t.endTime %></label>
-                <input type="datetime-local" name="endDate" value="<%= moment(filters.endDate).format('YYYY-MM-DDTHH:mm') %>" class="w-full bg-[#0f1117] border border-[#30363d] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#58a6ff]">
+                <input type="datetime-local" name="endDate" value="<%= moment(filters.endDate).format('YYYY-MM-DDTHH:mm') %>" class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#ff3b30]">
             </div>
             <div>
                 <label class="block text-xs font-black uppercase text-zinc-400 mb-2 tracking-wider"><%= t.roster %></label>
-                <select name="targetExtension" class="w-full bg-[#0f1117] border border-[#30363d] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#58a6ff]">
+                <select name="targetExtension" class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#ff3b30]">
                     <option value="ALL"><%= t.allExt %></option>
                     <% roster.forEach(emp => { %>
                         <option value="<%= emp.extension %>" <%= filters.targetExtension === emp.extension ? 'selected' : '' %>><%= emp.extension %> - <%= emp.name %></option>
@@ -117,7 +118,7 @@ const isRtl = currentLang === 'ar';
             </div>
             <div>
                 <label class="block text-xs font-black uppercase text-zinc-400 mb-2 tracking-wider"><%= t.status %></label>
-                <select name="statusFilter" class="w-full bg-[#0f1117] border border-[#30363d] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#58a6ff]">
+                <select name="statusFilter" class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#ff3b30]">
                     <option value="ALL" <%= filters.statusFilter === 'ALL' ? 'selected' : '' %>><%= t.allDisp %></option>
                     <option value="ANSWERED" <%= filters.statusFilter === 'ANSWERED' ? 'selected' : '' %>>ANSWERED</option>
                     <option value="NO ANSWER" <%= filters.statusFilter === 'NO ANSWER' ? 'selected' : '' %>>NO ANSWER</option>
@@ -127,21 +128,21 @@ const isRtl = currentLang === 'ar';
             </div>
             <div>
                 <label class="block text-xs font-black uppercase text-zinc-400 mb-2 tracking-wider"><%= t.src %></label>
-                <input type="text" name="searchSrc" value="<%= filters.searchSrc %>" placeholder="e.g., 101" class="w-full bg-[#0f1117] border border-[#30363d] rounded-lg px-3 py-2 text-sm text-white placeholder-purple-900 focus:outline-none focus:border-[#58a6ff]">
+                <input type="text" name="searchSrc" value="<%= filters.searchSrc %>" placeholder="e.g., 101" class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-700 focus:outline-none focus:border-[#ff3b30]">
             </div>
             <div>
                 <label class="block text-xs font-black uppercase text-zinc-400 mb-2 tracking-wider"><%= t.dst %></label>
-                <input type="text" name="searchDst" value="<%= filters.searchDst %>" placeholder="e.g., 010..." class="w-full bg-[#0f1117] border border-[#30363d] rounded-lg px-3 py-2 text-sm text-white placeholder-purple-900 focus:outline-none focus:border-[#58a6ff]">
+                <input type="text" name="searchDst" value="<%= filters.searchDst %>" placeholder="e.g., 010..." class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-700 focus:outline-none focus:border-[#ff3b30]">
             </div>
             <div class="md:col-span-6">
-                <button type="submit" class="w-full bg-[#58a6ff] hover:bg-[#388bfd] text-white font-black py-3 rounded-lg text-sm uppercase tracking-wider shadow-md transition cursor-pointer"><%= t.btn %></button>
+                <button type="submit" class="w-full bg-[#ff3b30] hover:bg-[#ff453a] text-white font-black py-3 rounded-lg text-sm uppercase tracking-wider shadow-md transition cursor-pointer"><%= t.btn %></button>
             </div>
         </form>
         <div class="panel-surface rounded-2xl overflow-hidden shadow-2xl">
             <div class="overflow-x-auto">
                 <table class="w-full text-start border-collapse">
                     <thead>
-                        <tr class="bg-black/40 text-zinc-400 text-xs font-bold uppercase border-b border-[#30363d]">
+                        <tr class="bg-black/40 text-zinc-400 text-xs font-bold uppercase border-b border-[#27272a]">
                             <th class="p-4 tracking-wider text-start"><%= t.thTime %></th>
                             <th class="p-4 tracking-wider text-start"><%= t.thSrc %></th>
                             <th class="p-4 tracking-wider text-start"><%= t.thDst %></th>
@@ -161,7 +162,7 @@ const isRtl = currentLang === 'ar';
                                 <td class="p-4 text-white"><%= call.dst %></td>
                                 <td class="p-4 text-zinc-400"><%= call.billsec %>s</td>
                                 <td class="p-4">
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider <%= call.disposition === 'ANSWERED' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20' %>">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-black tracking-wider <%= call.disposition === 'ANSWERED' ? 'bg-[#ff3b30]/10 text-[#ff3b30] border border-[#ff3b30]/20' : 'bg-zinc-800 text-zinc-400 border border-zinc-700/50' %>">
                                         <%= call.disposition %>
                                     </span>
                                 </td>
@@ -171,7 +172,7 @@ const isRtl = currentLang === 'ar';
                                             <audio controls preload="none" class="h-8 w-40" style="min-width:140px">
                                                 <source src="/audio/<%= call.uniqueid %>" type="audio/wav">
                                             </audio>
-                                            <a href="/audio/<%= call.uniqueid %>?download=1" class="bg-[#D22B71] hover:bg-pink-700 text-white font-sans text-[10px] font-bold px-2 py-1 rounded-lg transition shadow-md shrink-0" download><%= t.download %></a>
+                                            <a href="/audio/<%= call.uniqueid %>?download=1" class="bg-[#ff3b30] hover:bg-[#ff453a] text-white font-sans text-[10px] font-bold px-2 py-1 rounded-lg transition shadow-md shrink-0" download><%= t.download %></a>
                                         </div>
                                     <% } else { %>
                                         <span class="text-xs font-sans text-zinc-500/30 font-bold italic select-none <%= isRtl ? 'pl-3' : 'pr-3' %>"><%= t.noAudio %></span>
@@ -182,9 +183,9 @@ const isRtl = currentLang === 'ar';
                     </tbody>
                 </table>
             </div>
-            <div class="px-6 py-4 border-t border-[#30363d] bg-black/40 flex justify-between items-center">
+            <div class="px-6 py-4 border-t border-[#27272a] bg-black/40 flex justify-between items-center">
                 <span class="text-xs font-bold uppercase tracking-widest text-zinc-500"><%= t.footerLeft %></span>
-                <span class="text-sm font-black text-white"><%= t.footerRight %> <span class="text-[#58a6ff]"><%= calls.length %> rows</span></span>
+                <span class="text-sm font-black text-white"><%= t.footerRight %> <span class="text-[#ff3b30]"><%= calls.length %> rows</span></span>
             </div>
         </div>
     </div>

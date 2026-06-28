@@ -61,7 +61,8 @@ const isRtl = currentLang === 'ar';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enterprise Analytics - Extension Statistics</title>
+    <title>SPT-ANALYTICS - Extension Statistics</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
@@ -69,20 +70,20 @@ const isRtl = currentLang === 'ar';
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <style>
         :root {
-            --bg-primary: #0f1117;
-            --bg-secondary: #161b22;
-            --bg-card: #1a1f26;
-            --bg-hover: #21262e;
-            --border-primary: #30363d;
-            --border-accent: #484f58;
-            --text-primary: #f0f6fc;
-            --text-secondary: #8b949e;
-            --text-muted: #6e7681;
-            --accent-color: #58a6ff;
-            --accent-hover: #79c0ff;
-            --status-online: #3fb950;
-            --status-offline: #6e7681;
-            --status-active: #58a6ff;
+            --bg-primary: #09090b;
+            --bg-secondary: #121212;
+            --bg-card: #18181b;
+            --bg-hover: #27272a;
+            --border-primary: #27272a;
+            --border-accent: #3f3f46;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --accent-color: #ff3b30;
+            --accent-hover: #ff453a;
+            --status-online: #ff3b30;
+            --status-offline: #71717a;
+            --status-active: #ff3b30;
         }
         body { 
             background-color: var(--bg-primary); 
@@ -98,8 +99,8 @@ const isRtl = currentLang === 'ar';
             right: 0;
             bottom: 0;
             background: 
-                radial-gradient(circle at 10% 20%, rgba(88, 166, 255, 0.06) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.05) 0%, transparent 45%);
+                radial-gradient(circle at 10% 20%, rgba(255, 59, 48, 0.06) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.02) 0%, transparent 45%);
             pointer-events: none;
             z-index: -1;
         }
@@ -119,7 +120,7 @@ const isRtl = currentLang === 'ar';
         .card-stat:hover { 
             transform: translateY(-4px); 
             border-color: var(--border-accent); 
-            box-shadow: 0 12px 30px rgba(88, 166, 255, 0.15); 
+            box-shadow: 0 12px 30px rgba(255, 59, 48, 0.15); 
         }
         .ext-card {
             transition: all 150ms ease;
@@ -130,7 +131,7 @@ const isRtl = currentLang === 'ar';
             border-color: var(--border-accent);
         }
         .ext-card.active {
-            background-color: #21262e;
+            background-color: #27272a;
             border-left: 4px solid var(--accent-color);
             box-shadow: inset 2px 0 8px rgba(0,0,0,0.5);
         }
@@ -144,18 +145,18 @@ const isRtl = currentLang === 'ar';
             height: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: #0f1117;
+            background: #09090b;
         }
         ::-webkit-scrollbar-thumb {
-            background: #30363d;
+            background: #27272a;
             border-radius: 3px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #484f58;
+            background: #3f3f46;
         }
     </style>
 </head>
-<body class="bg-[#0f1117] text-slate-100 flex flex-col min-h-screen m-0 p-0">
+<body class="bg-[#09090b] text-slate-100 flex flex-col min-h-screen m-0 p-0">
     <%- include('sidebar') %>
     <div class="flex-1 p-8 flex flex-col min-h-0">
         
@@ -165,7 +166,7 @@ const isRtl = currentLang === 'ar';
                 <p class="text-xs text-zinc-500 font-bold tracking-widest uppercase mt-1"><%= t.desc %></p>
             </div>
             <!-- Back to Overview Button in Title Bar -->
-            <button id="overviewHeaderBtn" onclick="selectOverview()" class="hidden bg-[#21262e] hover:bg-[#30363d] border border-[#30363d] text-[#58a6ff] hover:text-[#79c0ff] px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer flex items-center gap-2">
+            <button id="overviewHeaderBtn" onclick="selectOverview()" class="hidden bg-[#18181b] hover:bg-[#27272a] border border-[#27272a] text-[#ff3b30] hover:text-[#ff453a] px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h7"/></svg>
                 <%= t.overview %>
             </button>
@@ -176,22 +177,22 @@ const isRtl = currentLang === 'ar';
             <input type="hidden" name="lang" value="<%= currentLang %>">
             <div>
                 <label class="block text-xs font-black uppercase text-zinc-400 mb-2 tracking-wider"><%= t.startTime %></label>
-                <input type="datetime-local" id="startDate" name="startDate" class="w-full bg-[#0f1117] border border-[#30363d] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#58a6ff]">
+                <input type="datetime-local" id="startDate" name="startDate" class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#ff3b30]">
             </div>
             <div>
                 <label class="block text-xs font-black uppercase text-zinc-400 mb-2 tracking-wider"><%= t.endTime %></label>
-                <input type="datetime-local" id="endDate" name="endDate" class="w-full bg-[#0f1117] border border-[#30363d] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#58a6ff]">
+                <input type="datetime-local" id="endDate" name="endDate" class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#ff3b30]">
             </div>
             <div id="dirFilterCol">
                 <label class="block text-xs font-black uppercase text-zinc-400 mb-2 tracking-wider"><%= t.direction %></label>
-                <select id="direction" name="direction" class="w-full bg-[#0f1117] border border-[#30363d] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#58a6ff]">
+                <select id="direction" name="direction" class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#ff3b30]">
                     <option value="all"><%= t.allDir %></option>
                     <option value="inbound"><%= t.inbound %></option>
                     <option value="outbound"><%= t.outbound %></option>
                 </select>
             </div>
             <div class="md:col-span-2 flex items-end gap-2">
-                <button type="submit" class="flex-1 bg-[#58a6ff] hover:bg-[#388bfd] text-white font-black py-3 rounded-lg text-sm uppercase tracking-wider shadow-md transition cursor-pointer"><%= t.apply %></button>
+                <button type="submit" class="flex-1 bg-[#ff3b30] hover:bg-[#ff453a] text-white font-black py-3 rounded-lg text-sm uppercase tracking-wider shadow-md transition cursor-pointer"><%= t.apply %></button>
             </div>
         </form>
 
@@ -199,13 +200,13 @@ const isRtl = currentLang === 'ar';
         <div class="flex gap-6 flex-1 min-h-0">
             <!-- Left Extensions List -->
             <div class="panel-surface rounded-2xl shadow-2xl w-60 shrink-0 flex flex-col min-h-0">
-                <div class="px-4 py-3.5 border-b border-[#30363d] bg-black/30 shrink-0 flex items-center justify-between <%= isRtl ? 'flex-row-reverse' : '' %>">
+                <div class="px-4 py-3.5 border-b border-[#27272a] bg-black/30 shrink-0 flex items-center justify-between <%= isRtl ? 'flex-row-reverse' : '' %>">
                     <span class="text-xs font-bold uppercase tracking-widest text-zinc-400"><%= t.extList %></span>
                 </div>
                 
                 <!-- Navigation Items -->
-                <div class="p-2 border-b border-[#30363d]/60 bg-black/10 shrink-0">
-                    <div id="btnOverview" class="ext-card panel-surface rounded-xl px-3 py-2.5 text-sm flex items-center gap-3 active font-black tracking-wide text-[#58a6ff] border border-[#30363d]" onclick="selectOverview()">
+                <div class="p-2 border-b border-[#27272a]/60 bg-black/10 shrink-0">
+                    <div id="btnOverview" class="ext-card panel-surface rounded-xl px-3 py-2.5 text-sm flex items-center gap-3 active font-black tracking-wide text-[#ff3b30] border border-[#27272a]" onclick="selectOverview()">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h7"/></svg>
                         <span><%= t.overview %></span>
                     </div>
@@ -214,14 +215,14 @@ const isRtl = currentLang === 'ar';
                 <div id="extList" class="flex-1 overflow-y-auto p-2 space-y-1 min-h-0">
                     <% roster.forEach(emp => { %>
                         <div class="ext-card panel-surface rounded-xl px-3 py-2.5 text-sm flex items-center gap-3 <%= isRtl ? 'flex-row-reverse' : '' %>" data-ext="<%= emp.extension %>" onclick="selectExtension('<%= emp.extension %>')">
-                            <span class="text-[#58a6ff] font-bold font-mono text-xs"><%= emp.extension %></span>
+                            <span class="text-[#ff3b30] font-bold font-mono text-xs"><%= emp.extension %></span>
                             <span class="text-white font-sans font-bold truncate flex-1"><%= emp.name %></span>
-                            <span class="w-2 h-2 rounded-full <%= emp.online ? 'bg-emerald-400' : 'bg-zinc-700' %> shrink-0"></span>
+                            <span class="w-2 h-2 rounded-full <%= emp.online ? 'bg-[#ff3b30]' : 'bg-zinc-700' %> shrink-0"></span>
                         </div>
                     <% }) %>
                 </div>
-                <div class="px-4 py-2.5 border-t border-[#30363d] bg-black/30 text-center shrink-0">
-                    <span class="text-[10px] font-bold text-zinc-500"><%= t.footerRight %> <span class="text-[#58a6ff]"><%= roster.length %></span></span>
+                <div class="px-4 py-2.5 border-t border-[#27272a] bg-black/30 text-center shrink-0">
+                    <span class="text-[10px] font-bold text-zinc-500"><%= t.footerRight %> <span class="text-[#ff3b30]"><%= roster.length %></span></span>
                 </div>
             </div>
 
@@ -229,7 +230,7 @@ const isRtl = currentLang === 'ar';
             <div id="detailPanel" class="flex-1 panel-surface rounded-2xl shadow-2xl overflow-y-auto min-h-0 p-6 flex flex-col">
                 <!-- Fallback Loading spinner placeholder -->
                 <div class="flex-1 flex items-center justify-center text-zinc-500">
-                    <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#58a6ff]"></div>
+                    <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#ff3b30]"></div>
                 </div>
             </div>
         </div>
@@ -301,7 +302,7 @@ const isRtl = currentLang === 'ar';
             
             panel.innerHTML = `
                 <div class="flex-1 flex items-center justify-center text-zinc-500">
-                    <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#58a6ff]"></div>
+                    <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#ff3b30]"></div>
                 </div>
             `;
 
@@ -346,7 +347,7 @@ const isRtl = currentLang === 'ar';
             });
 
             const caret = sortDirection === 'asc' ? '▲' : '▼';
-            const sortIndicator = (col) => sortColumn === col ? `<span class="text-[#58a6ff] ml-1 text-[9px]">${caret}</span>` : '';
+            const sortIndicator = (col) => sortColumn === col ? `<span class="text-[#ff3b30] ml-1 text-[9px]">${caret}</span>` : '';
 
             let html = `
                 <div class="w-full flex flex-col h-full">
@@ -357,10 +358,10 @@ const isRtl = currentLang === 'ar';
                         </div>
                     </div>
 
-                    <div class="overflow-x-auto flex-1 border border-[#30363d]/50 rounded-xl bg-black/10">
+                    <div class="overflow-x-auto flex-1 border border-[#27272a]/50 rounded-xl bg-black/10">
                         <table class="w-full text-start border-collapse">
                             <thead>
-                                <tr class="bg-black/40 text-zinc-400 text-[10px] font-black uppercase border-b border-[#30363d] sticky top-0 z-10">
+                                <tr class="bg-black/40 text-zinc-400 text-[10px] font-black uppercase border-b border-[#27272a] sticky top-0 z-10">
                                     <th class="p-3.5 tracking-wider text-start cursor-pointer hover:text-white transition select-none" onclick="sortOverview('extension')"><%= t.extension %> ${sortIndicator('extension')}</th>
                                     <th class="p-3.5 tracking-wider text-start cursor-pointer hover:text-white transition select-none" onclick="sortOverview('name')"><%= t.employee %> ${sortIndicator('name')}</th>
                                     <th class="p-3.5 tracking-wider text-center cursor-pointer hover:text-white transition select-none" onclick="sortOverview('online')"><%= t.status %> ${sortIndicator('online')}</th>
@@ -371,7 +372,7 @@ const isRtl = currentLang === 'ar';
                                     <th class="p-3.5 tracking-wider text-end cursor-pointer hover:text-white transition select-none" onclick="sortOverview('totalTalkSec')"><%= t.totalDuration %> ${sortIndicator('totalTalkSec')}</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-[#30363d]/20 text-xs font-mono">
+                            <tbody class="divide-y divide-[#27272a]/20 text-xs font-mono">
             `;
 
             if (sorted.length === 0) {
@@ -380,24 +381,24 @@ const isRtl = currentLang === 'ar';
                 sorted.forEach(row => {
                     const talkMin = Math.round(row.totalTalkSec / 60);
                     
-                    // Agent status colors
+                    // Agent status colors - themed red/silver
                     let agentBadge = '';
                     if (row.agentStatus === 'Available') {
-                        agentBadge = '<span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Available</span>';
+                        agentBadge = '<span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-[#ff3b30]/10 text-[#ff3b30] border border-[#ff3b30]/20">Available</span>';
                     } else if (row.agentStatus === 'Offline') {
                         agentBadge = '<span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-zinc-700/10 text-zinc-500 border border-zinc-700/20">Offline</span>';
                     } else {
                         // Paused / On Break states
-                        agentBadge = `<span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">${row.agentStatus}</span>`;
+                        agentBadge = `<span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-zinc-800 text-zinc-300 border border-zinc-700">${row.agentStatus}</span>`;
                     }
 
                     html += `
                         <tr class="hover:bg-zinc-900/50 cursor-pointer transition" onclick="selectExtension('${row.extension}')">
-                            <td class="p-3.5 text-[#58a6ff] font-bold">${row.extension}</td>
+                            <td class="p-3.5 text-[#ff3b30] font-bold">${row.extension}</td>
                             <td class="p-3.5 text-white font-sans font-bold">${row.name}</td>
                             <td class="p-3.5 text-center">
-                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold ${row.online ? 'bg-emerald-500/10 text-emerald-400' : 'bg-zinc-800 text-zinc-500'}">
-                                    <span class="w-1.5 h-1.5 rounded-full ${row.online ? 'bg-emerald-400' : 'bg-zinc-600'}"></span>
+                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold ${row.online ? 'bg-[#ff3b30]/10 text-[#ff3b30]' : 'bg-zinc-850 text-zinc-500'}">
+                                    <span class="w-1.5 h-1.5 rounded-full ${row.online ? 'bg-[#ff3b30]' : 'bg-zinc-600'}"></span>
                                     ${row.online ? '<%= t.online %>' : '<%= t.offline %>'}
                                 </span>
                             </td>
@@ -405,7 +406,7 @@ const isRtl = currentLang === 'ar';
                             <td class="p-3.5 text-center text-white font-bold">${row.totalCalls}</td>
                             <td class="p-3.5 text-center text-slate-300">${row.inboundCalls}</td>
                             <td class="p-3.5 text-center text-slate-300">${row.outboundCalls}</td>
-                            <td class="p-3.5 text-end text-emerald-400 font-bold">${talkMin} <%= t.min %> <span class="text-[10px] text-zinc-500">(${row.totalTalkSec}s)</span></td>
+                            <td class="p-3.5 text-end text-[#ff3b30] font-bold">${talkMin} <%= t.min %> <span class="text-[10px] text-zinc-500">(${row.totalTalkSec}s)</span></td>
                         </tr>
                     `;
                 });
@@ -429,7 +430,7 @@ const isRtl = currentLang === 'ar';
 
             panel.innerHTML = `
                 <div class="flex-1 flex items-center justify-center text-zinc-500">
-                    <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#58a6ff]"></div>
+                    <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#ff3b30]"></div>
                 </div>
             `;
 
@@ -461,7 +462,7 @@ const isRtl = currentLang === 'ar';
             html += `<div class="flex items-center justify-between mb-5 shrink-0 ${rtl ? 'flex-row-reverse' : ''}">
                 <div>
                     <h3 class="text-xl font-bold text-white flex items-center gap-2 ${rtl ? 'flex-row-reverse' : ''}">
-                        <span class="accent-orange font-mono bg-[#21262e] border border-[#30363d] px-2.5 py-1 rounded-lg text-base">${data.extension}</span>
+                        <span class="accent-orange font-mono bg-[#18181b] border border-[#27272a] px-2.5 py-1 rounded-lg text-base">${data.extension}</span>
                         <span class="text-zinc-300 font-sans">${data.name}</span>
                     </h3>
                 </div>
@@ -469,34 +470,34 @@ const isRtl = currentLang === 'ar';
 
             // Stat Cards Grid
             html += '<div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6 shrink-0">';
-            html += `<div class="panel-surface rounded-xl p-4 card-stat border border-[#30363d]/30">
+            html += `<div class="panel-surface rounded-xl p-4 card-stat border border-[#27272a]/30">
                 <p class="text-[9px] font-black uppercase text-zinc-500 tracking-wider"><%= t.totalCalls %></p>
                 <p class="text-2xl font-black text-white mt-1">${data.totalCalls}</p>
             </div>`;
-            html += `<div class="panel-surface rounded-xl p-4 card-stat border-l-4 border-l-[#10b981] border-y border-r border-[#30363d]/30">
+            html += `<div class="panel-surface rounded-xl p-4 card-stat border-l-4 border-l-[#ffffff] border-y border-r border-[#27272a]/30">
                 <p class="text-[9px] font-black uppercase text-zinc-500 tracking-wider"><%= t.answered %></p>
-                <p class="text-2xl font-black text-emerald-400 mt-1">${data.answeredCalls}</p>
+                <p class="text-2xl font-black text-white mt-1">${data.answeredCalls}</p>
             </div>`;
-            html += `<div class="panel-surface rounded-xl p-4 card-stat border-l-4 border-l-[#58a6ff] border-y border-r border-[#30363d]/30">
+            html += `<div class="panel-surface rounded-xl p-4 card-stat border-l-4 border-l-[#ff3b30] border-y border-r border-[#27272a]/30">
                 <p class="text-[9px] font-black uppercase text-zinc-500 tracking-wider"><%= t.answerRate %></p>
-                <p class="text-2xl font-black text-[#58a6ff] mt-1">${data.answerRate}%</p>
+                <p class="text-2xl font-black text-[#ff3b30] mt-1">${data.answerRate}%</p>
             </div>`;
-            html += `<div class="panel-surface rounded-xl p-4 card-stat border-l-4 border-l-cyan-400 border-y border-r border-[#30363d]/30">
+            html += `<div class="panel-surface rounded-xl p-4 card-stat border-l-4 border-l-zinc-500 border-y border-r border-[#27272a]/30">
                 <p class="text-[9px] font-black uppercase text-zinc-500 tracking-wider"><%= t.uniqueContacts %></p>
-                <p class="text-2xl font-black text-cyan-400 mt-1">${data.uniqueContactCount}</p>
+                <p class="text-2xl font-black text-zinc-300 mt-1">${data.uniqueContactCount}</p>
             </div>`;
-            html += `<div class="panel-surface rounded-xl p-4 card-stat border-l-4 border-l-fuchsia-400 border-y border-r border-[#30363d]/30">
+            html += `<div class="panel-surface rounded-xl p-4 card-stat border-l-4 border-l-zinc-700 border-y border-r border-[#27272a]/30">
                 <p class="text-[9px] font-black uppercase text-zinc-500 tracking-wider"><%= t.avgTalk %></p>
-                <p class="text-2xl font-black text-zinc-400 mt-1">${data.avgTalkSec}<span class="text-xs text-fuchsia-400 ml-0.5">s</span></p>
+                <p class="text-2xl font-black text-zinc-400 mt-1">${data.avgTalkSec}<span class="text-xs text-[#ff3b30] ml-0.5">s</span></p>
             </div>`;
             html += '</div>';
 
             // Split metrics
             if (data.hasDirectionData) {
                 html += '<div class="grid grid-cols-2 gap-3 mb-6 shrink-0">';
-                html += `<div class="panel-surface rounded-xl p-4 border border-[#30363d]/40 flex items-center justify-between ${rtl ? 'flex-row-reverse' : ''}">
+                html += `<div class="panel-surface rounded-xl p-4 border border-[#27272a]/40 flex items-center justify-between ${rtl ? 'flex-row-reverse' : ''}">
                     <div>
-                        <p class="text-[10px] font-black uppercase text-emerald-400 tracking-wider"><%= t.inboundLabel %></p>
+                        <p class="text-[10px] font-black uppercase text-white tracking-wider"><%= t.inboundLabel %></p>
                         <p class="text-3xl font-black text-white mt-1">${data.inboundCalls}</p>
                     </div>
                     <div class="text-right">
@@ -504,9 +505,9 @@ const isRtl = currentLang === 'ar';
                         <span class="text-base font-black text-white">${data.inboundMin} <%= t.min %></span>
                     </div>
                 </div>`;
-                html += `<div class="panel-surface rounded-xl p-4 border border-[#30363d]/40 flex items-center justify-between ${rtl ? 'flex-row-reverse' : ''}">
+                html += `<div class="panel-surface rounded-xl p-4 border border-[#27272a]/40 flex items-center justify-between ${rtl ? 'flex-row-reverse' : ''}">
                     <div>
-                        <p class="text-[10px] font-black uppercase text-cyan-400 tracking-wider"><%= t.outboundLabel %></p>
+                        <p class="text-[10px] font-black uppercase text-[#ff3b30] tracking-wider"><%= t.outboundLabel %></p>
                         <p class="text-3xl font-black text-white mt-1">${data.outboundCalls}</p>
                     </div>
                     <div class="text-right">
@@ -519,11 +520,11 @@ const isRtl = currentLang === 'ar';
 
             // Charts Grid
             html += '<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 shrink-0">';
-            html += `<div class="panel-surface rounded-xl p-4 border border-[#30363d]/30">
+            html += `<div class="panel-surface rounded-xl p-4 border border-[#27272a]/30">
                 <h4 class="text-xs font-black uppercase text-zinc-400 tracking-wider mb-4"><%= t.disposition %></h4>
                 <div id="dispositionChart" class="w-full h-64"></div>
             </div>`;
-            html += `<div class="panel-surface rounded-xl p-4 border border-[#30363d]/30">
+            html += `<div class="panel-surface rounded-xl p-4 border border-[#27272a]/30">
                 <h4 class="text-xs font-black uppercase text-zinc-400 tracking-wider mb-4"><%= t.daily %></h4>
                 <div id="dailyChart" class="w-full h-64"></div>
             </div>`;
@@ -531,32 +532,32 @@ const isRtl = currentLang === 'ar';
 
             // Tag Cloud
             if (data.contacts.length) {
-                html += `<div class="panel-surface rounded-xl p-4 border border-[#30363d]/30 mb-6 shrink-0">
+                html += `<div class="panel-surface rounded-xl p-4 border border-[#27272a]/30 mb-6 shrink-0">
                     <h4 class="text-xs font-black uppercase text-zinc-400 tracking-wider mb-3"><%= t.uniqueContacts %> (${data.uniqueContactCount})</h4>
                     <div class="flex flex-wrap gap-1.5">`;
                 data.contacts.forEach(c => {
-                    html += `<span class="bg-[#0f1117] border border-[#30363d] rounded-lg px-2.5 py-1.5 text-xs font-mono text-[#58a6ff] hover:border-[#58a6ff]/50 transition">${c}</span>`;
+                    html += `<span class="bg-[#09090b] border border-[#27272a] rounded-lg px-2.5 py-1.5 text-xs font-mono text-[#ff3b30] hover:border-[#ff3b30]/50 transition">${c}</span>`;
                 });
                 html += '</div></div>';
             }
 
             // Recent Calls Table
             if (data.recentCalls && data.recentCalls.length) {
-                html += `<div class="panel-surface rounded-xl border border-[#30363d]/30 overflow-hidden flex-1 flex flex-col min-h-0">
-                    <div class="px-4 py-3 border-b border-[#30363d] bg-black/25 shrink-0">
+                html += `<div class="panel-surface rounded-xl border border-[#27272a]/30 overflow-hidden flex-1 flex flex-col min-h-0">
+                    <div class="px-4 py-3 border-b border-[#27272a] bg-black/25 shrink-0">
                         <h4 class="text-xs font-black uppercase text-zinc-400 tracking-wider"><%= t.recentCalls %></h4>
                     </div>
                     <div class="overflow-y-auto flex-1 min-h-0">
                         <table class="w-full text-start border-collapse">
                             <thead>
-                                <tr class="bg-black/40 text-zinc-500 text-[9px] font-black uppercase border-b border-[#30363d] sticky top-0 z-10">
+                                <tr class="bg-black/40 text-zinc-500 text-[9px] font-black uppercase border-b border-[#27272a] sticky top-0 z-10">
                                     <th class="p-3 tracking-wider text-start"><%= t.src %></th>
                                     <th class="p-3 tracking-wider text-start"><%= t.dst %></th>
                                     <th class="p-3 tracking-wider text-start"><%= t.duration %></th>
                                     <th class="p-3 tracking-wider text-start"><%= t.status %></th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-[#30363d]/10 text-xs font-mono">`;
+                            <tbody class="divide-y divide-[#27272a]/10 text-xs font-mono">`;
                 data.recentCalls.forEach(call => {
                     const answered = call.disposition === 'ANSWERED';
                     html += `
@@ -565,7 +566,7 @@ const isRtl = currentLang === 'ar';
                             <td class="p-3 text-white">${call.dst}</td>
                             <td class="p-3 text-zinc-400">${call.billsec}s</td>
                             <td class="p-3">
-                                <span class="px-2 py-0.5 rounded text-[10px] font-black tracking-wider ${answered ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/25' : 'bg-rose-500/10 text-rose-400 border border-rose-500/25'}">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-black tracking-wider ${answered ? 'bg-[#ff3b30]/10 text-[#ff3b30] border border-[#ff3b30]/25' : 'bg-zinc-800 text-zinc-400 border border-zinc-700/50'}">
                                     ${call.disposition}
                                 </span>
                             </td>
@@ -592,32 +593,32 @@ const isRtl = currentLang === 'ar';
             if (dispositionChart) dispositionChart.dispose();
             dispositionChart = echarts.init(document.getElementById('dispositionChart'), 'dark');
             
-            // Build rich vibrant gradient mapping
+            // Build rich vibrant gradient mapping - rebranded in Red, White, and Black/Silver
             const colorGradients = {
                 ANSWERED: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                    { offset: 0, color: '#00ff87' },
-                    { offset: 1, color: '#60efff' }
+                    { offset: 0, color: '#ff3b30' },
+                    { offset: 1, color: '#991b1b' }
                 ]),
                 BUSY: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                    { offset: 0, color: '#ffb347' },
-                    { offset: 1, color: '#ffcc33' }
+                    { offset: 0, color: '#ff6b6b' },
+                    { offset: 1, color: '#ff8787' }
                 ]),
                 'NO ANSWER': new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                    { offset: 0, color: '#ff0844' },
-                    { offset: 1, color: '#ffb199' }
+                    { offset: 0, color: '#d90429' },
+                    { offset: 1, color: '#ef233c' }
                 ]),
                 FAILED: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                    { offset: 0, color: '#f43f5e' },
-                    { offset: 1, color: '#be123c' }
+                    { offset: 0, color: '#3f0000' },
+                    { offset: 1, color: '#7f0000' }
                 ]),
                 CANCEL: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                    { offset: 0, color: '#b92b27' },
-                    { offset: 1, color: '#1565c0' }
+                    { offset: 0, color: '#ffffff' },
+                    { offset: 1, color: '#a1a1aa' }
                 ])
             };
             const defaultGradient = new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: '#a18cd1' },
-                { offset: 1, color: '#fbc2eb' }
+                { offset: 0, color: '#a1a1aa' },
+                { offset: 1, color: '#71717a' }
             ]);
 
             dispositionChart.setOption({
@@ -625,13 +626,13 @@ const isRtl = currentLang === 'ar';
                 tooltip: { 
                     trigger: 'item', 
                     formatter: '{b}: {c} ({d}%)',
-                    backgroundColor: '#161b22',
-                    borderColor: '#30363d',
-                    textStyle: { color: '#f0f6fc', fontSize: 11 }
+                    backgroundColor: '#18181b',
+                    borderColor: '#27272a',
+                    textStyle: { color: '#ffffff', fontSize: 11 }
                 },
                 legend: { 
                     bottom: '0%', 
-                    textStyle: { color: '#8b949e', fontSize: 10, fontWeight: 'bold' } 
+                    textStyle: { color: '#a1a1aa', fontSize: 10, fontWeight: 'bold' } 
                 },
                 series: [{
                     name: 'Disposition',
@@ -639,7 +640,7 @@ const isRtl = currentLang === 'ar';
                     radius: ['45%', '70%'],
                     itemStyle: { 
                         borderRadius: 10, 
-                        borderColor: '#161b22', 
+                        borderColor: '#121212', 
                         borderWidth: 2.5,
                         shadowBlur: 15,
                         shadowColor: 'rgba(0, 0, 0, 0.4)'
@@ -663,41 +664,39 @@ const isRtl = currentLang === 'ar';
             if (dailyChart) dailyChart.dispose();
             dailyChart = echarts.init(document.getElementById('dailyChart'), 'dark');
             
-            // Neon cyan/blue gradient for Total
+            // Rebranded gradients
             const totalGradient = new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: '#00ffff' },
-                { offset: 1, color: '#0055ff' }
+                { offset: 0, color: '#ff3b30' },
+                { offset: 1, color: '#991b1b' }
             ]);
-            
-            // Neon mint/green gradient for Answered
             const answeredGradient = new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: '#00ff87' },
-                { offset: 1, color: '#00aa50' }
+                { offset: 0, color: '#ffffff' },
+                { offset: 1, color: '#a1a1aa' }
             ]);
 
             dailyChart.setOption({
                 backgroundColor: 'transparent',
                 tooltip: { 
                     trigger: 'axis',
-                    backgroundColor: '#161b22',
-                    borderColor: '#30363d',
-                    textStyle: { color: '#f0f6fc', fontSize: 11 }
+                    backgroundColor: '#18181b',
+                    borderColor: '#27272a',
+                    textStyle: { color: '#ffffff', fontSize: 11 }
                 },
                 legend: { 
                     bottom: '0%', 
-                    textStyle: { color: '#8b949e', fontSize: 10, fontWeight: 'bold' } 
+                    textStyle: { color: '#a1a1aa', fontSize: 10, fontWeight: 'bold' } 
                 },
                 grid: { left: '8%', right: '4%', top: '8%', bottom: '18%' },
                 xAxis: {
                     type: 'category',
                     data: data.map(d => d.date.slice(5)),
-                    axisLabel: { color: '#8b949e', fontSize: 9, fontWeight: 'bold' },
-                    axisLine: { lineStyle: { color: '#30363d' } }
+                    axisLabel: { color: '#a1a1aa', fontSize: 9, fontWeight: 'bold' },
+                    axisLine: { lineStyle: { color: '#27272a' } }
                 },
                 yAxis: {
                     type: 'value',
-                    axisLabel: { color: '#8b949e', fontSize: 9 },
-                    splitLine: { lineStyle: { color: '#30363d', type: 'dashed' } }
+                    axisLabel: { color: '#a1a1aa', fontSize: 9 },
+                    splitLine: { lineStyle: { color: '#27272a', type: 'dashed' } }
                 },
                 series: [
                     { 
@@ -708,7 +707,7 @@ const isRtl = currentLang === 'ar';
                             color: totalGradient, 
                             borderRadius: [5,5,0,0],
                             shadowBlur: 10,
-                            shadowColor: 'rgba(0, 85, 255, 0.3)'
+                            shadowColor: 'rgba(255, 59, 48, 0.3)'
                         }, 
                         barWidth: '35%',
                         animationEasing: 'cubicOut',
@@ -722,7 +721,7 @@ const isRtl = currentLang === 'ar';
                             color: answeredGradient, 
                             borderRadius: [5,5,0,0],
                             shadowBlur: 10,
-                            shadowColor: 'rgba(0, 255, 135, 0.3)'
+                            shadowColor: 'rgba(255, 255, 255, 0.2)'
                         }, 
                         barWidth: '35%',
                         animationEasing: 'cubicOut',

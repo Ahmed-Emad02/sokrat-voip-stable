@@ -47,28 +47,29 @@ const isRtl = currentLang === 'ar';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enterprise Analytics - Dashboard</title>
+    <title>SPT-ANALYTICS - Dashboard</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
-            <style>
+    <style>
         :root {
-            --bg-primary: #0f1117;
-            --bg-secondary: #161b22;
-            --bg-card: #1a1f26;
-            --bg-hover: #21262e;
-            --border-primary: #30363d;
-            --border-accent: #484f58;
-            --text-primary: #f0f6fc;
-            --text-secondary: #8b949e;
-            --text-muted: #6e7681;
-            --accent-color: #58a6ff;
-            --accent-hover: #79c0ff;
-            --status-online: #3fb950;
-            --status-offline: #6e7681;
-            --status-active: #58a6ff;
+            --bg-primary: #09090b;
+            --bg-secondary: #121212;
+            --bg-card: #18181b;
+            --bg-hover: #27272a;
+            --border-primary: #27272a;
+            --border-accent: #3f3f46;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --accent-color: #ff3b30;
+            --accent-hover: #ff453a;
+            --status-online: #ff3b30;
+            --status-offline: #71717a;
+            --status-active: #ff3b30;
         }
         body { 
             background-color: var(--bg-primary); 
@@ -84,8 +85,8 @@ const isRtl = currentLang === 'ar';
             right: 0;
             bottom: 0;
             background: 
-                radial-gradient(circle at 10% 20%, rgba(88, 166, 255, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(57, 197, 207, 0.04) 0%, transparent 45%);
+                radial-gradient(circle at 10% 20%, rgba(255, 59, 48, 0.06) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.02) 0%, transparent 45%);
             pointer-events: none;
             z-index: -1;
         }
@@ -104,17 +105,16 @@ const isRtl = currentLang === 'ar';
         .card-stat:hover { 
             transform: translateY(-2px); 
             border-color: var(--border-accent); 
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); 
+            box-shadow: 0 8px 24px rgba(255, 59, 48, 0.1); 
         }
         input, select, button { 
             transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1); 
         }
     </style>
 </head>
-<body class="bg-[#0f1117] text-slate-100 flex flex-col min-h-screen m-0 p-0">
+<body class="bg-[#09090b] text-slate-100 flex flex-col min-h-screen m-0 p-0">
     <%- include('sidebar') %>
     <div class="flex-1 p-8 relative flex flex-col min-h-screen">
-        
 
         <div class="mb-6 shrink-0">
             <h2 class="text-3xl font-vibrant-display text-white tracking-tight"><%= t.title %> <span class="accent-orange"><%= t.subtitle %></span></h2>
@@ -125,51 +125,51 @@ const isRtl = currentLang === 'ar';
             <input type="hidden" name="lang" value="<%= currentLang %>">
             <div>
                 <label class="block text-xs font-black uppercase text-zinc-400 mb-2 tracking-wider"><%= t.startTime %></label>
-                <input type="datetime-local" name="startDate" value="<%= moment(filters.startDate).format('YYYY-MM-DDTHH:mm') %>" class="w-full bg-[#0f1117] border border-[#30363d] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#58a6ff]">
+                <input type="datetime-local" name="startDate" value="<%= moment(filters.startDate).format('YYYY-MM-DDTHH:mm') %>" class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#ff3b30]">
             </div>
             <div>
                 <label class="block text-xs font-black uppercase text-zinc-400 mb-2 tracking-wider"><%= t.endTime %></label>
-                <input type="datetime-local" name="endDate" value="<%= moment(filters.endDate).format('YYYY-MM-DDTHH:mm') %>" class="w-full bg-[#0f1117] border border-[#30363d] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#58a6ff]">
+                <input type="datetime-local" name="endDate" value="<%= moment(filters.endDate).format('YYYY-MM-DDTHH:mm') %>" class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#ff3b30]">
             </div>
             <div>
-                <button type="submit" class="w-full bg-[#58a6ff] hover:bg-[#388bfd] text-white font-black py-3 rounded-lg text-sm uppercase tracking-wider shadow-md transition cursor-pointer"><%= t.btn %></button>
+                <button type="submit" class="w-full bg-[#ff3b30] hover:bg-[#ff453a] text-white font-black py-3 rounded-lg text-sm uppercase tracking-wider shadow-md transition cursor-pointer"><%= t.btn %></button>
             </div>
         </form>
 
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6 shrink-0">
-            <div class="panel-surface rounded-xl p-5 card-stat border border-[#30363d]/30">
+            <div class="panel-surface rounded-xl p-5 card-stat border border-[#27272a]/30">
                 <p class="text-[10px] font-bold uppercase text-zinc-500 tracking-wider"><%= t.totalCalls %></p>
                 <p class="text-3xl font-black text-white mt-1"><%= stats.totalCalls %></p>
             </div>
-            <div class="panel-surface rounded-xl p-5 card-stat border-l-4 border-l-emerald-500">
+            <div class="panel-surface rounded-xl p-5 card-stat border-l-4 border-l-[#ffffff]">
                 <p class="text-[10px] font-bold uppercase text-zinc-500 tracking-wider"><%= t.answeredCalls %></p>
-                <p class="text-3xl font-black text-emerald-400 mt-1"><%= stats.answeredCalls %></p>
+                <p class="text-3xl font-black text-white mt-1"><%= stats.answeredCalls %></p>
             </div>
-            <div class="panel-surface rounded-xl p-5 card-stat border-l-4 border-l-[#58a6ff]">
+            <div class="panel-surface rounded-xl p-5 card-stat border-l-4 border-l-[#ff3b30]">
                 <p class="text-[10px] font-bold uppercase text-zinc-500 tracking-wider"><%= t.inbound %></p>
                 <p class="text-3xl font-black text-white mt-1"><%= stats.inboundCount %></p>
-                <p class="text-xs font-bold text-[#58a6ff] mt-1"><%= stats.inboundMin %> <%= t.min %> <%= t.airMinutes %></p>
+                <p class="text-xs font-bold text-[#ff3b30] mt-1"><%= stats.inboundMin %> <%= t.min %> <%= t.airMinutes %></p>
             </div>
-            <div class="panel-surface rounded-xl p-5 card-stat border-l-4 border-l-sky-400">
+            <div class="panel-surface rounded-xl p-5 card-stat border-l-4 border-l-zinc-500">
                 <p class="text-[10px] font-bold uppercase text-zinc-500 tracking-wider"><%= t.outbound %></p>
                 <p class="text-3xl font-black text-white mt-1"><%= stats.outboundCount %></p>
-                <p class="text-xs font-bold text-sky-400 mt-1"><%= stats.outboundMin %> <%= t.min %> <%= t.airMinutes %></p>
+                <p class="text-xs font-bold text-zinc-400 mt-1"><%= stats.outboundMin %> <%= t.min %> <%= t.airMinutes %></p>
             </div>
-            <div class="panel-surface rounded-xl p-5 card-stat border-l-4 border-l-purple-400">
+            <div class="panel-surface rounded-xl p-5 card-stat border-l-4 border-l-zinc-700">
                 <p class="text-[10px] font-bold uppercase text-zinc-500 tracking-wider"><%= t.answerRate %></p>
                 <p class="text-3xl font-black text-zinc-400 mt-1"><%= stats.totalCalls ? Math.round((stats.answeredCalls / stats.totalCalls) * 100) : 0 %>%</p>
             </div>
         </div>
 
         <div class="flex gap-6 flex-1 min-h-0">
-            <div class="panel-surface border border-[#30363d]/30 rounded-2xl shadow-xl w-80 shrink-0 flex flex-col min-h-0">
-                <div class="px-5 py-4 border-b border-[#30363d] bg-black/20 shrink-0">
+            <div class="panel-surface border border-[#27272a]/30 rounded-2xl shadow-xl w-80 shrink-0 flex flex-col min-h-0">
+                <div class="px-5 py-4 border-b border-[#27272a] bg-black/20 shrink-0">
                     <h2 class="text-sm font-bold text-white uppercase tracking-wider"><%= t.uniqueContacts %></h2>
                 </div>
                 <div class="overflow-x-auto flex-1 min-h-0">
                     <table class="w-full text-start border-collapse">
                         <thead>
-                            <tr class="bg-black/40 text-zinc-400 text-[10px] font-bold uppercase border-b border-[#30363d]">
+                            <tr class="bg-black/40 text-zinc-400 text-[10px] font-bold uppercase border-b border-[#27272a]">
                                 <th class="p-3 tracking-wider text-start"><%= t.ext %></th>
                                 <th class="p-3 tracking-wider text-start"><%= t.name %></th>
                                 <th class="p-3 tracking-wider text-start"><%= t.interactions %></th>
@@ -182,23 +182,23 @@ const isRtl = currentLang === 'ar';
                             <% } %>
                             <% employeeMetrics.forEach(emp => { %>
                                 <tr class="hover:bg-zinc-900/40 transition">
-                                    <td class="p-3 text-[#58a6ff] font-bold"><%= emp.extension %></td>
+                                    <td class="p-3 text-[#ff3b30] font-bold"><%= emp.extension %></td>
                                     <td class="p-3 text-white font-sans font-bold"><%= emp.name %></td>
-                                    <td class="p-3 text-purple-200"><%= emp.totalCalls %></td>
-                                    <td class="p-3 text-emerald-400 font-bold"><%= Math.round(emp.totalTalkSec / 60) %> <%= t.min %></td>
+                                    <td class="p-3 text-zinc-300"><%= emp.totalCalls %></td>
+                                    <td class="p-3 text-[#ff3b30] font-bold"><%= Math.round(emp.totalTalkSec / 60) %> <%= t.min %></td>
                                 </tr>
                             <% }) %>
                         </tbody>
                     </table>
                 </div>
-                <div class="px-4 py-2 border-t border-[#30363d] bg-black/30 text-center shrink-0">
-                    <span class="text-[10px] font-bold text-zinc-500"><%= t.footerRight %> <span class="text-[#58a6ff]"><%= employeeMetrics.length %></span></span>
+                <div class="px-4 py-2 border-t border-[#27272a] bg-black/30 text-center shrink-0">
+                    <span class="text-[10px] font-bold text-zinc-500"><%= t.footerRight %> <span class="text-[#ff3b30]"><%= employeeMetrics.length %></span></span>
                 </div>
             </div>
 
             <div class="flex-1 flex flex-col min-h-0 gap-6">
-                <div class="panel-surface border border-[#30363d]/30 rounded-2xl shadow-xl shrink-0">
-                    <div class="px-5 py-4 border-b border-[#30363d] bg-black/20">
+                <div class="panel-surface border border-[#27272a]/30 rounded-2xl shadow-xl shrink-0">
+                    <div class="px-5 py-4 border-b border-[#27272a] bg-black/20">
                         <h2 class="text-sm font-bold text-white uppercase tracking-wider"><%= t.inbound %> / <%= t.outbound %></h2>
                     </div>
                     <div class="p-4">
@@ -206,14 +206,14 @@ const isRtl = currentLang === 'ar';
                     </div>
                 </div>
 
-                <div class="panel-surface border border-[#30363d]/30 rounded-2xl shadow-xl flex flex-col flex-1 min-h-0">
-                    <div class="px-5 py-4 border-b border-[#30363d] bg-black/20 shrink-0">
+                <div class="panel-surface border border-[#27272a]/30 rounded-2xl shadow-xl flex flex-col flex-1 min-h-0">
+                    <div class="px-5 py-4 border-b border-[#27272a] bg-black/20 shrink-0">
                         <h2 class="text-sm font-bold text-white uppercase tracking-wider"><%= t.recentCalls %></h2>
                     </div>
                     <div class="overflow-x-auto flex-1 min-h-0">
                         <table class="w-full text-start border-collapse">
                             <thead>
-                                <tr class="bg-black/40 text-zinc-400 text-[10px] font-bold uppercase border-b border-[#30363d] sticky top-0">
+                                <tr class="bg-black/40 text-zinc-400 text-[10px] font-bold uppercase border-b border-[#27272a] sticky top-0">
                                     <th class="p-3 tracking-wider text-start"><%= t.thTime %></th>
                                     <th class="p-3 tracking-wider text-start"><%= t.thSrc %></th>
                                     <th class="p-3 tracking-wider text-start"><%= t.thDst %></th>
@@ -233,7 +233,7 @@ const isRtl = currentLang === 'ar';
                                         <td class="p-3 text-zinc-400"><%= call.billsec %>s</td>
                                         <td class="p-3">
                                             <span class="px-2 py-0.5 rounded text-[10px] font-black tracking-wider
-                                                <%= call.disposition === 'ANSWERED' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20' %>">
+                                                <%= call.disposition === 'ANSWERED' ? 'bg-[#ff3b30]/10 text-[#ff3b30] border border-[#ff3b30]/20' : 'bg-zinc-800 text-zinc-400 border border-zinc-700/50' %>">
                                                 <%= call.disposition %>
                                             </span>
                                         </td>
@@ -242,7 +242,7 @@ const isRtl = currentLang === 'ar';
                             </tbody>
                         </table>
                     </div>
-                    <div class="px-4 py-2 border-t border-[#30363d] bg-black/30 text-center shrink-0">
+                    <div class="px-4 py-2 border-t border-[#27272a] bg-black/30 text-center shrink-0">
                         <span class="text-[10px] font-bold text-zinc-500"><%= t.footerLeft %></span>
                     </div>
                 </div>
@@ -257,14 +257,14 @@ const isRtl = currentLang === 'ar';
 
             const pieChart = echarts.init(document.getElementById('pieChart'), 'dark');
             
-            // Vibrant neon gradients
+            // Red / White / Black Rebrand Gradients
             const inboundGradient = new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: '#00f2fe' },
-                { offset: 1, color: '#4facfe' }
+                { offset: 0, color: '#ff3b30' },
+                { offset: 1, color: '#991b1b' }
             ]);
             const outboundGradient = new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: '#ff0844' },
-                { offset: 1, color: '#ffb199' }
+                { offset: 0, color: '#ffffff' },
+                { offset: 1, color: '#a1a1aa' }
             ]);
 
             pieChart.setOption({
@@ -272,13 +272,13 @@ const isRtl = currentLang === 'ar';
                 tooltip: { 
                     trigger: 'item', 
                     formatter: '{b}: {c} calls ({d}%)',
-                    backgroundColor: '#161b22',
-                    borderColor: '#30363d',
-                    textStyle: { color: '#f0f6fc', fontSize: 11 }
+                    backgroundColor: '#18181b',
+                    borderColor: '#27272a',
+                    textStyle: { color: '#ffffff', fontSize: 11 }
                 },
                 legend: { 
                     bottom: '0%', 
-                    textStyle: { color: '#8b949e', fontSize: 11, fontWeight: 'bold' } 
+                    textStyle: { color: '#a1a1aa', fontSize: 11, fontWeight: 'bold' } 
                 },
                 series: [{
                     name: 'Direction',
@@ -286,7 +286,7 @@ const isRtl = currentLang === 'ar';
                     radius: ['45%', '70%'],
                     itemStyle: { 
                         borderRadius: 10, 
-                        borderColor: '#161b22', 
+                        borderColor: '#121212', 
                         borderWidth: 2.5,
                         shadowBlur: 15,
                         shadowColor: 'rgba(0, 0, 0, 0.4)'
