@@ -1,76 +1,108 @@
-# Issabel Analytics Dashboard
+# SPT-ANALYTICS
 
-Real-time PBX analytics dashboard for Issabel/Asterisk with CDR logs, employee performance metrics, and a live operator switchboard.
+Real-time PBX analytics dashboard for **Issabel 5 / Asterisk 18** with CDR logs, extension performance metrics, a live operator switchboard, and call recording playback.
 
 ## Features
 
-- **CDR Analytics** — Search/filter call detail records by date, extension, status, source, and destination. Download recorded audio.
-- **Employee Metrics** — Per-extension breakdown of inbound/outbound talk time, total interactions, and unique contact footprint.
-- **Live Operator Board** — Real-time extension grid showing idle/ringing/in-call states, call timers, connected partner numbers, and SIP registration status — powered by Asterisk AMI + Socket.io.
-- **RTL / Arabic** — Full English and Arabic interface with RTL layout.
-- **System Clock** — Digital clock in the sidebar.
+- **Executive Dashboard** — KPI cards, inbound/outbound pie chart, date-range filtering
+- **CDR Analytics** — Search call detail records by date, extension, status, source, destination. Custom audio player with seekable slider, playback speed control, and download
+- **Extension Statistics** — Per-extension breakdown with disposition pie charts and daily call volume bar graphs. Console overview with sortable metrics for all extensions
+- **Live Operator Board** — Real-time extension grid showing idle/ringing/in-call states, call timers, connected partner numbers, and SIP registration. Listen, Whisper, and Barge actions via ChanSpy
+- **Light / Dark Mode** — Toggle between themes. Persists across sessions via localStorage
+- **RTL / Arabic** — Full English and Arabic interface with automatic RTL layout
+- **Custom Audio Player** — Themed play/pause, seekable progress bar, current time / duration display, 0.5×–2× speed selector, download button — replaces native browser audio controls
 
-## Prerequisites
+---
 
-- **Issabel 4+** or any Asterisk-based PBX with MySQL (CDR database) and AMI (port 5038) enabled
-- **Node.js 18+** and **npm**
-- AMI user credentials configured in `/etc/asterisk/manager.conf`
+## Fresh Issabel 5 Installation (Copy-Paste)
 
-## Installation
+> Run all commands as **root** on your Issabel 5 server.
+
+### Step 1 — Install Node.js 22
 
 ```bash
-# 1. Clone the repo
-git clone https://github.com/Ahmed-Emad02/issabel-dashboard.git
-cd issabel-dashboard
-
-# 2. Install dependencies
-npm install
-
-# 3. Create environment config
-cp .env.example .env
-# Edit .env with your DB and AMI credentials (see Configuration below)
-
-# 4. Start the server
-node server.js
+curl -fsSL https://rpm.nodesource.com/setup_22.x | bash -
+yum install -y nodejs
+node -v
 ```
 
-The dashboard runs on **port 3000** by default. Open `http://<server-ip>:3000` in your browser.
+### Step 2 — Clone the Repository
 
-## Configuration
+```bash
+cd /opt
+git clone https://github.com/Ahmed-Emad02/issabel-analytics.git issabel-dashboard
+cd /opt/issabel-dashboard
+```
 
-Create a `.env` file in the project root:
+### Step 3 — Install Dependencies
 
-```env
+```bash
+npm install
+```
+
+### Step 4 — Create the Environment File
+
+Find your MySQL root password (Issabel stores it here):
+
+```bash
+cat /etc/issabel.conf | grep mysqlrootpwd
+```
+
+Create the `.env` file:
+
+```bash
+cat > /opt/issabel-dashboard/.env << 'EOF'
 PORT=3000
 DB_HOST=localhost
 DB_USER=root
-DB_PASS=your_mysql_password
+DB_PASS=YOUR_MYSQL_ROOT_PASSWORD
 DB_NAME=asteriskcdrdb
+ASTERISK_DB=asterisk
+AMI_HOST=127.0.0.1
 AMI_PORT=5038
-AMI_USER=your_ami_user
-AMI_PASS=your_ami_secret
+AMI_USER=admin
+AMI_PASS=admin
+RECORDING_ROOT=/var/spool/asterisk/monitor
+EOF
 ```
 
-### AMI setup
+> **Replace `YOUR_MYSQL_ROOT_PASSWORD`** with the actual password from `issabel.conf`.
 
-In `/etc/asterisk/manager.conf`, ensure you have:
+### Step 5 — Configure Asterisk AMI
 
-```ini
-[your_ami_user]
-secret = your_ami_secret
+Check if an AMI user already exists:
+
+```bash
+cat /etc/asterisk/manager.conf
+```
+
+If you need to add one, append this block:
+
+```bash
+cat >> /etc/asterisk/manager.conf << 'EOF'
+
+[admin]
+secret = admin
 read = system,call,agent,originate
 write = system,call,agent,originate
-permit = 127.0.0.1
+permit = 127.0.0.1/255.255.255.0
+
+EOF
 ```
 
-### Custom Asterisk Dialplan Setup
+Reload the AMI configuration:
 
-For the Live Operator panel's Listen (ChanSpy), Whisper (ChanSpy with whisper option), and Barge (ChanSpy with barge option) features to function correctly, you must define the call codes `222`, `223`, and `224` in `/etc/asterisk/extensions_custom.conf`:
+```bash
+asterisk -rx "manager reload"
+```
 
-1. Open `/etc/asterisk/extensions_custom.conf` on your Issabel server.
-2. Add the following dialplan block inside the `[from-internal-custom]` context:
+### Step 6 — Add ChanSpy Dialplan (Listen / Whisper / Barge)
 
-```asterisk
+This enables the operator panel's call monitoring actions (codes `222`, `223`, `224`):
+
+```bash
+cat >> /etc/asterisk/extensions_custom.conf << 'DIALPLAN'
+
 [from-internal-custom]
 exten => _222X.,1,NoOp(Spying on extension ${EXTEN:3} in Listen-only mode)
 exten => _222X.,n,Answer()
@@ -101,99 +133,172 @@ exten => _224X.,n,Hangup()
 exten => _224X.,n(fallback),ChanSpy(PJSIP/${EXTEN:3},qB)
 exten => _224X.,n,ChanSpy(SIP/${EXTEN:3},qB)
 exten => _224X.,n,Hangup()
+
+DIALPLAN
 ```
 
-3. Reload the Asterisk dialplan configuration from your terminal:
+> **Important:** If `[from-internal-custom]` already exists in the file, do NOT add a duplicate header. Paste only the `exten =>` lines inside the existing context block.
+
+Reload the dialplan:
+
 ```bash
-# Directly reload via Asterisk CLI:
 asterisk -rx "dialplan reload"
 ```
 
-> [!IMPORTANT]
-> **Line Endings (UNIX LF)**: If you copy or edit `extensions_custom.conf` on a Windows machine, ensure the file is saved with **UNIX line endings (LF)** rather than Windows line endings (CRLF). Asterisk's config parser does not strip carriage returns (`\r`), which causes it to register mismatched context names (e.g. `[from-internal-custom\r]`) and return "wrong number" errors. If you face this, run the following command on your server to clean it up:
-> ```bash
-> sed -i 's/\r//' /etc/asterisk/extensions_custom.conf
-> asterisk -rx "dialplan reload"
-> ```
+Verify it loaded:
 
+```bash
+asterisk -rx "dialplan show from-internal-custom" | head -20
+```
 
-## Running as a service (auto-start)
+### Step 7 — Create systemd Service
 
-### Option 1: systemd (Linux — recommended)
-
-Create `/etc/systemd/system/issabel-dashboard.service`:
-
-```ini
+```bash
+cat > /etc/systemd/system/issabel-dashboard.service << 'EOF'
 [Unit]
-Description=Issabel Analytics Dashboard
-After=network.target mysql.service asterisk.service
+Description=SPT-ANALYTICS Dashboard
+After=network.target mysqld.service asterisk.service
 
 [Service]
-WorkingDirectory=/path/to/issabel-dashboard
+Type=simple
+WorkingDirectory=/opt/issabel-dashboard
 ExecStart=/usr/bin/node server.js
 Restart=always
 RestartSec=5
 User=root
+Environment=NODE_ENV=production
 
 [Install]
 WantedBy=multi-user.target
+EOF
 ```
 
 Enable and start:
 
 ```bash
-sudo systemctl daemon-reload
-sudo systemctl enable --now issabel-dashboard
+systemctl daemon-reload
+systemctl enable --now issabel-dashboard
 ```
 
-### Option 2: pm2 (process manager)
+### Step 8 — Verify
+
+Check the service is running:
 
 ```bash
-npm install -g pm2
-pm2 start server.js --name issabel-dashboard
-pm2 save
-pm2 startup   # follow the instructions
+systemctl status issabel-dashboard
 ```
+
+Open in your browser:
+
+```
+http://<your-issabel-ip>:3000
+```
+
+---
+
+## Configuration Reference
+
+All settings live in `/opt/issabel-dashboard/.env`:
+
+| Variable | Default | Description |
+|---|---|---|
+| `PORT` | `3000` | HTTP port for the dashboard |
+| `DB_HOST` | `localhost` | MySQL host |
+| `DB_USER` | `admin` | MySQL username |
+| `DB_PASS` | `admin` | MySQL password |
+| `DB_NAME` | `asteriskcdrdb` | CDR database name |
+| `ASTERISK_DB` | `asterisk` | Asterisk config database name |
+| `AMI_HOST` | `127.0.0.1` | Asterisk Manager Interface host |
+| `AMI_PORT` | `5038` | AMI port |
+| `AMI_USER` | `admin` | AMI username |
+| `AMI_PASS` | `admin` | AMI secret |
+| `RECORDING_ROOT` | `/var/spool/asterisk/monitor` | Path to call recordings |
+
+---
 
 ## Routes
 
-| Route | View | Description |
-|---|---|---|
-| `/` | — | Redirects to `/cdr` |
-| `/cdr` | `cdr.ejs` | CDR logs with date/extension/status/src/dst filters, audio download |
-| `/employees` | `employees.ejs` | Employee performance metrics with inbound/outbound split |
-| `/operator` | `operator.ejs` | Live real-time switchboard (WebSocket) |
-| `/download-audio?uniqueid=xxx` | — | Download recorded `.wav` file by `uniqueid` |
+| Route | Description |
+|---|---|
+| `/` | Executive dashboard with KPI cards and call direction chart |
+| `/cdr` | CDR logs with filters and custom audio player |
+| `/ext-stats` | Extension statistics with overview grid and per-extension charts |
+| `/operator` | Live operator switchboard with Listen/Whisper/Barge actions |
 
 Append `?lang=ar` or `?lang=en` to any route for language switching.
 
-## Project structure
+---
+
+## Project Structure
 
 ```
 issabel-dashboard/
-├── server.js              # Express app, AMI handler, Socket.io, routes
+├── server.js              # Express app, MySQL queries, AMI handler, Socket.io, all routes
 ├── views/
-│   ├── sidebar.ejs        # Shared nav + digital clock
-│   ├── cdr.ejs            # CDR logs view
-│   ├── employees.ejs      # Employee metrics view
-│   ├── operator.ejs       # Live operator switchboard
-│   └── dashboard.ejs      # KPI dashboard (needs dedicated route)
+│   ├── sidebar.ejs        # Shared top navigation bar, theme toggle, clock
+│   ├── dashboard.ejs      # Executive KPI dashboard
+│   ├── cdr.ejs            # CDR logs with custom audio player
+│   ├── ext-stats.ejs      # Extension statistics with charts
+│   └── operator.ejs       # Live operator switchboard
+├── public/
+│   ├── logo.png           # Light mode logo
+│   ├── logo_dark.png      # Dark mode logo
+│   └── favicon.png        # Browser tab icon
 ├── .env                   # Credentials (gitignored)
 ├── .gitignore
 ├── package.json
 └── README.md
 ```
 
-## Tech stack
+## Tech Stack
 
-- **Backend:** Node.js, Express 4, Socket.io 4, mysql2
-- **Frontend:** EJS, Tailwind CSS v4 (CDN), Cairo font
+- **Backend:** Node.js 22, Express 4, Socket.io 4, mysql2
+- **Frontend:** EJS, Tailwind CSS v4 (CDN), ECharts 5, Cairo font
 - **Real-time:** Asterisk AMI (raw TCP), Socket.io WebSocket
 - **Database:** MySQL (Issabel CDR — `asteriskcdrdb`)
 
-## Notes
+---
 
-- The operator panel only monitors internal extensions (CallerIDNum ≤ 5 digits) to skip trunk calls.
-- If all SIP peers show as offline via AMI `PeerStatus` events, the dashboard falls back to querying `sipfriends`/`sippeers` tables for peers with non-empty `ipaddr`.
-- Recorded audio files are loaded from `/var/spool/asterisk/monitor/YYYY/MM/DD/`.
-- The `dashboard.ejs` view exists but is not wired to a route yet.
+## Troubleshooting
+
+### "The number you have dialed is not in service"
+
+The ChanSpy dialplan was not loaded. Run:
+
+```bash
+# Check for Windows line endings (common if edited on Windows)
+sed -i 's/\r//' /etc/asterisk/extensions_custom.conf
+asterisk -rx "dialplan reload"
+```
+
+### No audio on Listen/Whisper/Barge
+
+Ensure the `[from-internal-custom]` context uses the correct channel technology lookup. The dialplan above tries `DB(DEVICE/ext/dial)` first, then falls back to `PJSIP/ext` and `SIP/ext`.
+
+### Dashboard shows 0 calls / empty roster
+
+Check your MySQL credentials in `.env` match the Issabel root password:
+
+```bash
+mysql -u root -p -e "SELECT COUNT(*) FROM asteriskcdrdb.cdr;"
+```
+
+### All extensions show offline
+
+AMI needs the correct permissions. Verify:
+
+```bash
+asterisk -rx "manager show user admin"
+```
+
+Ensure `read` includes `system,call`.
+
+---
+
+## Updating
+
+```bash
+cd /opt/issabel-dashboard
+git pull origin main
+systemctl restart issabel-dashboard
+```
