@@ -238,7 +238,7 @@ const isRtl = currentLang === 'ar';
                                                 <div class="flex items-center gap-1.5">
                                                     <span><%= d.IMEI || '-' %></span>
                                                     <% if (d.IMEI && d.IMEI !== '-') { %>
-                                                        <button onclick="copyToClipboard('<%= d.IMEI %>', this)" class="text-zinc-600 hover:text-white hover:bg-zinc-800 p-1 rounded transition cursor-pointer" title="<%= isRtl ? 'نسخ IMEI' : 'Copy IMEI' %>">
+                                                        <button onclick="copyToClipboard('<%= d.IMEI %>', this)" class="text-zinc-500 hover:text-white hover:bg-zinc-800 p-1 rounded transition cursor-pointer" title="<%= isRtl ? 'نسخ IMEI' : 'Copy IMEI' %>">
                                                             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                                                         </button>
                                                     <% } %>
@@ -554,11 +554,31 @@ const isRtl = currentLang === 'ar';
                 logScreen.classList.toggle('hidden', !logsToggle.checked);
             });
 
-            // Copy to clipboard utility with green checkmark feedback
+            // Copy to clipboard utility with green checkmark feedback (supports non-secure HTTP local IP fallback)
             window.copyToClipboard = function(text, btn) {
                 const clean = String(text || '').trim();
                 if (!clean || clean === '-' || clean === 'Unknown') return;
-                navigator.clipboard.writeText(clean).then(() => {
+                
+                function fallbackCopy(val) {
+                    const textArea = document.createElement("textarea");
+                    textArea.value = val;
+                    textArea.style.top = "0";
+                    textArea.style.left = "0";
+                    textArea.style.position = "fixed";
+                    textArea.style.opacity = "0";
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    try {
+                        document.execCommand('copy');
+                        showFeedback();
+                    } catch (err) {
+                        console.error('Fallback copy failed: ', err);
+                    }
+                    document.body.removeChild(textArea);
+                }
+
+                function showFeedback() {
                     if (btn) {
                         const originalHTML = btn.innerHTML;
                         btn.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
@@ -568,7 +588,15 @@ const isRtl = currentLang === 'ar';
                             btn.style.pointerEvents = 'auto';
                         }, 1500);
                     }
-                }).catch(err => console.error('Failed to copy text: ', err));
+                }
+
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(clean).then(showFeedback).catch(() => {
+                        fallbackCopy(clean);
+                    });
+                } else {
+                    fallbackCopy(clean);
+                }
             };
 
             // Edit SIM phone number mapping action
@@ -738,7 +766,7 @@ const isRtl = currentLang === 'ar';
                                     <td class="py-3.5 px-4 font-mono text-xs text-[var(--text-muted)]">
                                         <div class="flex items-center gap-1.5">
                                             <span>${d.IMEI || '-'}</span>
-                                            ${(d.IMEI && d.IMEI !== '-') ? `<button onclick="copyToClipboard('${d.IMEI}', this)" class="text-zinc-600 hover:text-white hover:bg-zinc-800 p-1 rounded transition cursor-pointer" title="${isRtl ? 'نسخ IMEI' : 'Copy IMEI'}"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>` : ''}
+                                            ${(d.IMEI && d.IMEI !== '-') ? `<button onclick="copyToClipboard('${d.IMEI}', this)" class="text-zinc-500 hover:text-white hover:bg-zinc-800 p-1 rounded transition cursor-pointer" title="${isRtl ? 'نسخ IMEI' : 'Copy IMEI'}"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>` : ''}
                                         </div>
                                     </td>
                                     <td class="py-3.5 px-4">
