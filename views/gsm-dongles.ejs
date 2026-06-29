@@ -1,0 +1,684 @@
+<%
+const words = {
+    en: {
+        title: "GSM Dongles", subtitle: "Console",
+        desc: "Asterisk 18 GSM Cellular Trunks Monitor & USSD Panel",
+        thID: "Dongle ID",
+        thProvider: "Provider Name",
+        thNumber: "SIM Number",
+        thIMEI: "IMEI",
+        thIMSI: "IMSI",
+        thRSSI: "Signal (RSSI)",
+        thState: "State",
+        thActions: "Actions",
+        refreshBtn: "Refresh",
+        sending: "Executing...",
+        sendBtn: "Send USSD Request",
+        selectedDongle: "Selected Dongle: ",
+        selectPlaceholder: "Select active dongle",
+        ussdTitle: "USSD Console",
+        ussdHelper: "Ensure the SIM card in the selected dongle is active and registered to the network.",
+        terminalTitle: "USSD Response Screen",
+        logTitle: "Live chan_dongle Logs",
+        logToggle: "Show Live Logs",
+        autoscroll: "Auto-scroll",
+        clearBtn: "Clear View",
+        noDongles: "No configured GSM dongles found.",
+        stateFree: "Free",
+        stateConnected: "Connected",
+        stateDisconnected: "Not connected",
+        reloadedSuccess: "Reload command sent successfully",
+        terminalPlaceholder: "Terminal ready. Input a USSD code and execute a request above.",
+        sendUssdError: "Error executing USSD request",
+        deviceDetails: "Device Details",
+        model: "Model",
+        firmware: "Firmware",
+        group: "Group",
+        mode: "Mode",
+        submode: "Submode",
+        running: "Active"
+    },
+    ar: {
+        title: "شرائح الاتصال", subtitle: "GSM",
+        desc: "مراقبة شرائح الهاتف الخلوي ولوحة إرسال طلبات USSD المباشرة لأستيركس 18",
+        thID: "رمز الشريحة",
+        thProvider: "شبكة الاتصال",
+        thNumber: "رقم الهاتف",
+        thIMEI: "كود IMEI",
+        thIMSI: "كود IMSI",
+        thRSSI: "قوة الإشارة",
+        thState: "الحالة",
+        thActions: "الإجراءات",
+        refreshBtn: "تحديث الشريحة",
+        sending: "جاري التنفيذ...",
+        sendBtn: "تنفيذ طلب USSD",
+        selectedDongle: "الشريحة المختارة: ",
+        selectPlaceholder: "اختر شريحة اتصال نشطة",
+        ussdTitle: "لوحة طلبات USSD",
+        ussdHelper: "تأكد من أن شريحة الاتصال نشطة ومسجلة في شبكة الجوال.",
+        terminalTitle: "شاشة استجابة USSD",
+        logTitle: "سجل عمليات chan_dongle المباشر",
+        logToggle: "عرض السجلات المباشرة",
+        autoscroll: "التمرير التلقائي",
+        clearBtn: "مسح الشاشة",
+        noDongles: "لا توجد شرائح GSM مهيأة.",
+        stateFree: "شريحة نشطة (Free)",
+        stateConnected: "متصل",
+        stateDisconnected: "غير متصل",
+        reloadedSuccess: "تم إرسال أمر إعادة التحميل بنجاح",
+        terminalPlaceholder: "الشاشة جاهزة. أدخل رمز USSD وقم بتنفيذ الطلب في الأعلى.",
+        sendUssdError: "فشل تنفيذ طلب USSD",
+        deviceDetails: "تفاصيل الجهاز",
+        model: "الموديل",
+        firmware: "البرنامج الثابت",
+        group: "المجموعة",
+        mode: "الوضع",
+        submode: "الوضع الفرعي",
+        running: "نشط"
+    }
+};
+const t = words[currentLang] || words['en'];
+const isRtl = currentLang === 'ar';
+%>
+<!DOCTYPE html>
+<html lang="<%= currentLang %>" dir="<%= isRtl ? 'rtl' : 'ltr' %>">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPT-ANALYTICS - GSM Dongles</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        :root {
+            --bg-primary: #09090b;
+            --bg-secondary: #121212;
+            --bg-card: #18181b;
+            --bg-hover: #27272a;
+            --border-primary: #27272a;
+            --border-accent: #3f3f46;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --accent-color: #ff3b30;
+            --accent-hover: #ff453a;
+        }
+        body { 
+            background-color: var(--bg-primary); 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', 'Cairo', sans-serif; 
+            color: var(--text-primary); 
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(255, 59, 48, 0.06) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.02) 0%, transparent 45%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        .panel-surface { 
+            background-color: var(--bg-secondary); 
+            border: 1px solid var(--border-primary); 
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .accent-orange { color: var(--accent-color); }
+        .font-vibrant-display { font-weight: 900; letter-spacing: -0.01em; }
+        
+        .terminal-screen {
+            background-color: #030303;
+            border: 1px solid #1a1a1a;
+            font-family: 'JetBrains Mono', 'Courier New', Courier, monospace;
+        }
+        .log-screen {
+            background-color: #050505;
+            border: 1px solid #1f1f23;
+            font-family: 'JetBrains Mono', monospace;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        .pulse-dot {
+            position: relative;
+        }
+        .pulse-dot.active::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0; left: 0;
+            border-radius: 50%;
+            background-color: inherit;
+            animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+    </style>
+</head>
+<body class="bg-[#09090b] text-slate-100 flex flex-col min-h-screen m-0 p-0">
+    <%- include('sidebar') %>
+    
+    <div class="flex-1 p-8 relative flex flex-col min-h-screen">
+        
+        <!-- Header Section -->
+        <div class="mb-6 shrink-0 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h2 class="text-3xl font-vibrant-display text-white tracking-tight"><%= t.title %> <span class="accent-orange"><%= t.subtitle %></span></h2>
+                <p class="text-xs text-[var(--text-secondary)] tracking-wide mt-1"><%= t.desc %></p>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <button id="global-refresh-btn" class="bg-[var(--bg-card)] hover:bg-[var(--bg-hover)] text-white border border-[var(--border-primary)] rounded-lg px-4 py-2 text-sm font-semibold flex items-center gap-2 cursor-pointer transition shadow-sm">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M23 4v6h-6"></path>
+                        <path d="M1 20v-6h6"></path>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                    </svg>
+                    <%= t.refreshBtn %>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Split Grid -->
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 flex-1 min-h-0 items-start mb-6">
+            
+            <!-- Left Side: Connected GSM Dongles Monitor List (Span 2) -->
+            <div class="xl:col-span-2 flex flex-col gap-6 h-full">
+                <div class="panel-surface rounded-2xl p-6 flex flex-col gap-4">
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                        <svg class="text-[#ff3b30]" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                            <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                        </svg>
+                        <%= isRtl ? 'حالة الأجهزة النشطة' : 'Active Hardware Trunks' %>
+                    </h3>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left <%= isRtl ? 'text-right' : 'text-left' %>">
+                            <thead>
+                                <tr class="border-b border-[var(--border-primary)] text-[var(--text-muted)] text-xs uppercase tracking-wider font-semibold">
+                                    <th class="py-3 px-4"><%= t.thID %></th>
+                                    <th class="py-3 px-4"><%= t.thProvider %></th>
+                                    <th class="py-3 px-4"><%= t.thNumber %></th>
+                                    <th class="py-3 px-4"><%= t.thIMEI %></th>
+                                    <th class="py-3 px-4"><%= t.thRSSI %></th>
+                                    <th class="py-3 px-4"><%= t.thState %></th>
+                                    <th class="py-3 px-4 text-center"><%= t.thActions %></th>
+                                </tr>
+                            </thead>
+                            <tbody id="dongles-table-body">
+                                <% if (devices && devices.length > 0) { %>
+                                    <% devices.forEach(d => { 
+                                        const isFree = d.State.toLowerCase() === 'free';
+                                        const isNotConn = d.State.toLowerCase().includes('not');
+                                        const stateClass = isFree ? 'text-[#ff3b30] font-bold' : isNotConn ? 'text-zinc-600' : 'text-amber-500';
+                                        const badgeClass = isFree ? 'bg-[#ff3b30]' : isNotConn ? 'bg-zinc-800' : 'bg-amber-500';
+                                    %>
+                                        <tr class="border-b border-[var(--border-primary)]/50 hover:bg-[var(--bg-hover)]/20 transition-colors" id="row-<%= d.ID %>">
+                                            <td class="py-3.5 px-4 font-mono font-black text-white"><%= d.ID %></td>
+                                            <td class="py-3.5 px-4 text-[var(--text-secondary)]"><%= d['Provider Name'] || 'NONE' %></td>
+                                            <td class="py-3.5 px-4 font-mono text-[var(--text-secondary)]"><%= d.Number || 'Unknown' %></td>
+                                            <td class="py-3.5 px-4 font-mono text-xs text-[var(--text-muted)]"><%= d.IMEI || '-' %></td>
+                                            <td class="py-3.5 px-4">
+                                                <div class="flex items-center gap-2">
+                                                    <span class="font-mono text-xs"><%= d.RSSI || '0' %></span>
+                                                    <div class="w-16 bg-zinc-950 h-1.5 rounded-full overflow-hidden border border-zinc-900">
+                                                        <% const rssiVal = Math.min(100, Math.max(0, (parseInt(d.RSSI) || 0) * 3)); %>
+                                                        <div class="bg-[#ff3b30] h-full" style="width: <%= rssiVal %>%"></div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="py-3.5 px-4">
+                                                <div class="flex items-center gap-1.5">
+                                                    <span class="h-2 w-2 rounded-full pulse-dot <%= badgeClass %> active"></span>
+                                                    <span class="<%= stateClass %> text-xs uppercase tracking-wider">
+                                                        <%= isFree ? t.stateFree : isNotConn ? t.stateDisconnected : d.State %>
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td class="py-3.5 px-4 text-center">
+                                                <button onclick="reloadDongle('<%= d.ID %>')" class="bg-zinc-900 hover:bg-zinc-800 text-[var(--text-secondary)] hover:text-white border border-zinc-800 rounded-md px-2.5 py-1 text-xs cursor-pointer transition flex items-center gap-1 mx-auto" title="<%= t.refreshBtn %>">
+                                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+                                                    </svg>
+                                                    <%= t.refreshBtn %>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    <% }) %>
+                                <% } else { %>
+                                    <tr>
+                                        <td colspan="7" class="py-8 text-center text-[var(--text-muted)]">
+                                            <%= t.noDongles %>
+                                        </td>
+                                    </tr>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Device Detail Grid Board -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="panel-surface rounded-2xl p-6 flex flex-col gap-3">
+                        <h4 class="text-sm font-bold text-white uppercase tracking-wider border-b border-[var(--border-primary)] pb-2"><%= t.deviceDetails %></h4>
+                        <div class="flex flex-col gap-2.5 text-xs">
+                            <div class="flex justify-between"><span class="text-[var(--text-muted)]"><%= t.thID %>:</span> <span id="info-id" class="font-mono font-bold">-</span></div>
+                            <div class="flex justify-between"><span class="text-[var(--text-muted)]"><%= t.thNumber %>:</span> <span id="info-number" class="font-mono font-bold">-</span></div>
+                            <div class="flex justify-between"><span class="text-[var(--text-muted)]"><%= t.thProvider %>:</span> <span id="info-provider" class="font-bold text-[#ff3b30]">-</span></div>
+                            <div class="flex justify-between"><span class="text-[var(--text-muted)]"><%= t.thIMEI %>:</span> <span id="info-imei" class="font-mono">-</span></div>
+                            <div class="flex justify-between"><span class="text-[var(--text-muted)]"><%= t.thIMSI %>:</span> <span id="info-imsi" class="font-mono">-</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="panel-surface rounded-2xl p-6 flex flex-col gap-3">
+                        <h4 class="text-sm font-bold text-white uppercase tracking-wider border-b border-[var(--border-primary)] pb-2"><%= isRtl ? 'البروتوكول الفني' : 'Technical Attributes' %></h4>
+                        <div class="flex flex-col gap-2.5 text-xs">
+                            <div class="flex justify-between"><span class="text-[var(--text-muted)]"><%= t.group %>:</span> <span id="info-group" class="font-bold">-</span></div>
+                            <div class="flex justify-between"><span class="text-[var(--text-muted)]"><%= t.model %>:</span> <span id="info-model" class="font-bold">-</span></div>
+                            <div class="flex justify-between"><span class="text-[var(--text-muted)]"><%= t.firmware %>:</span> <span id="info-firmware" class="font-mono text-zinc-400">-</span></div>
+                            <div class="flex justify-between"><span class="text-[var(--text-muted)]"><%= t.mode %>:</span> <span id="info-mode" class="font-bold">-</span></div>
+                            <div class="flex justify-between"><span class="text-[var(--text-muted)]"><%= t.submode %>:</span> <span id="info-submode" class="font-bold">-</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: USSD Console Panel & Terminal Response -->
+            <div class="flex flex-col gap-6 h-full">
+                <!-- USSD Exec Panel -->
+                <div class="panel-surface rounded-2xl p-6 flex flex-col gap-4">
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                        <svg class="text-[#ff3b30]" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="4 17 10 11 4 5"></polyline>
+                            <line x1="12" y1="19" x2="20" y2="19"></line>
+                        </svg>
+                        <%= t.ussdTitle %>
+                    </h3>
+                    
+                    <form id="ussd-execution-form" class="flex flex-col gap-4">
+                        <div class="flex flex-col gap-2">
+                            <label class="text-xs font-semibold text-[var(--text-secondary)]"><%= isRtl ? 'اختر شريحة الاتصال' : 'Target Dongle' %></label>
+                            <select id="ussd-target-dongle" class="bg-zinc-950 border border-[var(--border-primary)] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#ff3b30] cursor-pointer" required>
+                                <option value="" disabled selected hidden><%= t.selectPlaceholder %></option>
+                                <% if (devices && devices.length > 0) { %>
+                                    <% devices.forEach(d => { %>
+                                        <option value="<%= d.ID %>" <%= d.State.toLowerCase() !== 'free' ? 'disabled' : '' %>><%= d.ID %> (<%= d.Number || 'Unknown' %>)</option>
+                                    <% }) %>
+                                <% } %>
+                            </select>
+                        </div>
+                        
+                        <div class="flex flex-col gap-2">
+                            <label class="text-xs font-semibold text-[var(--text-secondary)]"><%= isRtl ? 'رمز الـ USSD' : 'USSD Code' %></label>
+                            <div class="flex items-center bg-zinc-950 border border-[var(--border-primary)] rounded-lg px-3 focus-within:border-[#ff3b30] transition-colors">
+                                <span class="text-[#ff3b30] font-bold font-mono text-sm leading-none select-none <%= isRtl ? 'ml-1' : 'mr-1' %>">&gt;</span>
+                                <input type="text" id="ussd-code-input" class="w-full bg-transparent border-0 outline-none py-2 text-sm text-white font-mono placeholder-zinc-700" placeholder="e.g. *100# or *50#" required autocomplete="off">
+                            </div>
+                            <span class="text-[10px] text-[var(--text-muted)] mt-1"><%= t.ussdHelper %></span>
+                        </div>
+                        
+                        <button type="submit" id="ussd-submit-btn" class="bg-[#ff3b30] hover:bg-[#ff453a] text-white font-bold rounded-lg py-2.5 text-sm transition-all duration-150 shadow-md shadow-[#ff3b30]/15 flex items-center justify-center gap-2 cursor-pointer">
+                            <span id="btn-label"><%= t.sendBtn %></span>
+                            <div id="btn-spinner" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin hidden"></div>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- USSD Terminal Display -->
+                <div class="panel-surface rounded-2xl flex flex-col flex-1 min-h-[300px]">
+                    <div class="px-4 py-3 border-b border-[var(--border-primary)] flex items-center justify-between shrink-0 bg-black/40 rounded-t-2xl">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-3 h-3 rounded-full bg-rose-500/80"></span>
+                            <span class="w-3 h-3 rounded-full bg-amber-500/80"></span>
+                            <span class="w-3 h-3 rounded-full bg-emerald-500/80"></span>
+                        </div>
+                        <span class="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider font-mono"><%= t.terminalTitle %></span>
+                        <div class="w-9 h-3"></div> <!-- Spacer -->
+                    </div>
+                    
+                    <div class="terminal-screen p-4 flex-1 overflow-y-auto text-xs text-emerald-400 font-mono flex flex-col gap-2 rounded-b-2xl" id="terminal-screen">
+                        <div class="text-zinc-600 italic select-none" id="terminal-placeholder">
+                            <%= t.terminalPlaceholder %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Collapsible logs console (Bottom) -->
+        <div class="panel-surface rounded-2xl flex flex-col shrink-0">
+            <div class="px-6 py-4 flex flex-row items-center justify-between bg-black/40 border-b border-[var(--border-primary)] rounded-t-2xl <%= isRtl ? 'flex-row-reverse' : '' %>">
+                <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <div class="relative flex items-center justify-center">
+                        <span class="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-[#ff3b30] opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-[#ff3b30]"></span>
+                    </div>
+                    <%= t.logTitle %>
+                </h3>
+                
+                <div class="flex items-center gap-4 text-xs font-semibold select-none <%= isRtl ? 'flex-row-reverse' : '' %>">
+                    <div class="flex items-center gap-2">
+                        <span><%= t.logToggle %></span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="logs-toggle-switch" class="sr-only peer" checked>
+                            <div class="w-8 h-4 bg-zinc-800 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-[#ff3b30]"></div>
+                        </label>
+                    </div>
+                    
+                    <label class="flex items-center gap-1.5 cursor-pointer">
+                        <input type="checkbox" id="logs-autoscroll-chk" checked class="accent-[#ff3b30] rounded font-bold">
+                        <span><%= t.autoscroll %></span>
+                    </label>
+                    
+                    <button id="clear-logs-btn" class="text-zinc-500 hover:text-white transition cursor-pointer font-bold uppercase tracking-wider"><%= t.clearBtn %></button>
+                </div>
+            </div>
+            
+            <div class="log-screen p-5 text-[10px] text-zinc-500 flex flex-col gap-1.5 rounded-b-2xl" id="log-screen-console">
+                <div class="text-zinc-600">[System] Stream listener initialized. Awaiting hardware events...</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- WebSockets Real-time streaming -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Digital Clock
+            const clockEl = document.getElementById('digitalClock');
+            if (clockEl) {
+                setInterval(() => { clockEl.textContent = new Date().toTimeString().split(' ')[0]; }, 1000);
+            }
+            
+            let loadedDevices = <%- JSON.stringify(devices || []) %>;
+            const isRtl = <%= isRtl %>;
+            
+            const words = {
+                stateFree: "<%= t.stateFree %>",
+                stateDisconnected: "<%= t.stateDisconnected %>",
+                reloadedSuccess: "<%= t.reloadedSuccess %>",
+                sendUssdError: "<%= t.sendUssdError %>",
+                sending: "<%= t.sending %>",
+                sendBtn: "<%= t.sendBtn %>",
+                running: "<%= t.running %>"
+            };
+
+            // Socket.io initialization
+            const socket = io();
+            
+            // Elements
+            const logsToggle = document.getElementById('logs-toggle-switch');
+            const logScreen = document.getElementById('log-screen-console');
+            const logsAutoscroll = document.getElementById('logs-autoscroll-chk');
+            const clearLogsBtn = document.getElementById('clear-logs-btn');
+            
+            const ussdForm = document.getElementById('ussd-execution-form');
+            const ussdTarget = document.getElementById('ussd-target-dongle');
+            const ussdInput = document.getElementById('ussd-code-input');
+            const ussdSubmitBtn = document.getElementById('ussd-submit-btn');
+            const btnLabel = document.getElementById('btn-label');
+            const btnSpinner = document.getElementById('btn-spinner');
+            const terminalScreen = document.getElementById('terminal-screen');
+            const terminalPlaceholder = document.getElementById('terminal-placeholder');
+            
+            const globalRefreshBtn = document.getElementById('global-refresh-btn');
+            
+            // Detail display elements
+            const elId = document.getElementById('info-id');
+            const elNum = document.getElementById('info-number');
+            const elProv = document.getElementById('info-provider');
+            const elImei = document.getElementById('info-imei');
+            const elImsi = document.getElementById('info-imsi');
+            const elGroup = document.getElementById('info-group');
+            const elModel = document.getElementById('info-model');
+            const elFirm = document.getElementById('info-firmware');
+            const elMode = document.getElementById('info-mode');
+            const elSub = document.getElementById('info-submode');
+
+            // Select Row behavior to display details
+            window.selectDevice = function(id) {
+                const dev = loadedDevices.find(d => d.ID === id);
+                if (!dev) return;
+                
+                // Highlight row
+                document.querySelectorAll('#dongles-table-body tr').forEach(tr => {
+                    tr.classList.remove('bg-zinc-900/60');
+                });
+                const selectedRow = document.getElementById('row-' + id);
+                if (selectedRow) selectedRow.classList.add('bg-zinc-900/60');
+                
+                // Fill metadata cards
+                elId.textContent = dev.ID || '-';
+                elNum.textContent = dev.Number || 'Unknown';
+                elProv.textContent = dev['Provider Name'] || 'NONE';
+                elImei.textContent = dev.IMEI || '-';
+                elImsi.textContent = dev.IMSI || '-';
+                elGroup.textContent = dev.Group || '0';
+                elModel.textContent = dev.Model || '-';
+                elFirm.textContent = dev.Firmware || '-';
+                elMode.textContent = dev.Mode || '-';
+                elSub.textContent = dev.Submode || '-';
+            };
+
+            // Initialize detail selection if devices exist
+            if (loadedDevices.length > 0) {
+                selectDevice(loadedDevices[0].ID);
+                
+                // Set click listeners on rows
+                loadedDevices.forEach(d => {
+                    const tr = document.getElementById('row-' + d.ID);
+                    if (tr) {
+                        tr.style.cursor = 'pointer';
+                        tr.addEventListener('click', (e) => {
+                            if (e.target.closest('button')) return;
+                            selectDevice(d.ID);
+                        });
+                    }
+                });
+            }
+
+            // Real-time log receiver
+            socket.on('dongleLog', (line) => {
+                if (!logsToggle.checked) return;
+                
+                const lineEl = document.createElement('div');
+                lineEl.className = 'py-0.5 border-b border-zinc-950/20';
+                
+                if (line.includes('ERROR') || line.includes('WARNING') || line.includes('Failed')) {
+                    lineEl.className += ' text-rose-500';
+                } else if (line.includes('NOTICE') || line.includes('Got USSD')) {
+                    lineEl.className += ' text-emerald-400 font-bold';
+                } else {
+                    lineEl.className += ' text-zinc-500';
+                }
+                
+                lineEl.textContent = line;
+                logScreen.appendChild(lineEl);
+                
+                if (logsAutoscroll.checked) {
+                    logScreen.scrollTop = logScreen.scrollHeight;
+                }
+            });
+
+            // Log Controls
+            clearLogsBtn.addEventListener('click', () => {
+                logScreen.innerHTML = '<div class="text-zinc-600">[System] Log screen cleared. Awaiting hardware events...</div>';
+            });
+
+            // Reload single dongle action
+            window.reloadDongle = function(id) {
+                if (!confirm((isRtl ? 'هل أنت متأكد من إعادة تشغيل الشريحة ' : 'Are you sure you want to reload ') + id + '?')) return;
+                
+                const btn = document.querySelector(`#row-${id} button`);
+                if (btn) btn.disabled = true;
+                
+                fetch('/api/gsm-dongles/reload/' + id, { method: 'POST' })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(words.reloadedSuccess + ' (' + id + ')');
+                            refreshDevicesList();
+                        } else {
+                            alert('Error: ' + (data.error || 'Unknown server error'));
+                        }
+                    })
+                    .catch(err => alert('Network error: ' + err.message))
+                    .finally(() => { if (btn) btn.disabled = false; });
+            };
+
+            // Send USSD request action
+            ussdForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const target = ussdTarget.value;
+                const code = ussdInput.value;
+                
+                if (!target || !code) return;
+                
+                btnLabel.textContent = words.sending;
+                btnSpinner.classList.remove('hidden');
+                ussdSubmitBtn.disabled = true;
+                
+                if (terminalPlaceholder) {
+                    terminalPlaceholder.remove();
+                }
+                
+                const cmdLine = document.createElement('div');
+                cmdLine.className = 'text-zinc-500 mt-2 border-t border-zinc-900 pt-2';
+                cmdLine.textContent = `[${new Date().toLocaleTimeString()}] > exec-ussd -d ${target} -c ${code}`;
+                terminalScreen.appendChild(cmdLine);
+                terminalScreen.scrollTop = terminalScreen.scrollHeight;
+
+                fetch('/api/gsm-dongles/ussd', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ dongle: target, code: code })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    const respLine = document.createElement('div');
+                    if (data.success) {
+                        respLine.className = 'text-emerald-400 font-bold bg-[#ff3b30]/5 p-2 rounded border border-[#ff3b30]/10 mt-1';
+                        respLine.innerHTML = `<span class="text-zinc-500 font-normal">[${data.logTime || new Date().toLocaleTimeString()}]</span> ${data.response}`;
+                    } else {
+                        respLine.className = 'text-rose-400 font-bold bg-rose-950/10 p-2 rounded border border-rose-900/20 mt-1';
+                        respLine.textContent = `[System Error] ${data.error || words.sendUssdError}`;
+                    }
+                    terminalScreen.appendChild(respLine);
+                    terminalScreen.scrollTop = terminalScreen.scrollHeight;
+                })
+                .catch(err => {
+                    const errorLine = document.createElement('div');
+                    errorLine.className = 'text-rose-500 font-bold mt-1';
+                    errorLine.textContent = `[Network Error] ${err.message}`;
+                    terminalScreen.appendChild(errorLine);
+                    terminalScreen.scrollTop = terminalScreen.scrollHeight;
+                })
+                .finally(() => {
+                    btnLabel.textContent = words.sendBtn;
+                    btnSpinner.classList.add('hidden');
+                    ussdSubmitBtn.disabled = false;
+                });
+            });
+
+            // WebSocket live USSD responses capture
+            socket.on('ussdResponse', (data) => {
+                if (ussdTarget.value === data.dongleId) {
+                    const respLine = document.createElement('div');
+                    respLine.className = 'text-emerald-400 font-bold bg-[#ff3b30]/5 p-2 rounded border border-[#ff3b30]/10 mt-1';
+                    respLine.innerHTML = `<span class="text-zinc-500 font-normal">[${data.logTime || new Date().toLocaleTimeString()}] (Live Event)</span> ${data.text}`;
+                    terminalScreen.appendChild(respLine);
+                    terminalScreen.scrollTop = terminalScreen.scrollHeight;
+                }
+            });
+
+            // Refresh Device List AJAX helper
+            function refreshDevicesList() {
+                globalRefreshBtn.disabled = true;
+                
+                fetch('/api/gsm-dongles')
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success && data.devices) {
+                            loadedDevices = data.devices;
+                            
+                            const tbody = document.getElementById('dongles-table-body');
+                            tbody.innerHTML = '';
+                            
+                            ussdTarget.innerHTML = `<option value="" disabled selected hidden>${words.selectPlaceholder}</option>`;
+                            
+                            if (loadedDevices.length === 0) {
+                                tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-[var(--text-muted)]">${words.noDongles}</td></tr>`;
+                                return;
+                            }
+                            
+                            loadedDevices.forEach(d => {
+                                const isFree = d.State.toLowerCase() === 'free';
+                                const isNotConn = d.State.toLowerCase().includes('not');
+                                const stateClass = isFree ? 'text-[#ff3b30] font-bold' : isNotConn ? 'text-zinc-600' : 'text-amber-500';
+                                const badgeClass = isFree ? 'bg-[#ff3b30]' : isNotConn ? 'bg-zinc-800' : 'bg-amber-500';
+                                
+                                const tr = document.createElement('tr');
+                                tr.className = 'border-b border-[var(--border-primary)]/50 hover:bg-[var(--bg-hover)]/20 transition-colors';
+                                tr.id = 'row-' + d.ID;
+                                tr.style.cursor = 'pointer';
+                                tr.innerHTML = `
+                                    <td class="py-3.5 px-4 font-mono font-black text-white">${d.ID}</td>
+                                    <td class="py-3.5 px-4 text-[var(--text-secondary)]">${d['Provider Name'] || 'NONE'}</td>
+                                    <td class="py-3.5 px-4 font-mono text-[var(--text-secondary)]">${d.Number || 'Unknown'}</td>
+                                    <td class="py-3.5 px-4 font-mono text-xs text-[var(--text-muted)]">${d.IMEI || '-'}</td>
+                                    <td class="py-3.5 px-4">
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-mono text-xs">${d.RSSI || '0'}</span>
+                                            <div class="w-16 bg-zinc-950 h-1.5 rounded-full overflow-hidden border border-zinc-900">
+                                                <div class="bg-[#ff3b30] h-full" style="width: ${Math.min(100, Math.max(0, (parseInt(d.RSSI) || 0) * 3))}%"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-3.5 px-4">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="h-2 w-2 rounded-full pulse-dot ${badgeClass} active"></span>
+                                            <span class="${stateClass} text-xs uppercase tracking-wider">
+                                                ${isFree ? words.stateFree : isNotConn ? words.stateDisconnected : d.State}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3.5 px-4 text-center">
+                                        <button onclick="reloadDongle('${d.ID}')" class="bg-zinc-900 hover:bg-zinc-800 text-[var(--text-secondary)] hover:text-white border border-zinc-800 rounded-md px-2.5 py-1 text-xs cursor-pointer transition flex items-center gap-1 mx-auto" title="${words.sendBtn}">
+                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+                                            </svg>
+                                            ${words.sendBtn.substring(0, 7)}
+                                        </button>
+                                    </td>
+                                `;
+                                tbody.appendChild(tr);
+                                
+                                tr.addEventListener('click', (e) => {
+                                    if (e.target.closest('button')) return;
+                                    selectDevice(d.ID);
+                                });
+                                
+                                const opt = document.createElement('option');
+                                opt.value = d.ID;
+                                if (d.State.toLowerCase() !== 'free') opt.disabled = true;
+                                opt.textContent = `${d.ID} (${d.Number || 'Unknown'})`;
+                                ussdTarget.appendChild(opt);
+                            });
+                            
+                            if (loadedDevices.length > 0) {
+                                selectDevice(loadedDevices[0].ID);
+                            }
+                        }
+                    })
+                    .catch(err => console.error('Error refreshing devices:', err))
+                    .finally(() => { globalRefreshBtn.disabled = false; });
+            }
+
+            globalRefreshBtn.addEventListener('click', refreshDevicesList);
+            setInterval(refreshDevicesList, 10000);
+        });
+    </script>
+</body>
+</html>

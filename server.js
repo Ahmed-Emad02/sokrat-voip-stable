@@ -45,6 +45,8 @@ const tables = {
 
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // --- DATABASE CONNECTION POOL SETUP ---
 const pool = mysql.createPool({
@@ -715,7 +717,183 @@ app.get('/operator', (req, res) => {
     } catch (error) { res.status(500).send("Operator Panel Engine Error: " + error.message); }
 });
 
-// GSM Dongles Monitor Route Removed
+// --- GSM DONGLES MONITOR & USSD ROUTING ENGINE ---
+let latestUssdResponses = {}; // dongle_id -> { text, timestamp, logTime }
+
+// Parse Asterisk 'dongle show devices' CLI output
+function parseDevicesOutput(output) {
+    const lines = output.trim().split('\n');
+    if (lines.length === 0) return [];
+    const header = lines[0];
+    const colNames = ["ID", "Group", "State", "RSSI", "Mode", "Submode", "Provider Name", "Model", "Firmware", "IMEI", "IMSI", "Number"];
+    const indices = colNames.map(name => header.indexOf(name));
+    indices.push(header.length + 100);
+    
+    const devices = [];
+    for (let i = 1; i < lines.length; i++) {
+        const line = lines[i];
+        if (!line.trim() || line.startsWith('-----') || line.includes('ID')) {
+            continue;
+        }
+        const row = {};
+        for (let j = 0; j < colNames.length; j++) {
+            const start = indices[j];
+            const end = indices[j+1];
+            if (start !== -1 && start < line.length) {
+                row[colNames[j]] = line.substring(start, Math.min(end, line.length)).trim();
+            } else {
+                row[colNames[j]] = '';
+            }
+        }
+        if (row.ID && row.ID.startsWith("dongle")) {
+            devices.push(row);
+        }
+    }
+    return devices;
+}
+
+// Start background tail log monitor on the Asterisk verbose log file
+function startUssdLogMonitor() {
+    console.log("GSM MONITOR: Starting tail process on /var/log/asterisk/full...");
+    const tail = spawn('tail', ['-n', '0', '-F', '/var/log/asterisk/full']);
+    
+    tail.stdout.on('data', (data) => {
+        const lines = data.toString().split('\n');
+        const responsePattern = /\[([^\]]+)\] VERBOSE\[\d+\] at_response\.c:\s+\[([^\]]+)\] Got USSD type \d+ '[^']*': '(.*)'/;
+        const dongleLogPattern = /chan_dongle|at_response|app_ussd|dongle[0-9]+/i;
+        
+        for (const line of lines) {
+            if (!line.trim()) continue;
+            
+            // Log streaming
+            if (dongleLogPattern.test(line)) {
+                io.emit('dongleLog', line.trim());
+            }
+            
+            // Parse USSD response
+            const match = responsePattern.exec(line);
+            if (match) {
+                const logTime = match[1];
+                const dongleId = match[2];
+                const text = match[3];
+                console.log(`GSM MONITOR: Captured USSD response for ${dongleId} -> ${text}`);
+                latestUssdResponses[dongleId] = {
+                    text: text,
+                    timestamp: Date.now(),
+                    logTime: logTime
+                };
+                io.emit('ussdResponse', { dongleId, text, logTime });
+            }
+        }
+    });
+    
+    tail.stderr.on('data', (data) => {
+        console.error(`GSM MONITOR: tail stderr: ${data}`);
+    });
+    
+    tail.on('close', (code) => {
+        console.log(`GSM MONITOR: tail process closed with code ${code}. Reconnecting in 5s...`);
+        setTimeout(startUssdLogMonitor, 5000);
+    });
+}
+
+// Import spawn from child_process
+const { spawn } = require('child_process');
+startUssdLogMonitor();
+
+// Page View route
+app.get('/gsm-dongles', (req, res) => {
+    try {
+        execFile(ASTERISK_BIN, ['-rx', 'dongle show devices'], (error, stdout, stderr) => {
+            let devices = [];
+            if (!error && stdout) {
+                devices = parseDevicesOutput(stdout);
+            }
+            res.render('gsm-dongles', {
+                devices,
+                moment
+            });
+        });
+    } catch (error) {
+        res.status(500).send("GSM Dongle System Error: " + error.message);
+    }
+});
+
+// API Endpoint to fetch latest device status
+app.get('/api/gsm-dongles', (req, res) => {
+    execFile(ASTERISK_BIN, ['-rx', 'dongle show devices'], (error, stdout, stderr) => {
+        if (error) {
+            return res.status(500).json({ success: false, error: stderr || error.message });
+        }
+        const devices = parseDevicesOutput(stdout);
+        res.json({ success: true, devices });
+    });
+});
+
+// API Endpoint to reload specific dongle
+app.post('/api/gsm-dongles/reload/:dongleId', (req, res) => {
+    const { dongleId } = req.params;
+    if (!/^dongle[0-9]+$/.test(dongleId)) {
+        return res.status(400).json({ success: false, error: "Invalid dongle ID format" });
+    }
+    execFile(ASTERISK_BIN, ['-rx', `dongle reload ${dongleId}`], (error, stdout, stderr) => {
+        if (error) {
+            return res.status(500).json({ success: false, error: stderr || error.message });
+        }
+        res.json({ success: true, output: stdout.trim() });
+    });
+});
+
+// API Endpoint to send USSD request
+app.post('/api/gsm-dongles/ussd', (req, res) => {
+    const { dongle, code } = req.body;
+    if (!dongle || !code) {
+        return res.status(400).json({ success: false, error: "Dongle and USSD code are required" });
+    }
+    if (!/^dongle[0-9]+$/.test(dongle)) {
+        return res.status(400).json({ success: false, error: "Invalid dongle ID format" });
+    }
+    if (!/^[0-9*#+,]+$/.test(code)) {
+        return res.status(400).json({ success: false, error: "Invalid USSD code format" });
+    }
+    
+    // Clear previous response for this dongle
+    delete latestUssdResponses[dongle];
+    
+    execFile(ASTERISK_BIN, ['-rx', `dongle ussd ${dongle} ${code}`], (error, stdout, stderr) => {
+        if (error) {
+            return res.status(500).json({ success: false, error: stderr || error.message });
+        }
+        
+        // Poll for response (up to 15 seconds)
+        const timeout = 15000;
+        const pollInterval = 250;
+        const startTime = Date.now();
+        
+        const checkResponse = () => {
+            if (latestUssdResponses[dongle]) {
+                const resp = latestUssdResponses[dongle];
+                delete latestUssdResponses[dongle]; // consume
+                return res.json({
+                    success: true,
+                    response: resp.text,
+                    logTime: resp.logTime
+                });
+            }
+            
+            if (Date.now() - startTime >= timeout) {
+                return res.status(504).json({
+                    success: false,
+                    error: "Timeout waiting for USSD response from the cellular network."
+                });
+            }
+            
+            setTimeout(checkResponse, pollInterval);
+        };
+        
+        setTimeout(checkResponse, pollInterval);
+    });
+});
 
 // --- ROUTE 4.5: AGENT STATUS REPORTS VIEW ---
 app.get('/agent-status', async (req, res) => {
