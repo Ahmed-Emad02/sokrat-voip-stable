@@ -801,6 +801,54 @@ function startUssdLogMonitor() {
 const { spawn } = require('child_process');
 startUssdLogMonitor();
 
+// Self-healing SIM number auto-provisioning mapping list
+const dongleNumberMappings = {
+    'dongle0': '+201027826232',
+    // Add other default/placeholder slots if needed
+};
+
+function autoProvisionSimNumbers() {
+    execFile(ASTERISK_BIN, ['-rx', 'dongle show devices'], (error, stdout, stderr) => {
+        if (error || !stdout) return;
+        
+        const devices = parseDevicesOutput(stdout);
+        devices.forEach(d => {
+            const state = String(d.State || '').toLowerCase();
+            const number = String(d.Number || '').toLowerCase();
+            const dongleId = d.ID;
+            
+            // Only auto-provision if the device is Free/Active (registered) and the number is Unknown/empty
+            if (state === 'free' && (number === 'unknown' || number === '')) {
+                const targetNumber = dongleNumberMappings[dongleId];
+                if (targetNumber) {
+                    console.log(`GSM MONITOR: Auto-provisioning SIM own number for ${dongleId} -> ${targetNumber}...`);
+                    
+                    // Write to SIM own numbers storage (ON)
+                    execFile(ASTERISK_BIN, ['-rx', `dongle cmd ${dongleId} AT+CPBS="ON"`], (err1, out1) => {
+                        if (err1) return console.error(`GSM MONITOR: Failed CPBS select for ${dongleId}`, err1);
+                        
+                        execFile(ASTERISK_BIN, ['-rx', `dongle cmd ${dongleId} AT+CPBW=1,"${targetNumber}","Number"`], (err2, out2) => {
+                            if (err2) return console.error(`GSM MONITOR: Failed CPBW write for ${dongleId}`, err2);
+                            
+                            console.log(`GSM MONITOR: Wrote number ${targetNumber} to ${dongleId} SIM. Restarting dongle...`);
+                            
+                            // Software restart to re-read SIM card MSISDN
+                            execFile(ASTERISK_BIN, ['-rx', `dongle restart now ${dongleId}`], (err3, out3) => {
+                                if (err3) console.error(`GSM MONITOR: Failed soft restart for ${dongleId}`, err3);
+                            });
+                        });
+                    });
+                }
+            }
+        });
+    });
+}
+
+// Run the auto-provisioning check every 30 seconds
+setInterval(autoProvisionSimNumbers, 30000);
+// Run initially after 10 seconds
+setTimeout(autoProvisionSimNumbers, 10000);
+
 // Page View route
 app.get('/gsm-dongles', (req, res) => {
     try {
