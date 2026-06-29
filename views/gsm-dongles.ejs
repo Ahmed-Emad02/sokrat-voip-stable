@@ -217,8 +217,26 @@ const isRtl = currentLang === 'ar';
                                         <tr class="border-b border-[var(--border-primary)]/50 hover:bg-[var(--bg-hover)]/20 transition-colors" id="row-<%= d.ID %>">
                                             <td class="py-3.5 px-4 font-mono font-black text-white"><%= d.ID %></td>
                                             <td class="py-3.5 px-4 text-[var(--text-secondary)]"><%= d['Provider Name'] || 'NONE' %></td>
-                                            <td class="py-3.5 px-4 font-mono text-[var(--text-secondary)]"><%= d.Number || 'Unknown' %></td>
-                                            <td class="py-3.5 px-4 font-mono text-xs text-[var(--text-muted)]"><%= d.IMEI || '-' %></td>
+                                            <td class="py-3.5 px-4 font-mono text-[var(--text-secondary)]">
+                                                <div class="flex items-center gap-1.5">
+                                                    <span><%= d.Number || 'Unknown' %></span>
+                                                    <% if (d.Number && d.Number !== 'Unknown') { %>
+                                                        <button onclick="copyToClipboard('<%= d.Number %>', this)" class="text-zinc-600 hover:text-white hover:bg-zinc-800 p-1 rounded transition cursor-pointer" title="<%= isRtl ? 'نسخ الرقم' : 'Copy Number' %>">
+                                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                                        </button>
+                                                    <% } %>
+                                                </div>
+                                            </td>
+                                            <td class="py-3.5 px-4 font-mono text-xs text-[var(--text-muted)]">
+                                                <div class="flex items-center gap-1.5">
+                                                    <span><%= d.IMEI || '-' %></span>
+                                                    <% if (d.IMEI && d.IMEI !== '-') { %>
+                                                        <button onclick="copyToClipboard('<%= d.IMEI %>', this)" class="text-zinc-600 hover:text-white hover:bg-zinc-800 p-1 rounded transition cursor-pointer" title="<%= isRtl ? 'نسخ IMEI' : 'Copy IMEI' %>">
+                                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                                        </button>
+                                                    <% } %>
+                                                </div>
+                                            </td>
                                             <td class="py-3.5 px-4">
                                                 <div class="flex items-center gap-2">
                                                     <span class="font-mono text-xs"><%= d.RSSI || '0' %></span>
@@ -263,11 +281,27 @@ const isRtl = currentLang === 'ar';
                     <div class="panel-surface rounded-2xl p-6 flex flex-col gap-3">
                         <h4 class="text-sm font-bold text-white uppercase tracking-wider border-b border-[var(--border-primary)] pb-2"><%= t.deviceDetails %></h4>
                         <div class="flex flex-col gap-2.5 text-xs">
-                            <div class="flex justify-between"><span class="text-[var(--text-muted)]"><%= t.thID %>:</span> <span id="info-id" class="font-mono font-bold">-</span></div>
-                            <div class="flex justify-between"><span class="text-[var(--text-muted)]"><%= t.thNumber %>:</span> <span id="info-number" class="font-mono font-bold">-</span></div>
-                            <div class="flex justify-between"><span class="text-[var(--text-muted)]"><%= t.thProvider %>:</span> <span id="info-provider" class="font-bold text-[#ff3b30]">-</span></div>
-                            <div class="flex justify-between"><span class="text-[var(--text-muted)]"><%= t.thIMEI %>:</span> <span id="info-imei" class="font-mono">-</span></div>
-                            <div class="flex justify-between"><span class="text-[var(--text-muted)]"><%= t.thIMSI %>:</span> <span id="info-imsi" class="font-mono">-</span></div>
+                            <div class="flex justify-between items-center"><span class="text-[var(--text-muted)]"><%= t.thID %>:</span> <span id="info-id" class="font-mono font-bold">-</span></div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-[var(--text-muted)]"><%= t.thNumber %>:</span>
+                                <div class="flex items-center gap-1.5">
+                                    <span id="info-number" class="font-mono font-bold">-</span>
+                                    <button onclick="copyToClipboard(document.getElementById('info-number').textContent, this)" class="text-zinc-600 hover:text-white hover:bg-zinc-800 p-0.5 rounded transition cursor-pointer" title="<%= isRtl ? 'نسخ' : 'Copy' %>">
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center"><span class="text-[var(--text-muted)]"><%= t.thProvider %>:</span> <span id="info-provider" class="font-bold text-[#ff3b30]">-</span></div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-[var(--text-muted)]"><%= t.thIMEI %>:</span>
+                                <div class="flex items-center gap-1.5">
+                                    <span id="info-imei" class="font-mono">-</span>
+                                    <button onclick="copyToClipboard(document.getElementById('info-imei').textContent, this)" class="text-zinc-600 hover:text-white hover:bg-zinc-800 p-0.5 rounded transition cursor-pointer" title="<%= isRtl ? 'نسخ' : 'Copy' %>">
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center"><span class="text-[var(--text-muted)]"><%= t.thIMSI %>:</span> <span id="info-imsi" class="font-mono">-</span></div>
                         </div>
                     </div>
                     
@@ -513,6 +547,23 @@ const isRtl = currentLang === 'ar';
                 logScreen.classList.toggle('hidden', !logsToggle.checked);
             });
 
+            // Copy to clipboard utility with green checkmark feedback
+            window.copyToClipboard = function(text, btn) {
+                const clean = String(text || '').trim();
+                if (!clean || clean === '-' || clean === 'Unknown') return;
+                navigator.clipboard.writeText(clean).then(() => {
+                    if (btn) {
+                        const originalHTML = btn.innerHTML;
+                        btn.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                        btn.style.pointerEvents = 'none';
+                        setTimeout(() => {
+                            btn.innerHTML = originalHTML;
+                            btn.style.pointerEvents = 'auto';
+                        }, 1500);
+                    }
+                }).catch(err => console.error('Failed to copy text: ', err));
+            };
+
             // Reload single dongle action
             window.reloadDongle = function(id) {
                 if (!confirm((isRtl ? 'هل أنت متأكد من إعادة تشغيل الشريحة ' : 'Are you sure you want to reload ') + id + '?')) return;
@@ -632,8 +683,18 @@ const isRtl = currentLang === 'ar';
                                 tr.innerHTML = `
                                     <td class="py-3.5 px-4 font-mono font-black text-white">${d.ID}</td>
                                     <td class="py-3.5 px-4 text-[var(--text-secondary)]">${d['Provider Name'] || 'NONE'}</td>
-                                    <td class="py-3.5 px-4 font-mono text-[var(--text-secondary)]">${d.Number || 'Unknown'}</td>
-                                    <td class="py-3.5 px-4 font-mono text-xs text-[var(--text-muted)]">${d.IMEI || '-'}</td>
+                                    <td class="py-3.5 px-4 font-mono text-[var(--text-secondary)]">
+                                        <div class="flex items-center gap-1.5">
+                                            <span>${d.Number || 'Unknown'}</span>
+                                            ${(d.Number && d.Number !== 'Unknown') ? `<button onclick="copyToClipboard('${d.Number}', this)" class="text-zinc-600 hover:text-white hover:bg-zinc-800 p-1 rounded transition cursor-pointer" title="${isRtl ? 'نسخ الرقم' : 'Copy Number'}"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>` : ''}
+                                        </div>
+                                    </td>
+                                    <td class="py-3.5 px-4 font-mono text-xs text-[var(--text-muted)]">
+                                        <div class="flex items-center gap-1.5">
+                                            <span>${d.IMEI || '-'}</span>
+                                            ${(d.IMEI && d.IMEI !== '-') ? `<button onclick="copyToClipboard('${d.IMEI}', this)" class="text-zinc-600 hover:text-white hover:bg-zinc-800 p-1 rounded transition cursor-pointer" title="${isRtl ? 'نسخ IMEI' : 'Copy IMEI'}"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>` : ''}
+                                        </div>
+                                    </td>
                                     <td class="py-3.5 px-4">
                                         <div class="flex items-center gap-2">
                                             <span class="font-mono text-xs">${d.RSSI || '0'}</span>
