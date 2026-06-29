@@ -845,6 +845,34 @@ app.get('/operator', (req, res) => {
 // --- GSM DONGLES MONITOR & USSD ROUTING ENGINE ---
 let latestUssdResponses = {}; // dongle_id -> { text, timestamp, logTime }
 
+// Persistent IMSI-to-Phone number mapping database on disk
+const MAPPINGS_FILE = '/opt/issabel-dashboard/sim_mappings.json';
+
+function readSimMappings() {
+    const fs = require('fs');
+    try {
+        if (fs.existsSync(MAPPINGS_FILE)) {
+            return JSON.parse(fs.readFileSync(MAPPINGS_FILE, 'utf8'));
+        }
+    } catch (err) {
+        console.error("GSM MONITOR: Error reading sim mappings:", err);
+    }
+    // Default seed mapping
+    return {
+        '602019513016594': '+201027826232'
+    };
+}
+
+function saveSimMappings(mappings) {
+    const fs = require('fs');
+    try {
+        fs.writeFileSync(MAPPINGS_FILE, JSON.stringify(mappings, null, 4), 'utf8');
+        console.log("GSM MONITOR: Saved SIM mappings to", MAPPINGS_FILE);
+    } catch (err) {
+        console.error("GSM MONITOR: Error saving sim mappings:", err);
+    }
+}
+
 // Helper to read all configured numbers from /etc/asterisk/dongle.conf
 function getConfiguredDongleNumbers() {
     const fs = require('fs');
@@ -867,7 +895,7 @@ function getConfiguredDongleNumbers() {
                 continue;
             }
             
-            if (currentDongle && trimmed.toLowerCase().startsWith('number=')) {
+            if (currentDongle && (trimmed.toLowerCase().startsWith('number=') || trimmed.toLowerCase().startsWith('exten='))) {
                 const parts = trimmed.split('=');
                 if (parts.length >= 2) {
                     const num = parts.slice(1).join('=').split(';')[0].trim();
@@ -893,6 +921,7 @@ function parseDevicesOutput(output) {
     indices.push(header.length + 100);
     
     const configNumbers = getConfiguredDongleNumbers();
+    const simMappings = readSimMappings();
     
     const devices = [];
     for (let i = 1; i < lines.length; i++) {
@@ -913,12 +942,17 @@ function parseDevicesOutput(output) {
         if (row.ID && row.ID.startsWith("dongle")) {
             const dongleId = row.ID.toLowerCase();
             const cleanNum = String(row.Number || '').toLowerCase();
+            const imsi = String(row.IMSI || '').trim();
             
             // Overlay with configured number if CLI says Unknown or empty
-            if ((cleanNum === 'unknown' || cleanNum === '' || !/^\+?\d+$/.test(cleanNum)) && configNumbers[dongleId]) {
-                row.Number = configNumbers[dongleId];
-            } else if ((cleanNum === 'unknown' || cleanNum === '' || !/^\+?\d+$/.test(cleanNum)) && dongleNumberMappings[row.ID]) {
-                row.Number = dongleNumberMappings[row.ID];
+            if (cleanNum === 'unknown' || cleanNum === '' || !/^\+?\d+$/.test(cleanNum)) {
+                if (configNumbers[dongleId]) {
+                    row.Number = configNumbers[dongleId];
+                } else if (imsi && simMappings[imsi]) {
+                    row.Number = simMappings[imsi];
+                } else if (dongleNumberMappings[row.ID]) {
+                    row.Number = dongleNumberMappings[row.ID];
+                }
             }
             
             devices.push(row);
@@ -1002,6 +1036,7 @@ function updateDongleConfFile(dongleId, phoneNumber) {
         const lines = content.split(/\r?\n/);
         let inSection = false;
         let numberUpdated = false;
+        let extenUpdated = false;
         let targetIndex = -1;
         
         for (let i = 0; i < lines.length; i++) {
@@ -1020,22 +1055,33 @@ function updateDongleConfFile(dongleId, phoneNumber) {
             if (inSection && line.toLowerCase().startsWith('number=')) {
                 lines[i] = `number=${phoneNumber}`;
                 numberUpdated = true;
-                break;
+            }
+            if (inSection && line.toLowerCase().startsWith('exten=')) {
+                lines[i] = `exten=${phoneNumber}`;
+                extenUpdated = true;
             }
         }
         
-        if (inSection && !numberUpdated && targetIndex === -1) {
-            lines.push(`number=${phoneNumber}`);
-            numberUpdated = true;
-        } else if (inSection && !numberUpdated && targetIndex !== -1) {
-            lines.splice(targetIndex, 0, `number=${phoneNumber}`);
-            numberUpdated = true;
+        if (inSection) {
+            if (!numberUpdated) {
+                if (targetIndex === -1) {
+                    lines.push(`number=${phoneNumber}`);
+                } else {
+                    lines.splice(targetIndex, 0, `number=${phoneNumber}`);
+                    targetIndex++;
+                }
+            }
+            if (!extenUpdated) {
+                if (targetIndex === -1) {
+                    lines.push(`exten=${phoneNumber}`);
+                } else {
+                    lines.splice(targetIndex, 0, `exten=${phoneNumber}`);
+                }
+            }
         }
         
-        if (numberUpdated) {
-            fs.writeFileSync(filePath, lines.join('\n'), 'utf8');
-            console.log(`GSM MONITOR: Successfully added number=${phoneNumber} to [${dongleId}] in ${filePath}`);
-        }
+        fs.writeFileSync(filePath, lines.join('\n'), 'utf8');
+        console.log(`GSM MONITOR: Successfully added number=${phoneNumber} and exten=${phoneNumber} to [${dongleId}] in ${filePath}`);
     } catch (err) {
         console.error(`GSM MONITOR: Failed to update ${filePath}:`, err);
     }
@@ -1046,39 +1092,51 @@ function autoProvisionSimNumbers() {
         if (error || !stdout) return;
         
         const devices = parseDevicesOutput(stdout);
+        const simMappings = readSimMappings();
+        
         devices.forEach(d => {
             const state = String(d.State || '').toLowerCase();
             const number = String(d.Number || '').toLowerCase();
+            const imsi = String(d.IMSI || '').trim();
             const dongleId = d.ID;
             
-            // Only auto-provision if the device is Free/Active (registered) and the number is Unknown/empty
-            if (state === 'free' && (number === 'unknown' || number === '' || !/^\+?\d+$/.test(number))) {
-                const targetNumber = dongleNumberMappings[dongleId];
-                if (targetNumber) {
-                    console.log(`GSM MONITOR: Auto-provisioning SIM own number for ${dongleId} -> ${targetNumber}...`);
+            // Only auto-provision if the device is Free/Active (registered) and has a valid IMSI
+            if (state === 'free' && imsi && imsi !== '-') {
+                if (number === 'unknown' || number === '' || !/^\+?\d+$/.test(number)) {
+                    // Check if we have a mapping for this IMSI
+                    let targetNumber = simMappings[imsi];
                     
-                    // 1. Update /etc/asterisk/dongle.conf to hardcode the number
-                    updateDongleConfFile(dongleId, targetNumber);
+                    // Fallback to legacy static dongle mappings if IMSI mapping is missing
+                    if (!targetNumber) {
+                        targetNumber = dongleNumberMappings[dongleId];
+                    }
                     
-                    // 2. Try to write to the SIM card memory via AT commands in national format (ton 129)
-                    const cleanNum = targetNumber.replace(/^\+/, '');
-                    
-                    execFile(ASTERISK_BIN, ['-rx', 'dongle cmd ' + dongleId + ' AT+CPBS="ON"'], (err1, out1) => {
-                        execFile(ASTERISK_BIN, ['-rx', 'dongle cmd ' + dongleId + ' AT+CPBW=1,\\"' + cleanNum + '\\",129,\\"Number\\"'], (err2, out2) => {
-                            if (err2) {
-                                console.log(`GSM MONITOR: SIM write AT command error on ${dongleId} (SIM card likely PIN2/carrier locked).`);
-                            } else {
-                                console.log(`GSM MONITOR: SIM write AT command sent to ${dongleId}.`);
-                            }
-                            
-                            // 3. Reload config and soft restart the specific dongle
-                            execFile(ASTERISK_BIN, ['-rx', 'dongle reload now'], (errReload) => {
-                                execFile(ASTERISK_BIN, ['-rx', 'dongle restart now ' + dongleId], (errRestart) => {
-                                    console.log(`GSM MONITOR: Dongle ${dongleId} reloaded and restarted.`);
+                    if (targetNumber) {
+                        console.log(`GSM MONITOR: Auto-provisioning SIM (IMSI: ${imsi}) on ${dongleId} -> ${targetNumber}...`);
+                        
+                        // 1. Update /etc/asterisk/dongle.conf with both number and exten
+                        updateDongleConfFile(dongleId, targetNumber);
+                        
+                        // 2. Try to write to the SIM card memory via AT commands in national format (ton 129)
+                        const cleanNum = targetNumber.replace(/^\+/, '');
+                        
+                        execFile(ASTERISK_BIN, ['-rx', 'dongle cmd ' + dongleId + ' AT+CPBS="ON"'], (err1) => {
+                            execFile(ASTERISK_BIN, ['-rx', 'dongle cmd ' + dongleId + ' AT+CPBW=1,\\"' + cleanNum + '\\",129,\\"Number\\"'], (err2) => {
+                                if (err2) {
+                                    console.log(`GSM MONITOR: SIM write AT command error on ${dongleId} (SIM card likely PIN2/carrier locked).`);
+                                } else {
+                                    console.log(`GSM MONITOR: SIM write AT command sent to ${dongleId}.`);
+                                }
+                                
+                                // 3. Reload config and soft restart the specific dongle
+                                execFile(ASTERISK_BIN, ['-rx', 'dongle reload now'], (errReload) => {
+                                    execFile(ASTERISK_BIN, ['-rx', 'dongle restart now ' + dongleId], (errRestart) => {
+                                        console.log(`GSM MONITOR: Dongle ${dongleId} reloaded and restarted.`);
+                                    });
                                 });
                             });
                         });
-                    });
+                    }
                 }
             }
         });
@@ -1089,6 +1147,42 @@ function autoProvisionSimNumbers() {
 setInterval(autoProvisionSimNumbers, 30000);
 // Run initially after 10 seconds
 setTimeout(autoProvisionSimNumbers, 10000);
+
+// Endpoint to manually set/save a SIM's phone number mapping
+app.post('/api/gsm-dongles/save-number', (req, res) => {
+    try {
+        const { imsi, number, dongleId } = req.body;
+        if (!imsi || !number) {
+            return res.status(400).json({ success: false, error: 'IMSI and phone number are required.' });
+        }
+        
+        const simMappings = readSimMappings();
+        simMappings[imsi] = number;
+        saveSimMappings(simMappings);
+        
+        console.log(`GSM MONITOR: Manual save number for IMSI: ${imsi} -> ${number}`);
+        
+        if (dongleId) {
+            updateDongleConfFile(dongleId, number);
+            
+            const cleanNum = number.replace(/^\+/, '');
+            
+            execFile(ASTERISK_BIN, ['-rx', 'dongle cmd ' + dongleId + ' AT+CPBS="ON"'], (err1) => {
+                execFile(ASTERISK_BIN, ['-rx', 'dongle cmd ' + dongleId + ' AT+CPBW=1,\\"' + cleanNum + '\\",129,\\"Number\\"'], (err2) => {
+                    execFile(ASTERISK_BIN, ['-rx', 'dongle reload now'], (errReload) => {
+                        execFile(ASTERISK_BIN, ['-rx', 'dongle restart now ' + dongleId], (errRestart) => {
+                            console.log(`GSM MONITOR: Manual save complete. Dongle ${dongleId} reloaded and restarted.`);
+                        });
+                    });
+                });
+            });
+        }
+        
+        return res.json({ success: true, message: 'SIM mapping saved and provisioning triggered.' });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
 
 // Page View route
 app.get('/gsm-dongles', (req, res) => {
