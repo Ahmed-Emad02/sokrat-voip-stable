@@ -48,6 +48,13 @@ app.use(express.static('public'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use((req, res, next) => {
+    if (req.path.startsWith('/api/') || req.path === '/gsm-dongles') {
+        console.log(`HTTP [${new Date().toISOString()}] ${req.method} ${req.url} - Body: ${JSON.stringify(req.body)}`);
+    }
+    next();
+});
+
 // --- DATABASE CONNECTION POOL SETUP ---
 const pool = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
