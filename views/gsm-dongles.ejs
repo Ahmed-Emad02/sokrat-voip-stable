@@ -465,8 +465,13 @@ const isRtl = currentLang === 'ar';
                 refreshBtn: "<%= t.refreshBtn %>"
             };
 
-            // Socket.io initialization
-            const socket = io();
+            // Socket.io initialization with safety check to prevent halts if blocked/undefined
+            let socket = null;
+            if (typeof io !== 'undefined') {
+                socket = io();
+            } else {
+                console.warn("Socket.io (io) is not defined. Real-time updates will be disabled.");
+            }
             
             // Elements
             const logsToggle = document.getElementById('logs-toggle-switch');
@@ -638,47 +643,51 @@ const isRtl = currentLang === 'ar';
             }
 
             // Real-time SMS receivers
-            socket.on('newSms', (sms) => {
-                allSmsMessages.unshift(sms);
-                if (selectedDongleId && sms.dongleId.toLowerCase() === selectedDongleId.toLowerCase()) {
-                    const placeholder = document.getElementById('sms-empty-placeholder');
-                    if (placeholder && placeholder.parentNode) {
-                        placeholder.parentNode.removeChild(placeholder);
+            if (socket) {
+                socket.on('newSms', (sms) => {
+                    allSmsMessages.unshift(sms);
+                    if (selectedDongleId && sms.dongleId.toLowerCase() === selectedDongleId.toLowerCase()) {
+                        const placeholder = document.getElementById('sms-empty-placeholder');
+                        if (placeholder && placeholder.parentNode) {
+                            placeholder.parentNode.removeChild(placeholder);
+                        }
+                        smsInboxContainer.insertBefore(renderSmsCard(sms), smsInboxContainer.firstChild);
                     }
-                    smsInboxContainer.insertBefore(renderSmsCard(sms), smsInboxContainer.firstChild);
-                }
-            });
+                });
 
-            socket.on('smsCleared', () => {
-                allSmsMessages = [];
-                showEmptySmsInbox();
-            });
+                socket.on('smsCleared', () => {
+                    allSmsMessages = [];
+                    showEmptySmsInbox();
+                });
+            }
 
             // Initial load
             loadSmsInbox();
 
             // Real-time log receiver
-            socket.on('dongleLog', (line) => {
-                if (!logsToggle.checked) return;
-                
-                const lineEl = document.createElement('div');
-                lineEl.className = 'py-0.5 border-b border-zinc-950/20';
-                
-                if (line.includes('ERROR') || line.includes('WARNING') || line.includes('Failed')) {
-                    lineEl.className += ' text-rose-500';
-                } else if (line.includes('NOTICE') || line.includes('Got USSD')) {
-                    lineEl.className += ' text-emerald-400 font-bold';
-                } else {
-                    lineEl.className += ' text-zinc-500';
-                }
-                
-                lineEl.textContent = line;
-                logScreen.appendChild(lineEl);
-                
-                if (logsAutoscroll.checked) {
-                    logScreen.scrollTop = logScreen.scrollHeight;
-                }
-            });
+            if (socket) {
+                socket.on('dongleLog', (line) => {
+                    if (!logsToggle.checked) return;
+                    
+                    const lineEl = document.createElement('div');
+                    lineEl.className = 'py-0.5 border-b border-zinc-950/20';
+                    
+                    if (line.includes('ERROR') || line.includes('WARNING') || line.includes('Failed')) {
+                        lineEl.className += ' text-rose-500';
+                    } else if (line.includes('NOTICE') || line.includes('Got USSD')) {
+                        lineEl.className += ' text-emerald-400 font-bold';
+                    } else {
+                        lineEl.className += ' text-zinc-500';
+                    }
+                    
+                    lineEl.textContent = line;
+                    logScreen.appendChild(lineEl);
+                    
+                    if (logsAutoscroll.checked) {
+                        logScreen.scrollTop = logScreen.scrollHeight;
+                    }
+                });
+            }
 
             // Log Controls
             clearLogsBtn.addEventListener('click', () => {
@@ -849,16 +858,18 @@ const isRtl = currentLang === 'ar';
             });
 
             // WebSocket live USSD responses capture
-            socket.on('ussdResponse', (data) => {
-                if (ussdTarget.value === data.dongleId) {
-                    const respLine = document.createElement('div');
-                    respLine.className = 'text-emerald-400 font-bold bg-emerald-950/10 p-2 rounded border border-emerald-900/20 mt-1';
-                    const displayText = String(data.text || '').trim() || '(Empty Response / Terminated by Network)';
-                    respLine.innerHTML = `<span class="text-zinc-500 font-normal">[${data.logTime || new Date().toLocaleTimeString()}] (Live Event)</span> ${displayText}`;
-                    terminalScreen.appendChild(respLine);
-                    terminalScreen.scrollTop = terminalScreen.scrollHeight;
-                }
-            });
+            if (socket) {
+                socket.on('ussdResponse', (data) => {
+                    if (ussdTarget.value === data.dongleId) {
+                        const respLine = document.createElement('div');
+                        respLine.className = 'text-emerald-400 font-bold bg-emerald-950/10 p-2 rounded border border-emerald-900/20 mt-1';
+                        const displayText = String(data.text || '').trim() || '(Empty Response / Terminated by Network)';
+                        respLine.innerHTML = `<span class="text-zinc-500 font-normal">[${data.logTime || new Date().toLocaleTimeString()}] (Live Event)</span> ${displayText}`;
+                        terminalScreen.appendChild(respLine);
+                        terminalScreen.scrollTop = terminalScreen.scrollHeight;
+                    }
+                });
+            }
 
             // Refresh Device List AJAX helper
             function refreshDevicesList() {
