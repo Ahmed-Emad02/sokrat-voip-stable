@@ -29,6 +29,7 @@ node -v
 ### Step 2 — Clone the Repository
 
 ```bash
+yum install -y git net-tools
 cd /opt
 git clone https://github.com/Ahmed-Emad02/issabel-analytics.git issabel-dashboard
 cd /opt/issabel-dashboard
