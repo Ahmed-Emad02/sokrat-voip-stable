@@ -1015,26 +1015,28 @@ function startUssdLogMonitor() {
                 io.emit('dongleLog', line.trim());
             }
             
-            // Parse SMS received log
-            const smsPattern = /\[SMS-RECEIVE\] Dongle:\s*([^,]+),\s*Sender:\s*([^,]+),\s*Content:\s*(.*)/i;
-            const smsMatch = smsPattern.exec(line);
-            if (smsMatch) {
-                const dongleId = smsMatch[1].trim();
-                const sender = smsMatch[2].trim();
-                const content = smsMatch[3].trim();
-                const newSms = {
-                    id: Date.now() + '-' + Math.floor(Math.random() * 1000),
-                    dongleId,
-                    sender,
-                    content,
-                    timestamp: Date.now()
-                };
-                const inbox = readSmsInbox();
-                inbox.unshift(newSms);
-                if (inbox.length > 100) inbox.pop();
-                saveSmsInbox(inbox);
-                io.emit('newSms', newSms);
-                console.log(`GSM MONITOR: Saved incoming SMS on ${dongleId} from ${sender} -> ${content}`);
+            // Parse SMS received log (restrict to app_verbose.c output to prevent dialplan execution duplicates)
+            if (line.includes('app_verbose.c')) {
+                const smsPattern = /\[SMS-RECEIVE\] Dongle:\s*([^,]+),\s*Sender:\s*([^,]+),\s*Content:\s*(.*)/i;
+                const smsMatch = smsPattern.exec(line);
+                if (smsMatch) {
+                    const dongleId = smsMatch[1].trim();
+                    const sender = smsMatch[2].trim();
+                    const content = smsMatch[3].trim();
+                    const newSms = {
+                        id: Date.now() + '-' + Math.floor(Math.random() * 1000),
+                        dongleId,
+                        sender,
+                        content,
+                        timestamp: Date.now()
+                    };
+                    const inbox = readSmsInbox();
+                    inbox.unshift(newSms);
+                    if (inbox.length > 100) inbox.pop();
+                    saveSmsInbox(inbox);
+                    io.emit('newSms', newSms);
+                    console.log(`GSM MONITOR: Saved incoming SMS on ${dongleId} from ${sender} -> ${content}`);
+                }
             }
             
             // Parse USSD response
