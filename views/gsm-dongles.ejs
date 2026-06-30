@@ -263,9 +263,14 @@ const isRtl = currentLang === 'ar';
                                                 <div class="flex items-center gap-2">
                                                     <span class="font-mono text-xs"><%= d.RSSI || '0' %></span>
                                                     <svg width="54" height="28" viewBox="0 0 54 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                        <% const r = parseInt(d.RSSI) || 0; const th = [1,5,9,13,18,23,28]; const hh = [4,8,12,16,20,24,28]; for (let i = 0; i < 7; i++) { const x = i * 8; const h = hh[i]; const y = 28 - h; const fill = r >= th[i] ? '#ff3b30' : '#27272a'; %>
-                                                        <rect x="<%= x %>" y="<%= y %>" width="6" height="<%= h %>" rx="1" fill="<%= fill %>"/>
-                                                        <% } %>
+                                                        <% const rv = parseInt(d.RSSI) || 0; %>
+                                                        <rect x="0" y="24" width="6" height="4" rx="1" fill="<%= rv >= 1 ? '#ff3b30' : '#27272a' %>"/>
+                                                        <rect x="8" y="20" width="6" height="8" rx="1" fill="<%= rv >= 5 ? '#ff3b30' : '#27272a' %>"/>
+                                                        <rect x="16" y="16" width="6" height="12" rx="1" fill="<%= rv >= 9 ? '#ff3b30' : '#27272a' %>"/>
+                                                        <rect x="24" y="12" width="6" height="16" rx="1" fill="<%= rv >= 13 ? '#ff3b30' : '#27272a' %>"/>
+                                                        <rect x="32" y="8" width="6" height="20" rx="1" fill="<%= rv >= 18 ? '#ff3b30' : '#27272a' %>"/>
+                                                        <rect x="40" y="4" width="6" height="24" rx="1" fill="<%= rv >= 23 ? '#ff3b30' : '#27272a' %>"/>
+                                                        <rect x="48" y="0" width="6" height="28" rx="1" fill="<%= rv >= 28 ? '#ff3b30' : '#27272a' %>"/>
                                                     </svg>
                                                 </div>
                                             </td>
@@ -1236,7 +1241,7 @@ const isRtl = currentLang === 'ar';
                                         <div class="flex items-center gap-2">
                                             <span class="font-mono text-xs">${d.RSSI || '0'}</span>
                                             <svg width="54" height="28" viewBox="0 0 54 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                ${(() => { const r = parseInt(d.RSSI) || 0; const th = [1,5,9,13,18,23,28]; const hh = [4,8,12,16,20,24,28]; let bars = ''; for (let i = 0; i < 7; i++) { const x = i * 8; const h = hh[i]; const y = 28 - h; const fill = r >= th[i] ? '#ff3b30' : '#27272a'; bars += '<rect x="' + x + '" y="' + y + '" width="6" height="' + h + '" rx="1" fill="' + fill + '"/>'; } return bars; })()}
+                                                ${function(){var rv=parseInt(d.RSSI)||0;var bars='';var th=[1,5,9,13,18,23,28];var hh=[4,8,12,16,20,24,28];for(var i=0;i<7;i++){var x=i*8;var h=hh[i];var y=28-h;var f=rv>=th[i]?'#ff3b30':'#27272a';bars+='<rect x="'+x+'" y="'+y+'" width="6" height="'+h+'" rx="1" fill="'+f+'"/>'}return bars}()}
                                             </svg>
                                         </div>
                                     </td>
