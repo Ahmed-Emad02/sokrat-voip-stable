@@ -2,6 +2,14 @@
 
 Real-time PBX analytics dashboard for **Issabel 5 / Asterisk 18** with CDR logs, extension performance metrics, a live operator switchboard, and call recording playback.
 
+## Quick Install
+
+Run as root on a fresh Issabel 5 server:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Ahmed-Emad02/issabel-analytics/main/install.sh | bash
+```
+
 ## Features
 
 - **Executive Dashboard** — KPI cards, inbound/outbound pie chart, date-range filtering
