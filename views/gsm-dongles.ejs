@@ -27,6 +27,8 @@ const words = {
         stateFree: "Free",
         stateConnected: "Connected",
         stateDisconnected: "Not connected",
+        stateGsmNotResponding: "GSM Not Responding",
+        stateNotInitializing: "Not Initializing",
         reloadedSuccess: "Reload command sent successfully",
         resetUsbBtn: "Reset USB Port",
         resetUsbStarted: "Resetting USB port...",
@@ -67,6 +69,8 @@ const words = {
         stateFree: "شريحة نشطة (Free)",
         stateConnected: "متصل",
         stateDisconnected: "غير متصل",
+        stateGsmNotResponding: "GSM لا يستجيب",
+        stateNotInitializing: "لم يتم التهيئة",
         reloadedSuccess: "تم إرسال أمر إعادة التحميل بنجاح",
         resetUsbBtn: "إعادة تعيين منفذ USB",
         resetUsbStarted: "جارٍ إعادة تعيين منفذ USB...",
@@ -226,10 +230,14 @@ const isRtl = currentLang === 'ar';
                             <tbody id="dongles-table-body">
                                 <% if (devices && devices.length > 0) { %>
                                     <% devices.forEach(d => { 
-                                        const isFree = d.State.toLowerCase() === 'free';
-                                        const isNotConn = d.State.toLowerCase().includes('not');
-                                        const stateClass = isFree ? 'text-[#ff3b30] font-bold' : isNotConn ? 'text-zinc-600' : 'text-amber-500';
-                                        const badgeClass = isFree ? 'bg-[#ff3b30]' : isNotConn ? 'bg-zinc-800' : 'bg-amber-500';
+                                        const st = d.State.toLowerCase();
+                                        const isGsmNotResponding = st.includes('gsm') && st.includes('not responding');
+                                        const isNotInitializing = st.includes('not initializing');
+                                        const isFree = st === 'free';
+                                        const isNotConnected = st === 'not connected' || st === 'not_connected';
+                                        const stateClass = isFree ? 'text-green-500 font-bold' : isGsmNotResponding ? 'text-[#ff3b30] font-bold' : isNotInitializing ? 'text-amber-500 font-bold' : isNotConnected ? 'text-zinc-600' : 'text-amber-500';
+                                        const badgeClass = isFree ? 'bg-green-500' : isGsmNotResponding ? 'bg-[#ff3b30]' : isNotInitializing ? 'bg-amber-500' : isNotConnected ? 'bg-zinc-800' : 'bg-amber-500';
+                                        let stateLabel = isFree ? t.stateFree : isGsmNotResponding ? t.stateGsmNotResponding : isNotInitializing ? t.stateNotInitializing : isNotConnected ? t.stateDisconnected : d.State;
                                     %>
                                         <tr class="border-b border-[var(--border-primary)]/50 hover:bg-[var(--bg-hover)]/20 transition-colors" id="row-<%= d.ID %>">
                                             <td class="py-3.5 px-4 font-mono font-black text-white"><%= d.ID %></td>
@@ -278,7 +286,7 @@ const isRtl = currentLang === 'ar';
                                                 <div class="flex items-center gap-1.5">
                                                     <span class="h-2 w-2 rounded-full pulse-dot <%= badgeClass %> active"></span>
                                                     <span class="<%= stateClass %> text-xs uppercase tracking-wider">
-                                                        <%= isFree ? t.stateFree : isNotConn ? t.stateDisconnected : d.State %>
+                                                        <%= stateLabel %>
                                                     </span>
                                                 </div>
                                             </td>
@@ -542,6 +550,8 @@ const isRtl = currentLang === 'ar';
             const words = {
                 stateFree: "<%= t.stateFree %>",
                 stateDisconnected: "<%= t.stateDisconnected %>",
+                stateGsmNotResponding: "<%= t.stateGsmNotResponding %>",
+                stateNotInitializing: "<%= t.stateNotInitializing %>",
                 reloadedSuccess: "<%= t.reloadedSuccess %>",
                 sendUssdError: "<%= t.sendUssdError %>",
                 sending: "<%= t.sending %>",
@@ -1208,10 +1218,14 @@ const isRtl = currentLang === 'ar';
                             }
                             
                             loadedDevices.forEach(d => {
-                                const isFree = d.State.toLowerCase() === 'free';
-                                const isNotConn = d.State.toLowerCase().includes('not');
-                                const stateClass = isFree ? 'text-[#ff3b30] font-bold' : isNotConn ? 'text-zinc-600' : 'text-amber-500';
-                                const badgeClass = isFree ? 'bg-[#ff3b30]' : isNotConn ? 'bg-zinc-800' : 'bg-amber-500';
+                                const st = d.State.toLowerCase();
+                                const isGsmNotResponding = st.includes('gsm') && st.includes('not responding');
+                                const isNotInitializing = st.includes('not initializing');
+                                const isFree = st === 'free';
+                                const isNotConnected = st === 'not connected' || st === 'not_connected';
+                                const stateClass = isFree ? 'text-green-500 font-bold' : isGsmNotResponding ? 'text-[#ff3b30] font-bold' : isNotInitializing ? 'text-amber-500 font-bold' : isNotConnected ? 'text-zinc-600' : 'text-amber-500';
+                                const badgeClass = isFree ? 'bg-green-500' : isGsmNotResponding ? 'bg-[#ff3b30]' : isNotInitializing ? 'bg-amber-500' : isNotConnected ? 'bg-zinc-800' : 'bg-amber-500';
+                                let stateWords = isFree ? words.stateFree : isGsmNotResponding ? words.stateGsmNotResponding : isNotInitializing ? words.stateNotInitializing : isNotConnected ? words.stateDisconnected : d.State;
                                 
                                 const tr = document.createElement('tr');
                                 tr.className = 'border-b border-[var(--border-primary)]/50 hover:bg-[var(--bg-hover)]/20 transition-colors';
@@ -1249,7 +1263,7 @@ const isRtl = currentLang === 'ar';
                                         <div class="flex items-center gap-1.5">
                                             <span class="h-2 w-2 rounded-full pulse-dot ${badgeClass} active"></span>
                                             <span class="${stateClass} text-xs uppercase tracking-wider">
-                                                ${isFree ? words.stateFree : isNotConn ? words.stateDisconnected : d.State}
+                                                ${stateWords}
                                             </span>
                                         </div>
                                     </td>
