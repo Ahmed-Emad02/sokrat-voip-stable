@@ -333,7 +333,7 @@ function can(tab) { return allowed.includes(tab); }
 <div id="toastContainer" class="fixed bottom-6 right-6 z-[100] flex flex-col gap-2 pointer-events-none" style="min-width:280px;max-width:420px"></div>
 
 <script>
-(function() {
+document.addEventListener('DOMContentLoaded', function() {
     var toastContainer = document.getElementById('toastContainer');
     if (!toastContainer) return;
 
@@ -378,4 +378,5 @@ function can(tab) { return allowed.includes(tab); }
         el.style.display = 'none';
     }
 })();
+});
 </script>
