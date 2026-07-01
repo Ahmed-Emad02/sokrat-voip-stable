@@ -505,9 +505,12 @@ app.get('/users', async (req, res) => {
 // POST /users/add - add new user
 app.post('/users/add', async (req, res) => {
     try {
-        const { username, password } = req.body;
+        const { username, password, email } = req.body;
         if (!username || !password || password.length < 3) {
             return res.redirect('/users?error=Username and password (min 3 chars) required');
+        }
+        if (!email || !email.includes('@')) {
+            return res.redirect('/users?error=A valid email is required (for password reset)');
         }
         const hash = await bcrypt.hash(password, 10);
         const conn = await mysql.createConnection({
@@ -516,7 +519,7 @@ app.post('/users/add', async (req, res) => {
             password: process.env.DB_PASS || 'admin',
             database: ASTERISK_DB
         });
-        await conn.execute('INSERT INTO dashboard_users (username, password_hash) VALUES (?, ?)', [username, hash]);
+        await conn.execute('INSERT INTO dashboard_users (username, email, password_hash) VALUES (?, ?, ?)', [username, email, hash]);
         await conn.end();
         res.redirect('/users?success=User added');
     } catch (err) {
