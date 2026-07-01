@@ -243,27 +243,27 @@ const isRtl = currentLang === 'ar';
                                     %>
                                         <tr class="border-b border-[var(--border-primary)]/50 hover:bg-[var(--bg-hover)]/20 transition-colors" id="row-<%= d.ID %>">
                                             <td class="py-3.5 px-4 font-mono font-black text-white"><%= d.ID %></td>
-                                            <td class="py-3.5 px-4 text-[var(--text-secondary)]"><%= d['Provider Name'] || 'NONE' %></td>
-                                            <td class="py-3.5 px-4 font-mono text-[var(--text-secondary)]">
+                                            <td class="py-3.5 px-4 text-[var(--text-primary)] font-medium"><%= d['Provider Name'] || 'NONE' %></td>
+                                            <td class="py-3.5 px-4 font-mono text-[var(--text-primary)]">
                                                 <div class="flex items-center gap-2">
                                                     <span id="display-num-<%= d.ID %>"><%= d.Number || 'Unknown' %></span>
                                                     <div class="flex items-center gap-1">
                                                         <% if (d.Number && d.Number !== 'Unknown') { %>
-                                                            <button onclick="copyToClipboard('<%= d.Number %>', this)" class="text-zinc-500 hover:text-white hover:bg-zinc-800 p-1 rounded transition cursor-pointer" title="<%= isRtl ? 'نسخ الرقم' : 'Copy Number' %>">
+                                                            <button onclick="copyToClipboard('<%= d.Number %>', this)" class="text-[var(--text-muted)] hover:text-white hover:bg-zinc-800 p-1 rounded transition cursor-pointer" title="<%= isRtl ? 'نسخ الرقم' : 'Copy Number' %>">
                                                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                                                             </button>
                                                         <% } %>
-                                                        <button onclick="editSimNumber('<%= d.ID %>', '<%= d.IMSI %>', '<%= d.Number && d.Number !== "Unknown" ? d.Number : "" %>')" class="text-zinc-500 hover:text-white hover:bg-zinc-800 p-1 rounded transition cursor-pointer" title="<%= isRtl ? 'تعديل الرقم' : 'Edit Number' %>">
+                                                        <button onclick="editSimNumber('<%= d.ID %>', '<%= d.IMSI %>', '<%= d.Number && d.Number !== "Unknown" ? d.Number : "" %>')" class="text-[var(--text-muted)] hover:text-white hover:bg-zinc-800 p-1 rounded transition cursor-pointer" title="<%= isRtl ? 'تعديل الرقم' : 'Edit Number' %>">
                                                             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"></path></svg>
                                                         </button>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td class="py-3.5 px-4 font-mono text-xs text-[var(--text-muted)]">
+                                            <td class="py-3.5 px-4 font-mono text-xs text-[var(--text-secondary)]">
                                                 <div class="flex items-center gap-1.5">
                                                     <span><%= d.IMEI || '-' %></span>
                                                     <% if (d.IMEI && d.IMEI !== '-') { %>
-                                                        <button onclick="copyToClipboard('<%= d.IMEI %>', this)" class="text-zinc-500 hover:text-white hover:bg-zinc-800 p-1 rounded transition cursor-pointer" title="<%= isRtl ? 'نسخ IMEI' : 'Copy IMEI' %>">
+                                                        <button onclick="copyToClipboard('<%= d.IMEI %>', this)" class="text-[var(--text-muted)] hover:text-white hover:bg-zinc-800 p-1 rounded transition cursor-pointer" title="<%= isRtl ? 'نسخ IMEI' : 'Copy IMEI' %>">
                                                             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                                                         </button>
                                                     <% } %>
@@ -1237,22 +1237,22 @@ const isRtl = currentLang === 'ar';
                                 tr.style.cursor = 'pointer';
                                 tr.innerHTML = `
                                     <td class="py-3.5 px-4 font-mono font-black text-white">${d.ID}</td>
-                                    <td class="py-3.5 px-4 text-[var(--text-secondary)]">${d['Provider Name'] || 'NONE'}</td>
-                                    <td class="py-3.5 px-4 font-mono text-[var(--text-secondary)]">
+                                    <td class="py-3.5 px-4 text-[var(--text-primary)] font-medium">${d['Provider Name'] || 'NONE'}</td>
+                                    <td class="py-3.5 px-4 font-mono text-[var(--text-primary)]">
                                         <div class="flex items-center gap-2">
                                             <span id="display-num-${d.ID}">${d.Number || 'Unknown'}</span>
                                             <div class="flex items-center gap-1">
-                                                ${(d.Number && d.Number !== 'Unknown') ? `<button onclick="copyToClipboard('${d.Number}', this)" class="text-zinc-500 hover:text-white hover:bg-zinc-800 p-1 rounded transition cursor-pointer" title="${isRtl ? 'نسخ الرقم' : 'Copy Number'}"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>` : ''}
-                                                <button onclick="editSimNumber('${d.ID}', '${d.IMSI}', '${(d.Number && d.Number !== 'Unknown') ? d.Number : ''}')" class="text-zinc-500 hover:text-white hover:bg-zinc-800 p-1 rounded transition cursor-pointer" title="${isRtl ? 'تعديل الرقم' : 'Edit Number'}">
+                                                ${(d.Number && d.Number !== 'Unknown') ? `<button onclick="copyToClipboard('${d.Number}', this)" class="text-[var(--text-muted)] hover:text-white hover:bg-zinc-800 p-1 rounded transition cursor-pointer" title="${isRtl ? 'نسخ الرقم' : 'Copy Number'}"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>` : ''}
+                                                <button onclick="editSimNumber('${d.ID}', '${d.IMSI}', '${(d.Number && d.Number !== 'Unknown') ? d.Number : ''}')" class="text-[var(--text-muted)] hover:text-white hover:bg-zinc-800 p-1 rounded transition cursor-pointer" title="${isRtl ? 'تعديل الرقم' : 'Edit Number'}">
                                                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"></path></svg>
                                                 </button>
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="py-3.5 px-4 font-mono text-xs text-[var(--text-muted)]">
+                                    <td class="py-3.5 px-4 font-mono text-xs text-[var(--text-secondary)]">
                                         <div class="flex items-center gap-1.5">
                                             <span>${d.IMEI || '-'}</span>
-                                            ${(d.IMEI && d.IMEI !== '-') ? `<button onclick="copyToClipboard('${d.IMEI}', this)" class="text-zinc-500 hover:text-white hover:bg-zinc-800 p-1 rounded transition cursor-pointer" title="${isRtl ? 'نسخ IMEI' : 'Copy IMEI'}"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>` : ''}
+                                            ${(d.IMEI && d.IMEI !== '-') ? `<button onclick="copyToClipboard('${d.IMEI}', this)" class="text-[var(--text-muted)] hover:text-white hover:bg-zinc-800 p-1 rounded transition cursor-pointer" title="${isRtl ? 'نسخ IMEI' : 'Copy IMEI'}"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>` : ''}
                                         </div>
                                     </td>
                                     <td class="py-3.5 px-4">
