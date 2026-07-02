@@ -359,9 +359,9 @@ fi
 echo "[10/12] Configuring Apache reverse proxy..."
 yum install -y mod_ssl 2>/dev/null || true
 
-# Change Apache Listen from 80 to 3000 (Issabel on internal port)
-sed -i 's/^Listen 80$/Listen 3000/' /etc/httpd/conf/httpd.conf
-echo "  Apache port changed: 80 -> 3000"
+# Keep Apache on port 80 and add port 3000 for Issabel admin interface
+sed -i '/^Listen 80$/a\Listen 3000' /etc/httpd/conf/httpd.conf
+echo "  Apache ports: 80 (dashboard), 3000 (Issabel admin)"
 
 # Remove HTTPS redirect from Issabel vhost (would break proxy)
 sed -i '/RewriteEngine On/,/RewriteRule/d' /etc/httpd/conf.d/issabel.conf 2>/dev/null || true
