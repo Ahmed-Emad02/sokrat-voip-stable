@@ -99,17 +99,32 @@ const isRtl = currentLang === 'ar';
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         :root {
-            --bg-primary: #09090b;
-            --bg-secondary: #121212;
-            --bg-card: #18181b;
-            --bg-hover: #27272a;
-            --border-primary: #27272a;
-            --border-accent: #3f3f46;
-            --text-primary: #ffffff;
-            --text-secondary: #a1a1aa;
-            --text-muted: #71717a;
-            --accent-color: #ff3b30;
-            --accent-hover: #ff453a;
+            --bg-primary: #050507; /* Sleek OLED black background */
+            --bg-secondary: #0c0c0e; /* Vantablack card background */
+            --bg-card: #121215; /* Charcoal card surfaces */
+            --bg-hover: #1e1e24; /* Zinc hover state */
+            --border-primary: #18181c; /* Soft dark border */
+            --border-accent: #2c2c34; /* Slightly brighter border */
+            --text-primary: #f4f4f5; /* High contrast Zinc 50 */
+            --text-secondary: #a1a1aa; /* Zinc 400 */
+            --text-muted: #8e8e93; /* Compliant muted text (contrast 6.4:1) */
+            --accent-color: #e53e3e; /* Deep rich crimson red */
+            --accent-hover: #fc8181; /* Accent hover color */
+            --bg-selected: rgba(229, 62, 62, 0.08); /* Translucent crimson selection */
+        }
+        body.light-theme {
+            --bg-primary: #f4f4f6 !important; /* Clean light grey background */
+            --bg-secondary: #ffffff !important; /* Pure white card background */
+            --bg-card: #f4f4f6 !important;
+            --bg-hover: #e4e4e9 !important;
+            --border-primary: #e4e4e9 !important;
+            --border-accent: #d4d4de !important;
+            --text-primary: #18181b !important;
+            --text-secondary: #3f3f46 !important;
+            --text-muted: #71717a !important; /* Compliant muted text (contrast 4.68:1) */
+            --accent-color: #c53030 !important; /* Rich ruby red for light mode (contrast 4.75:1) */
+            --accent-hover: #9b2c2c !important;
+            --bg-selected: rgba(197, 48, 48, 0.08) !important;
         }
         body { 
             background-color: var(--bg-primary); 
@@ -121,8 +136,8 @@ const isRtl = currentLang === 'ar';
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
             background: 
-                radial-gradient(circle at 10% 20%, rgba(255, 59, 48, 0.06) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.02) 0%, transparent 45%);
+                radial-gradient(circle at 10% 20%, rgba(229, 62, 62, 0.04) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.01) 0%, transparent 45%);
             pointer-events: none;
             z-index: -1;
         }
@@ -161,16 +176,8 @@ const isRtl = currentLang === 'ar';
             background-color: inherit;
             animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
         }
-        
-        :root {
-            --bg-selected: rgba(255, 59, 48, 0.15); /* Sleek translucent red selection for dark theme */
-        }
-        body.light-theme {
-            --bg-selected: rgba(255, 59, 48, 0.08); /* Lighter translucent red selection for light theme */
-        }
         .selected-row {
             background-color: var(--bg-selected) !important;
-            border-left: 3px solid #ff3b30 !important; /* Premium red left accent bar */
         }
     </style>
 </head>
@@ -204,7 +211,7 @@ const isRtl = currentLang === 'ar';
             <div class="xl:col-span-2 flex flex-col gap-6 h-full">
                 <div class="panel-surface rounded-2xl p-6 flex flex-col gap-4">
                     <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                        <svg class="text-[#ff3b30]" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg class="text-[var(--accent-color)]" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
                             <line x1="12" y1="18" x2="12.01" y2="18"></line>
                         </svg>
@@ -234,8 +241,8 @@ const isRtl = currentLang === 'ar';
                                         const isFree = st === 'free';
                                         const isNotConnected = st.includes('not connect') || st === 'not_connected';
                                         const isError = isGsmNotResponding || isNotRegistered;
-                                        const stateClass = isFree ? 'text-green-500 font-bold' : isError ? 'text-[#ff3b30] font-bold' : isNotInitializing ? 'text-amber-500 font-bold' : isNotConnected ? 'text-zinc-500' : 'text-amber-500';
-                                        const badgeClass = isFree ? 'bg-green-500' : isError ? 'bg-[#ff3b30]' : isNotInitializing ? 'bg-amber-500' : isNotConnected ? 'bg-zinc-600' : 'bg-amber-500';
+                                        const stateClass = isFree ? 'text-green-500 font-bold' : isError ? 'text-[var(--accent-color)] font-bold' : isNotInitializing ? 'text-amber-500 font-bold' : isNotConnected ? 'text-zinc-500' : 'text-amber-500';
+                                        const badgeClass = isFree ? 'bg-green-500' : isError ? 'bg-[var(--accent-color)]' : isNotInitializing ? 'bg-amber-500' : isNotConnected ? 'bg-zinc-600' : 'bg-amber-500';
                                         let stateLabel = d.State;
                                     %>
                                         <tr class="border-b border-[var(--border-primary)]/50 hover:bg-[var(--bg-hover)]/20 transition-colors" id="row-<%= d.ID %>">
@@ -271,13 +278,13 @@ const isRtl = currentLang === 'ar';
                                                     <span class="font-mono text-xs"><%= d.RSSI || '0' %></span>
                                                     <svg width="54" height="28" viewBox="0 0 54 28" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                         <% const rv = parseInt(d.RSSI) || 0; %>
-                                                        <rect x="0" y="24" width="6" height="4" rx="1" fill="<%= rv >= 1 ? '#ff3b30' : '#27272a' %>"/>
-                                                        <rect x="8" y="20" width="6" height="8" rx="1" fill="<%= rv >= 5 ? '#ff3b30' : '#27272a' %>"/>
-                                                        <rect x="16" y="16" width="6" height="12" rx="1" fill="<%= rv >= 9 ? '#ff3b30' : '#27272a' %>"/>
-                                                        <rect x="24" y="12" width="6" height="16" rx="1" fill="<%= rv >= 13 ? '#ff3b30' : '#27272a' %>"/>
-                                                        <rect x="32" y="8" width="6" height="20" rx="1" fill="<%= rv >= 18 ? '#ff3b30' : '#27272a' %>"/>
-                                                        <rect x="40" y="4" width="6" height="24" rx="1" fill="<%= rv >= 23 ? '#ff3b30' : '#27272a' %>"/>
-                                                        <rect x="48" y="0" width="6" height="28" rx="1" fill="<%= rv >= 28 ? '#ff3b30' : '#27272a' %>"/>
+                                                        <rect x="0" y="24" width="6" height="4" rx="1" fill="<%= rv >= 1 ? 'var(--accent-color)' : 'var(--border-primary)' %>"/>
+                                                        <rect x="8" y="20" width="6" height="8" rx="1" fill="<%= rv >= 5 ? 'var(--accent-color)' : 'var(--border-primary)' %>"/>
+                                                        <rect x="16" y="16" width="6" height="12" rx="1" fill="<%= rv >= 9 ? 'var(--accent-color)' : 'var(--border-primary)' %>"/>
+                                                        <rect x="24" y="12" width="6" height="16" rx="1" fill="<%= rv >= 13 ? 'var(--accent-color)' : 'var(--border-primary)' %>"/>
+                                                        <rect x="32" y="8" width="6" height="20" rx="1" fill="<%= rv >= 18 ? 'var(--accent-color)' : 'var(--border-primary)' %>"/>
+                                                        <rect x="40" y="4" width="6" height="24" rx="1" fill="<%= rv >= 23 ? 'var(--accent-color)' : 'var(--border-primary)' %>"/>
+                                                        <rect x="48" y="0" width="6" height="28" rx="1" fill="<%= rv >= 28 ? 'var(--accent-color)' : 'var(--border-primary)' %>"/>
                                                     </svg>
                                                 </div>
                                             </td>
@@ -320,46 +327,48 @@ const isRtl = currentLang === 'ar';
                 </div>
 
                 <!-- Device Detail Grid Board -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="panel-surface rounded-2xl p-6 flex flex-col gap-3">
-                        <h4 class="text-sm font-bold text-white uppercase tracking-wider border-b border-[var(--border-primary)] pb-2"><%= t.deviceDetails %></h4>
-                        <div class="flex flex-col gap-2.5 text-xs">
-                            <div class="flex justify-between items-center"><span class="text-[var(--text-muted)]"><%= t.thID %>:</span> <span id="info-id" class="font-mono font-bold">-</span></div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-[var(--text-muted)]"><%= t.thNumber %>:</span>
-                                <div class="flex items-center gap-1.5">
-                                    <span id="info-number" class="font-mono font-bold">-</span>
-                                    <button onclick="copyToClipboard(document.getElementById('info-number').textContent, this)" class="text-zinc-600 hover:text-white hover:bg-zinc-800 p-0.5 rounded transition cursor-pointer" title="<%= isRtl ? 'نسخ' : 'Copy' %>">
-                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                                    </button>
-                                    <button onclick="editSimNumber(document.getElementById('info-id').textContent, document.getElementById('info-imsi').textContent, document.getElementById('info-number').textContent === 'Unknown' || document.getElementById('info-number').textContent === '-' ? '' : document.getElementById('info-number').textContent)" class="text-zinc-600 hover:text-white hover:bg-zinc-800 p-0.5 rounded transition cursor-pointer" title="<%= isRtl ? 'تعديل' : 'Edit' %>">
-                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"></path></svg>
-                                    </button>
-                                </div>
+                <div class="panel-surface rounded-2xl p-6 flex flex-col gap-4">
+                    <h4 class="text-sm font-bold text-white uppercase tracking-wider border-b border-[var(--border-primary)] pb-2 flex items-center gap-2">
+                        <svg class="text-[var(--accent-color)]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="9" y1="3" x2="9" y2="21"></line>
+                        </svg>
+                        <%= isRtl ? 'خصائص ومواصفات الجهاز' : 'Device Hardware Attributes' %>
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-xs">
+                        <div class="flex justify-between items-center border-b border-[var(--border-primary)]/30 pb-1.5"><span class="text-[var(--text-muted)]"><%= t.thID %>:</span> <span id="info-id" class="font-mono font-bold text-white">-</span></div>
+                        <div class="flex justify-between items-center border-b border-[var(--border-primary)]/30 pb-1.5"><span class="text-[var(--text-muted)]"><%= t.group %>:</span> <span id="info-group" class="font-bold text-white">-</span></div>
+                        
+                        <div class="flex justify-between items-center border-b border-[var(--border-primary)]/30 pb-1.5">
+                            <span class="text-[var(--text-muted)]"><%= t.thNumber %>:</span>
+                            <div class="flex items-center gap-1">
+                                <span id="info-number" class="font-mono font-bold text-white">-</span>
+                                <button onclick="copyToClipboard(document.getElementById('info-number').textContent, this)" class="text-zinc-500 hover:text-white p-0.5 rounded transition cursor-pointer" title="<%= isRtl ? 'نسخ' : 'Copy' %>">
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                </button>
+                                <button onclick="editSimNumber(document.getElementById('info-id').textContent, document.getElementById('info-imsi').textContent, document.getElementById('info-number').textContent === 'Unknown' || document.getElementById('info-number').textContent === '-' ? '' : document.getElementById('info-number').textContent)" class="text-zinc-500 hover:text-white p-0.5 rounded transition cursor-pointer" title="<%= isRtl ? 'تعديل' : 'Edit' %>">
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"></path></svg>
+                                </button>
                             </div>
-                            <div class="flex justify-between items-center"><span class="text-[var(--text-muted)]"><%= t.thProvider %>:</span> <span id="info-provider" class="font-bold text-[#ff3b30]">-</span></div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-[var(--text-muted)]"><%= t.thIMEI %>:</span>
-                                <div class="flex items-center gap-1.5">
-                                    <span id="info-imei" class="font-mono">-</span>
-                                    <button onclick="copyToClipboard(document.getElementById('info-imei').textContent, this)" class="text-zinc-600 hover:text-white hover:bg-zinc-800 p-0.5 rounded transition cursor-pointer" title="<%= isRtl ? 'نسخ' : 'Copy' %>">
-                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                                    </button>
-                                </div>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-[var(--border-primary)]/30 pb-1.5"><span class="text-[var(--text-muted)]"><%= t.model %>:</span> <span id="info-model" class="font-bold text-white">-</span></div>
+                        
+                        <div class="flex justify-between items-center border-b border-[var(--border-primary)]/30 pb-1.5"><span class="text-[var(--text-muted)]"><%= t.thProvider %>:</span> <span id="info-provider" class="font-bold text-[var(--accent-color)]">-</span></div>
+                        <div class="flex justify-between items-center border-b border-[var(--border-primary)]/30 pb-1.5"><span class="text-[var(--text-muted)]"><%= t.firmware %>:</span> <span id="info-firmware" class="font-mono text-zinc-400">-</span></div>
+                        
+                        <div class="flex justify-between items-center border-b border-[var(--border-primary)]/30 pb-1.5">
+                            <span class="text-[var(--text-muted)]"><%= t.thIMEI %>:</span>
+                            <div class="flex items-center gap-1">
+                                <span id="info-imei" class="font-mono text-white">-</span>
+                                <button onclick="copyToClipboard(document.getElementById('info-imei').textContent, this)" class="text-zinc-500 hover:text-white p-0.5 rounded transition cursor-pointer" title="<%= isRtl ? 'نسخ' : 'Copy' %>">
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                </button>
                             </div>
-                            <div class="flex justify-between items-center"><span class="text-[var(--text-muted)]"><%= t.thIMSI %>:</span> <span id="info-imsi" class="font-mono">-</span></div>
                         </div>
-                    </div>
-                    
-                    <div class="panel-surface rounded-2xl p-6 flex flex-col gap-3">
-                        <h4 class="text-sm font-bold text-white uppercase tracking-wider border-b border-[var(--border-primary)] pb-2"><%= isRtl ? 'البروتوكول الفني' : 'Technical Attributes' %></h4>
-                        <div class="flex flex-col gap-2.5 text-xs">
-                            <div class="flex justify-between"><span class="text-[var(--text-muted)]"><%= t.group %>:</span> <span id="info-group" class="font-bold">-</span></div>
-                            <div class="flex justify-between"><span class="text-[var(--text-muted)]"><%= t.model %>:</span> <span id="info-model" class="font-bold">-</span></div>
-                            <div class="flex justify-between"><span class="text-[var(--text-muted)]"><%= t.firmware %>:</span> <span id="info-firmware" class="font-mono text-zinc-400">-</span></div>
-                            <div class="flex justify-between"><span class="text-[var(--text-muted)]"><%= t.mode %>:</span> <span id="info-mode" class="font-bold">-</span></div>
-                            <div class="flex justify-between"><span class="text-[var(--text-muted)]"><%= t.submode %>:</span> <span id="info-submode" class="font-bold">-</span></div>
-                        </div>
+                        <div class="flex justify-between items-center border-b border-[var(--border-primary)]/30 pb-1.5"><span class="text-[var(--text-muted)]"><%= t.mode %>:</span> <span id="info-mode" class="font-bold text-white">-</span></div>
+                        
+                        <div class="flex justify-between items-center border-b border-[var(--border-primary)]/30 pb-1.5"><span class="text-[var(--text-muted)]"><%= t.thIMSI %>:</span> <span id="info-imsi" class="font-mono text-white">-</span></div>
+                        <div class="flex justify-between items-center border-b border-[var(--border-primary)]/30 pb-1.5"><span class="text-[var(--text-muted)]"><%= t.submode %>:</span> <span id="info-submode" class="font-bold text-white">-</span></div>
                     </div>
                 </div>
 
@@ -367,7 +376,7 @@ const isRtl = currentLang === 'ar';
                 <div class="panel-surface rounded-2xl p-6 flex flex-col gap-4">
                     <div class="flex items-center justify-between border-b border-[var(--border-primary)] pb-3">
                         <h3 id="sms-inbox-title" class="text-lg font-bold text-white flex items-center gap-2">
-                            <svg class="text-[#ff3b30]" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg class="text-[var(--accent-color)]" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
                                 <polyline points="22,6 12,13 2,6"></polyline>
                             </svg>
@@ -379,7 +388,6 @@ const isRtl = currentLang === 'ar';
                     </div>
                     
                     <div class="overflow-y-auto max-h-[350px] flex flex-col gap-3 pr-1" id="sms-inbox-container">
-                        <!-- Messages will load here dynamically -->
                         <div class="text-center py-8 text-[var(--text-muted)] italic" id="sms-empty-placeholder">
                             <%= isRtl ? 'لا يوجد رسائل واردة حالياً' : 'No incoming SMS messages' %>
                         </div>
@@ -392,7 +400,7 @@ const isRtl = currentLang === 'ar';
                 <!-- USSD Exec Panel -->
                 <div class="panel-surface rounded-2xl p-6 flex flex-col gap-4">
                     <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                        <svg class="text-[#ff3b30]" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg class="text-[var(--accent-color)]" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="4 17 10 11 4 5"></polyline>
                             <line x1="12" y1="19" x2="20" y2="19"></line>
                         </svg>
@@ -402,7 +410,7 @@ const isRtl = currentLang === 'ar';
                     <form id="ussd-execution-form" class="flex flex-col gap-4">
                         <div class="flex flex-col gap-2">
                             <label class="text-xs font-semibold text-[var(--text-secondary)]"><%= isRtl ? 'اختر شريحة الاتصال' : 'Target Dongle' %></label>
-                            <select id="ussd-target-dongle" class="bg-zinc-950 border border-[var(--border-primary)] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#ff3b30] cursor-pointer" required>
+                            <select id="ussd-target-dongle" class="bg-zinc-950 border border-[var(--border-primary)] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[var(--accent-color)] cursor-pointer" required>
                                 <option value="" disabled selected hidden><%= t.selectPlaceholder %></option>
                                 <% if (devices && devices.length > 0) { %>
                                     <% devices.forEach(d => { %>
@@ -414,14 +422,13 @@ const isRtl = currentLang === 'ar';
                         
                         <div class="flex flex-col gap-2">
                             <label class="text-xs font-semibold text-[var(--text-secondary)]"><%= isRtl ? 'رمز الـ USSD' : 'USSD Code' %></label>
-                            <div class="flex items-center bg-zinc-950 border border-[var(--border-primary)] rounded-lg px-3 focus-within:border-[#ff3b30] transition-colors">
-                                <span class="text-[#ff3b30] font-bold font-mono text-sm leading-none select-none <%= isRtl ? 'ml-1' : 'mr-1' %>">&gt;</span>
+                            <div class="flex items-center bg-zinc-950 border border-[var(--border-primary)] rounded-lg px-3 focus-within:border-[var(--accent-color)] transition-colors">
+                                <span class="text-[var(--accent-color)] font-bold font-mono text-sm leading-none select-none <%= isRtl ? 'ml-1' : 'mr-1' %>">&gt;</span>
                                 <input type="text" id="ussd-code-input" class="w-full bg-transparent border-0 outline-none py-2 text-sm text-white font-mono placeholder-zinc-700" placeholder="e.g. *100# or *50#" required autocomplete="off">
                             </div>
-                            <span class="text-[10px] text-[var(--text-muted)] mt-1"><%= t.ussdHelper %></span>
                         </div>
                         
-                        <button type="submit" id="ussd-submit-btn" class="bg-[#ff3b30] hover:bg-[#ff453a] text-white font-bold rounded-lg py-2.5 text-sm transition-all duration-150 shadow-md shadow-[#ff3b30]/15 flex items-center justify-center gap-2 cursor-pointer">
+                        <button type="submit" id="ussd-submit-btn" class="bg-[var(--accent-color)] hover:bg-[var(--accent-hover)] text-white font-bold rounded-lg py-2.5 text-sm transition-all duration-150 shadow-md shadow-[var(--accent-color)]/15 flex items-center justify-center gap-2 cursor-pointer">
                             <span id="btn-label"><%= t.sendBtn %></span>
                             <div id="btn-spinner" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin hidden"></div>
                         </button>
@@ -454,8 +461,8 @@ const isRtl = currentLang === 'ar';
             <div class="px-6 py-4 flex flex-row items-center justify-between bg-black/40 border-b border-[var(--border-primary)] rounded-t-2xl <%= isRtl ? 'flex-row-reverse' : '' %>">
                 <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
                     <div class="relative flex items-center justify-center">
-                        <span class="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-[#ff3b30] opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2 w-2 bg-[#ff3b30]"></span>
+                        <span class="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-[var(--accent-color)] opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-[var(--accent-color)]"></span>
                     </div>
                     <%= t.logTitle %>
                 </h3>
@@ -465,12 +472,12 @@ const isRtl = currentLang === 'ar';
                         <span><%= t.logToggle %></span>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="logs-toggle-switch" class="sr-only peer">
-                            <div class="w-8 h-4 bg-zinc-800 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-[#ff3b30]"></div>
+                            <div class="w-8 h-4 bg-zinc-800 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-[var(--accent-color)]"></div>
                         </label>
                     </div>
                     
                     <label class="flex items-center gap-1.5 cursor-pointer">
-                        <input type="checkbox" id="logs-autoscroll-chk" checked class="accent-[#ff3b30] rounded font-bold">
+                        <input type="checkbox" id="logs-autoscroll-chk" checked class="accent-[var(--accent-color)] rounded font-bold">
                         <span><%= t.autoscroll %></span>
                     </label>
                     
@@ -494,7 +501,7 @@ const isRtl = currentLang === 'ar';
             <!-- Modal Header -->
             <div class="flex items-center justify-between border-b border-zinc-900 pb-3">
                 <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                    <svg class="text-[#ff3b30]" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg class="text-[var(--accent-color)]" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                     </svg>
                     <span id="sms-modal-title"><%= isRtl ? 'تفاصيل الرسالة' : 'SMS Message Details' %></span>
@@ -511,7 +518,7 @@ const isRtl = currentLang === 'ar';
                 <!-- Meta Row -->
                 <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
                     <div class="flex items-center gap-2">
-                        <span id="sms-modal-dongle" class="bg-[#ff3b30] text-white font-mono font-bold px-2 py-0.5 rounded text-[10px] uppercase"></span>
+                        <span id="sms-modal-dongle" class="bg-[var(--accent-color)] text-white font-mono font-bold px-2 py-0.5 rounded text-[10px] uppercase"></span>
                         <span id="sms-modal-sender" class="text-white font-bold font-mono text-sm"></span>
                         <button id="sms-modal-copy-sender" class="text-zinc-500 hover:text-white p-0.5 rounded transition cursor-pointer" title="Copy Number">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
@@ -699,7 +706,7 @@ const isRtl = currentLang === 'ar';
                 if (titleEl) {
                     const baseText = isRtl ? 'صندوق وارد الرسائل (SMS)' : 'SMS Incoming Inbox';
                     titleEl.innerHTML = `
-                        <svg class="text-[#ff3b30]" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg class="text-[var(--accent-color)]" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
                             <polyline points="22,6 12,13 2,6"></polyline>
                         </svg>
@@ -720,7 +727,7 @@ const isRtl = currentLang === 'ar';
                 
                 toast.innerHTML = `
                     <div class="flex items-center justify-between text-xs">
-                        <span class="text-[#ff3b30] font-bold uppercase tracking-wider font-mono">${isRtl ? 'رسالة جديدة' : 'New SMS'}</span>
+                        <span class="text-[var(--accent-color)] font-bold uppercase tracking-wider font-mono">${isRtl ? 'رسالة جديدة' : 'New SMS'}</span>
                         <span class="text-zinc-500 font-mono text-[10px]">${sms.dongleId}</span>
                     </div>
                     <div class="text-xs font-bold text-white">${sms.sender}</div>
@@ -820,7 +827,7 @@ const isRtl = currentLang === 'ar';
                 card.innerHTML = `
                     <div class="flex items-center justify-between text-xs pointer-events-none">
                         <div class="flex items-center gap-2 pointer-events-auto">
-                            <span class="bg-[#ff3b30] text-white font-mono font-bold px-1.5 py-0.5 rounded text-[10px] uppercase">${sms.dongleId}</span>
+                            <span class="bg-[var(--accent-color)] text-white font-mono font-bold px-1.5 py-0.5 rounded text-[10px] uppercase">${sms.dongleId}</span>
                             <span class="text-white font-bold font-mono">${sms.sender}</span>
                             <button onclick="copyToClipboard('${sms.sender}', this)" class="text-zinc-600 hover:text-white p-0.5 rounded transition cursor-pointer" title="Copy Number">
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
@@ -1224,8 +1231,8 @@ const isRtl = currentLang === 'ar';
                                 const isFree = st === 'free';
                                 const isNotConnected = st.includes('not connect') || st === 'not_connected';
                                 const isError = isGsmNotResponding || isNotRegistered;
-                                const stateClass = isFree ? 'text-green-500 font-bold' : isError ? 'text-[#ff3b30] font-bold' : isNotInitializing ? 'text-amber-500 font-bold' : isNotConnected ? 'text-zinc-500' : 'text-amber-500';
-                                const badgeClass = isFree ? 'bg-green-500' : isError ? 'bg-[#ff3b30]' : isNotInitializing ? 'bg-amber-500' : isNotConnected ? 'bg-zinc-600' : 'bg-amber-500';
+                                const stateClass = isFree ? 'text-green-500 font-bold' : isError ? 'text-[var(--accent-color)] font-bold' : isNotInitializing ? 'text-amber-500 font-bold' : isNotConnected ? 'text-zinc-500' : 'text-amber-500';
+                                const badgeClass = isFree ? 'bg-green-500' : isError ? 'bg-[var(--accent-color)]' : isNotInitializing ? 'bg-amber-500' : isNotConnected ? 'bg-zinc-600' : 'bg-amber-500';
                                 let stateWords = d.State;
                                 
                                 const tr = document.createElement('tr');
@@ -1256,7 +1263,7 @@ const isRtl = currentLang === 'ar';
                                         <div class="flex items-center gap-2">
                                             <span class="font-mono text-xs">${d.RSSI || '0'}</span>
                                             <svg width="54" height="28" viewBox="0 0 54 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                ${function(){var rv=parseInt(d.RSSI)||0;var bars='';var th=[1,5,9,13,18,23,28];var hh=[4,8,12,16,20,24,28];for(var i=0;i<7;i++){var x=i*8;var h=hh[i];var y=28-h;var f=rv>=th[i]?'#ff3b30':'#27272a';bars+='<rect x="'+x+'" y="'+y+'" width="6" height="'+h+'" rx="1" fill="'+f+'"/>'}return bars}()}
+                                                ${function(){var rv=parseInt(d.RSSI)||0;var bars='';var th=[1,5,9,13,18,23,28];var hh=[4,8,12,16,20,24,28];for(var i=0;i<7;i++){var x=i*8;var h=hh[i];var y=28-h;var f=rv>=th[i]?'var(--accent-color)':'var(--border-primary)';bars+='<rect x="'+x+'" y="'+y+'" width="6" height="'+h+'" rx="1" fill="'+f+'"/>'}return bars}()}
                                             </svg>
                                         </div>
                                     </td>
