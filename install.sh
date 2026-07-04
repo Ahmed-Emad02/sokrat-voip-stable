@@ -359,17 +359,29 @@ fi
 echo "[10/12] Configuring Apache reverse proxy..."
 yum install -y mod_ssl 2>/dev/null || true
 
-# Keep Apache on port 80 and add port 3000 for Issabel admin interface
-sed -i '/^Listen 80$/a\Listen 3000' /etc/httpd/conf/httpd.conf
-echo "  Apache ports: 80 (dashboard), 3000 (Issabel admin)"
+# Restore Listen 80 in httpd.conf if it was replaced, and ensure Listen 3000 is present
+if ! grep -q '^Listen 80' /etc/httpd/conf/httpd.conf; then
+    if grep -q '^Listen 3000' /etc/httpd/conf/httpd.conf; then
+        sed -i 's/^Listen 3000/Listen 80/' /etc/httpd/conf/httpd.conf
+        echo "  Restored Listen 80 in httpd.conf"
+    else
+        echo "Listen 80" >> /etc/httpd/conf/httpd.conf
+        echo "  Added Listen 80 to httpd.conf"
+    fi
+fi
+
+# Ensure Listen 3000 is present (so Issabel GUI can run on port 3000)
+if ! grep -q '^Listen 3000' /etc/httpd/conf/httpd.conf; then
+    sed -i '/^Listen 80/a Listen 3000' /etc/httpd/conf/httpd.conf
+    echo "  Listen 3000 added to httpd.conf"
+fi
 
 # Remove HTTPS redirect from Issabel vhost (would break proxy)
 sed -i '/RewriteEngine On/,/RewriteRule/d' /etc/httpd/conf.d/issabel.conf 2>/dev/null || true
 echo "  Issabel HTTPS redirect removed"
 
-# Create dashboard reverse proxy vhost for port 80
+# Create dashboard reverse proxy vhost for port 80 (do not define Listen 80 here to prevent duplicate listener error)
 cat > /etc/httpd/conf.d/dashboard.conf << 'DASHBOARD'
-Listen 80
 <VirtualHost *:80>
     ProxyPreserveHost On
     ProxyPass / http://127.0.0.1:8080/
