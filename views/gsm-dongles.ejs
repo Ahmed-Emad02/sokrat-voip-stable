@@ -520,10 +520,10 @@ const initialSelectedDongleId = devices && devices.length > 0 ? devices[0].ID : 
                             <span class="text-[var(--text-muted)]"><%= t.thNumber %>:</span>
                             <div class="flex items-center gap-1">
                                 <span id="info-number" class="font-mono font-bold text-white">-</span>
-                                <button onclick="copyToClipboard(document.getElementById('info-number').textContent, this)" class="text-zinc-500 hover:text-white p-0.5 rounded transition cursor-pointer" title="<%= isRtl ? 'نسخ' : 'Copy' %>">
+                                <button onclick="copyToClipboard(document.getElementById('info-number').textContent, this)" class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-0.5 rounded transition cursor-pointer" title="<%= isRtl ? 'نسخ' : 'Copy' %>">
                                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                                 </button>
-                                <button onclick="editSimNumber(document.getElementById('info-id').textContent, document.getElementById('info-imsi').textContent, document.getElementById('info-number').textContent === 'Unknown' || document.getElementById('info-number').textContent === '-' ? '' : document.getElementById('info-number').textContent)" class="text-zinc-500 hover:text-white p-0.5 rounded transition cursor-pointer" title="<%= isRtl ? 'تعديل' : 'Edit' %>">
+                                <button onclick="editSimNumber(document.getElementById('info-id').textContent, document.getElementById('info-imsi').textContent, document.getElementById('info-number').textContent === 'Unknown' || document.getElementById('info-number').textContent === '-' ? '' : document.getElementById('info-number').textContent)" class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-0.5 rounded transition cursor-pointer" title="<%= isRtl ? 'تعديل' : 'Edit' %>">
                                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"></path></svg>
                                 </button>
                             </div>
@@ -531,13 +531,13 @@ const initialSelectedDongleId = devices && devices.length > 0 ? devices[0].ID : 
                         <div class="flex justify-between items-center border-b border-[var(--border-primary)]/30 pb-1.5"><span class="text-[var(--text-muted)]"><%= t.model %>:</span> <span id="info-model" class="font-bold text-white">-</span></div>
                         
                         <div class="flex justify-between items-center border-b border-[var(--border-primary)]/30 pb-1.5"><span class="text-[var(--text-muted)]"><%= t.thProvider %>:</span> <span id="info-provider" class="font-bold text-[var(--accent-color)]">-</span></div>
-                        <div class="flex justify-between items-center border-b border-[var(--border-primary)]/30 pb-1.5"><span class="text-[var(--text-muted)]"><%= t.firmware %>:</span> <span id="info-firmware" class="font-mono text-zinc-400">-</span></div>
+                        <div class="flex justify-between items-center border-b border-[var(--border-primary)]/30 pb-1.5"><span class="text-[var(--text-muted)]"><%= t.firmware %>:</span> <span id="info-firmware" class="font-mono text-[var(--text-secondary)]">-</span></div>
                         
                         <div class="flex justify-between items-center border-b border-[var(--border-primary)]/30 pb-1.5">
                             <span class="text-[var(--text-muted)]"><%= t.thIMEI %>:</span>
                             <div class="flex items-center gap-1">
                                 <span id="info-imei" class="font-mono text-white">-</span>
-                                <button onclick="copyToClipboard(document.getElementById('info-imei').textContent, this)" class="text-zinc-500 hover:text-white p-0.5 rounded transition cursor-pointer" title="<%= isRtl ? 'نسخ' : 'Copy' %>">
+                                <button onclick="copyToClipboard(document.getElementById('info-imei').textContent, this)" class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-0.5 rounded transition cursor-pointer" title="<%= isRtl ? 'نسخ' : 'Copy' %>">
                                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                                 </button>
                             </div>
@@ -559,7 +559,7 @@ const initialSelectedDongleId = devices && devices.length > 0 ? devices[0].ID : 
                             </svg>
                             <%= isRtl ? 'صندوق وارد الرسائل (SMS)' : 'SMS Incoming Inbox' %>
                         </h3>
-                        <button onclick="clearSmsInbox()" class="text-xs bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded px-2.5 py-1 text-zinc-400 hover:text-white transition cursor-pointer">
+                        <button onclick="clearSmsInbox()" class="text-xs bg-[var(--bg-secondary)] hover:bg-[var(--bg-hover)] border border-[var(--border-primary)] rounded px-2.5 py-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition cursor-pointer">
                             <%= isRtl ? 'مسح الصندوق' : 'Clear Inbox' %>
                         </button>
                     </div>
@@ -658,12 +658,12 @@ const initialSelectedDongleId = devices && devices.length > 0 ? devices[0].ID : 
                         <span><%= t.autoscroll %></span>
                     </label>
                     
-                    <button id="clear-logs-btn" class="text-zinc-500 hover:text-white transition cursor-pointer font-bold uppercase tracking-wider"><%= t.clearBtn %></button>
+                    <button id="clear-logs-btn" class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition cursor-pointer font-bold uppercase tracking-wider"><%= t.clearBtn %></button>
                 </div>
             </div>
             
-            <div class="log-screen p-5 text-[10px] text-zinc-500 flex flex-col gap-1.5 rounded-b-2xl hidden" id="log-screen-console">
-                <div class="text-zinc-600">[System] Stream listener initialized. Awaiting hardware events...</div>
+            <div class="log-screen p-5 text-[10px] text-[var(--text-secondary)] flex flex-col gap-1.5 rounded-b-2xl hidden" id="log-screen-console">
+                <div class="text-[var(--text-muted)]">[System] Stream listener initialized. Awaiting hardware events...</div>
             </div>
         </div>
 
@@ -674,16 +674,16 @@ const initialSelectedDongleId = devices && devices.length > 0 ? devices[0].ID : 
 
     <!-- SMS Detail Modal -->
     <div id="sms-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-200">
-        <div id="sms-modal-card" class="bg-zinc-950 border border-zinc-900 rounded-2xl w-full max-w-lg p-6 shadow-2xl scale-95 opacity-0 transition-all duration-200 flex flex-col gap-4 mx-4">
+        <div id="sms-modal-card" class="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl w-full max-w-lg p-6 shadow-2xl scale-95 opacity-0 transition-all duration-200 flex flex-col gap-4 mx-4">
             <!-- Modal Header -->
-            <div class="flex items-center justify-between border-b border-zinc-900 pb-3">
-                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+            <div class="flex items-center justify-between border-b border-[var(--border-primary)] pb-3">
+                <h3 class="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
                     <svg class="text-[var(--accent-color)]" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                     </svg>
                     <span id="sms-modal-title"><%= isRtl ? 'تفاصيل الرسالة' : 'SMS Message Details' %></span>
                 </h3>
-                <button onclick="closeSmsModal()" class="text-zinc-500 hover:text-white transition cursor-pointer p-1 rounded-lg hover:bg-zinc-900">
+                <button onclick="closeSmsModal()" class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition cursor-pointer p-1 rounded-lg hover:bg-[var(--bg-hover)]">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -696,21 +696,21 @@ const initialSelectedDongleId = devices && devices.length > 0 ? devices[0].ID : 
                 <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
                     <div class="flex items-center gap-2">
                         <span id="sms-modal-dongle" class="bg-[var(--accent-color)] text-white font-mono font-bold px-2 py-0.5 rounded text-[10px] uppercase"></span>
-                        <span id="sms-modal-sender" class="text-white font-bold font-mono text-sm"></span>
-                        <button id="sms-modal-copy-sender" class="text-zinc-500 hover:text-white p-0.5 rounded transition cursor-pointer" title="Copy Number">
+                        <span id="sms-modal-sender" class="text-[var(--text-primary)] font-bold font-mono text-sm"></span>
+                        <button id="sms-modal-copy-sender" class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-0.5 rounded transition cursor-pointer" title="Copy Number">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                         </button>
                     </div>
-                    <span id="sms-modal-time" class="text-zinc-500 font-mono"></span>
+                    <span id="sms-modal-time" class="text-[var(--text-muted)] font-mono"></span>
                 </div>
                 <!-- Content Area -->
-                <div class="bg-zinc-900/40 border border-zinc-900/60 p-4 rounded-xl max-h-[250px] overflow-y-auto">
+                <div class="bg-[var(--bg-card)] border border-[var(--border-primary)] p-4 rounded-xl max-h-[250px] overflow-y-auto">
                     <p id="sms-modal-content" class="text-sm text-[var(--text-secondary)] leading-relaxed select-text whitespace-pre-wrap font-sans"></p>
                 </div>
             </div>
             <!-- Modal Footer -->
             <div class="flex justify-end pt-2">
-                <button onclick="closeSmsModal()" class="bg-zinc-900 hover:bg-zinc-800 text-white font-semibold rounded-lg px-5 py-2 text-sm transition cursor-pointer border border-zinc-800">
+                <button onclick="closeSmsModal()" class="bg-[var(--bg-secondary)] hover:bg-[var(--bg-hover)] text-[var(--text-primary)] font-semibold rounded-lg px-5 py-2 text-sm transition cursor-pointer border border-[var(--border-primary)]">
                     <%= isRtl ? 'إغلاق' : 'Close' %>
                 </button>
             </div>
@@ -900,16 +900,16 @@ const initialSelectedDongleId = devices && devices.length > 0 ? devices[0].ID : 
                 if (!toastContainer) return;
                 
                 const toast = document.createElement('div');
-                // Premium glassmorphism dark-red style
-                toast.className = 'bg-zinc-950/90 border border-zinc-900 shadow-2xl p-4 rounded-xl flex flex-col gap-1.5 transform translate-y-5 opacity-0 transition-all duration-300 pointer-events-auto cursor-pointer max-w-xs';
+                // Premium glassmorphism dynamic style
+                toast.className = 'bg-[var(--bg-secondary)]/90 border border-[var(--border-primary)] shadow-2xl p-4 rounded-xl flex flex-col gap-1.5 transform translate-y-5 opacity-0 transition-all duration-300 pointer-events-auto cursor-pointer max-w-xs';
                 
                 toast.innerHTML = `
                     <div class="flex items-center justify-between text-xs">
                         <span class="text-[var(--accent-color)] font-bold uppercase tracking-wider font-mono">${isRtl ? 'رسالة جديدة' : 'New SMS'}</span>
-                        <span class="text-zinc-500 font-mono text-[10px]">${sms.dongleId}</span>
+                        <span class="text-[var(--text-muted)] font-mono text-[10px]">${sms.dongleId}</span>
                     </div>
-                    <div class="text-xs font-bold text-white">${sms.sender}</div>
-                    <p class="text-xs text-zinc-400 truncate">${sms.content}</p>
+                    <div class="text-xs font-bold text-[var(--text-primary)]">${sms.sender}</div>
+                    <p class="text-xs text-[var(--text-secondary)] truncate">${sms.content}</p>
                 `;
                 
                 toast.onclick = function() {
@@ -937,14 +937,14 @@ const initialSelectedDongleId = devices && devices.length > 0 ? devices[0].ID : 
             function showToast(title, message, type) {
                 if (!toastContainer) return;
                 const toast = document.createElement('div');
-                const borderColor = type === 'error' ? 'border-red-900' : type === 'success' ? 'border-emerald-900' : 'border-zinc-700';
-                const titleColor = type === 'error' ? 'text-red-400' : type === 'success' ? 'text-emerald-400' : 'text-zinc-300';
-                toast.className = 'bg-zinc-950/90 border ' + borderColor + ' shadow-2xl p-4 rounded-xl flex flex-col gap-1.5 transform translate-y-5 opacity-0 transition-all duration-300 pointer-events-auto max-w-xs';
+                const borderColor = type === 'error' ? 'border-red-900' : type === 'success' ? 'border-emerald-900' : 'border-[var(--border-primary)]';
+                const titleColor = type === 'error' ? 'text-red-400' : type === 'success' ? 'text-emerald-400' : 'text-[var(--text-primary)]';
+                toast.className = 'bg-[var(--bg-secondary)]/90 border ' + borderColor + ' shadow-2xl p-4 rounded-xl flex flex-col gap-1.5 transform translate-y-5 opacity-0 transition-all duration-300 pointer-events-auto max-w-xs';
                 toast.innerHTML = '\
                     <div class="flex items-center justify-between text-xs">\
                         <span class="' + titleColor + ' font-bold uppercase tracking-wider">' + title + '</span>\
                     </div>\
-                    <p class="text-xs text-zinc-400 whitespace-pre-wrap">' + message + '</p>\
+                    <p class="text-xs text-[var(--text-secondary)] whitespace-pre-wrap">' + message + '</p>\
                 ';
                 toast.onclick = function() { toast.remove(); };
                 toastContainer.appendChild(toast);
@@ -1000,18 +1000,18 @@ const initialSelectedDongleId = devices && devices.length > 0 ? devices[0].ID : 
             function renderSmsCard(sms) {
                 const dateStr = new Date(sms.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 const card = document.createElement('div');
-                card.className = 'p-4 bg-zinc-950 border border-zinc-900 hover:border-zinc-800 rounded-xl transition flex flex-col gap-2 cursor-pointer select-none';
+                card.className = 'p-4 bg-[var(--bg-secondary)] border border-[var(--border-primary)] hover:border-[var(--border-accent)] rounded-xl transition flex flex-col gap-2 cursor-pointer select-none';
                 card.id = 'sms-' + sms.id;
                 card.innerHTML = `
                     <div class="flex items-center justify-between text-xs pointer-events-none">
                         <div class="flex items-center gap-2 pointer-events-auto">
                             <span class="bg-[var(--accent-color)] text-white font-mono font-bold px-1.5 py-0.5 rounded text-[10px] uppercase">${sms.dongleId}</span>
-                            <span class="text-white font-bold font-mono">${sms.sender}</span>
-                            <button onclick="copyToClipboard('${sms.sender}', this)" class="text-zinc-600 hover:text-white p-0.5 rounded transition cursor-pointer" title="Copy Number">
+                            <span class="text-[var(--text-primary)] font-bold font-mono">${sms.sender}</span>
+                            <button onclick="copyToClipboard('${sms.sender}', this)" class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-0.5 rounded transition cursor-pointer" title="Copy Number">
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                             </button>
                         </div>
-                        <span class="text-zinc-500 font-mono">${dateStr}</span>
+                        <span class="text-[var(--text-muted)] font-mono">${dateStr}</span>
                     </div>
                     <p class="text-sm text-[var(--text-secondary)] leading-relaxed select-text font-sans truncate pointer-events-none">${sms.content}</p>
                 `;
