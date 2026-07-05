@@ -126,8 +126,7 @@ function can(tab) { return allowed.includes(tab); }
         bottom: 0px !important;
     }
     
-    /* Global classes mapped to theme custom properties */
-    .light-theme .text-white {
+    .light-theme .text-white:not(button):not([type="submit"]):not(.btn):not(.btn-primary):not(button *):not([class*="bg-red"] *):not([class*="bg-\[var\(--accent-color\)\]"] *) {
         color: #000000 !important;
     }
     .light-theme select, .light-theme input {
