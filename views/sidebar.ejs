@@ -69,6 +69,7 @@ function can(tab) { return allowed.includes(tab); }
         --status-offline: #8a949e !important; /* Grey for offline */
         --status-active: #dc2626 !important; /* Accent color for active state */
         
+        accent-color: var(--accent-color) !important;
         font-family: 'Plus Jakarta Sans', 'Cairo', sans-serif !important;
         font-size: 16px !important;
     }
@@ -138,6 +139,9 @@ function can(tab) { return allowed.includes(tab); }
     /* Telemetry, numbers, tables, codes, logs, terminal - JetBrains Mono */
     .font-mono, td, th, input, select, textarea, pre, code, .font-numeric, #digitalClock {
         font-family: 'JetBrains Mono', 'Plus Jakarta Sans', monospace !important;
+    }
+    input, select, textarea {
+        accent-color: var(--accent-color) !important;
     }
 
     /* Scaling up font sizes across elements for enhanced visibility */
