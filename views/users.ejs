@@ -20,8 +20,8 @@
             --text-primary: #ffffff;
             --text-secondary: #a1a1aa;
             --text-muted: #71717a;
-            --accent-color: #ff3b30;
-            --accent-hover: #ff453a;
+            --accent-color: var(--accent-color);
+            --accent-hover: var(--accent-hover);
         }
         body {
             background-color: var(--bg-primary);
@@ -99,7 +99,7 @@
             padding: 0.75rem 1rem;
             font-size: 0.875rem;
         }
-        .tab-checkbox { accent-color: #ff3b30; width: 1rem; height: 1rem; cursor: pointer; }
+        .tab-checkbox { accent-color: var(--accent-color); width: 1rem; height: 1rem; cursor: pointer; }
     </style>
 </head>
 <body class="bg-[#09090b] text-slate-100 flex flex-col min-h-screen m-0 p-0">
@@ -113,7 +113,7 @@
                     Back to Dashboard
                 </a>
                 <h1 class="text-2xl font-black tracking-wider">
-                    <span class="text-[#ff3b30]">&bull;</span> User Management
+                    <span class="text-[var(--accent-color)]">&bull;</span> User Management
                 </h1>
                 <p class="text-sm text-[var(--text-secondary)] mt-1">Manage dashboard login accounts</p>
             </div>

@@ -48,11 +48,11 @@ const isRtl = currentLang === 'ar';
             --text-primary: #ffffff;
             --text-secondary: #a1a1aa;
             --text-muted: #71717a;
-            --accent-color: #ff3b30;
-            --accent-hover: #ff453a;
-            --status-online: #ff3b30;
+            --accent-color: var(--accent-color);
+            --accent-hover: var(--accent-hover);
+            --status-online: var(--accent-color);
             --status-offline: #71717a;
-            --status-active: #ff3b30;
+            --status-active: var(--accent-color);
         }
         body { 
             background-color: var(--bg-primary); 
@@ -118,17 +118,17 @@ const isRtl = currentLang === 'ar';
                 %>
                     <div id="card-<%= emp.extension %>"
                          data-start="<%= startTimeStamp %>"
-                         class="panel-surface rounded-xl p-6 flex flex-col justify-between transition-all duration-300 relative overflow-hidden shadow-md border <%= !isOnline ? 'border-[#27272a]/30 opacity-60 bg-black/5' : callState === 'incall' ? 'border-[#ff3b30]/50 bg-[#18181b]' : callState === 'ringing' ? 'border-[#ff3b30]/60 animate-pulse' : 'border-[#27272a]/30' %>">
+                         class="panel-surface rounded-xl p-6 flex flex-col justify-between transition-all duration-300 relative overflow-hidden shadow-md border <%= !isOnline ? 'border-[#27272a]/30 opacity-60 bg-black/5' : callState === 'incall' ? 'border-[var(--accent-color)]/50 bg-[#18181b]' : callState === 'ringing' ? 'border-[var(--accent-color)]/60 animate-pulse' : 'border-[#27272a]/30' %>">
                         <div>
                             <div class="flex justify-between items-start">
                                 <div class="<%= isRtl ? 'text-right' : 'text-left' %>">
-                                    <span class="text-2xl font-mono font-black text-[#ff3b30] tracking-wider block"><%= emp.extension %></span>
+                                    <span class="text-2xl font-mono font-black text-[var(--accent-color)] tracking-wider block"><%= emp.extension %></span>
                                     <span class="text-base font-bold text-white block truncate" title="<%= emp.name %>"><%= emp.name %></span>
                                 </div>
                                 <div class="flex flex-col items-end space-y-1.5 shrink-0">
                                     <div class="flex items-center space-x-1.5 <%= isRtl ? 'space-x-reverse' : '' %>">
-                                        <span id="sipBadge-<%= emp.extension %>" class="h-3 w-3 rounded-full <%= isOnline ? 'bg-[#ff3b30] shadow-sm shadow-[#ff3b30]/50' : 'bg-zinc-800' %>"></span>
-                                        <span id="sipLabel-<%= emp.extension %>" class="text-xs font-bold uppercase tracking-wider <%= isOnline ? 'text-[#ff3b30]' : 'text-zinc-500' %>"><%= isOnline ? t.online : t.offline %></span>
+                                        <span id="sipBadge-<%= emp.extension %>" class="h-3 w-3 rounded-full <%= isOnline ? 'bg-[var(--accent-color)] shadow-sm shadow-[var(--accent-color)]/50' : 'bg-zinc-800' %>"></span>
+                                        <span id="sipLabel-<%= emp.extension %>" class="text-xs font-bold uppercase tracking-wider <%= isOnline ? 'text-[var(--accent-color)]' : 'text-zinc-500' %>"><%= isOnline ? t.online : t.offline %></span>
                                     </div>
                                     
                                 </div>
@@ -136,11 +136,11 @@ const isRtl = currentLang === 'ar';
                         </div>
                         <div class="border-t border-zinc-900 pt-3 mt-3">
                             <div class="flex items-center gap-2 flex-wrap">
-                                <span id="badge-<%= emp.extension %>" class="h-3 w-3 rounded-full shrink-0 <%= callState === 'incall' ? 'bg-[#ff3b30] shadow-sm shadow-[#ff3b30]/50' : callState === 'ringing' ? 'bg-[#ff3b30] shadow-sm shadow-[#ff3b30]/50' : 'bg-transparent' %>"></span>
-                                <span id="status-<%= emp.extension %>" class="text-sm font-bold uppercase tracking-wide <%= callState === 'incall' ? 'text-[#ff3b30]' : callState === 'ringing' ? 'text-[#ff3b30]' : 'text-zinc-500' %>">
+                                <span id="badge-<%= emp.extension %>" class="h-3 w-3 rounded-full shrink-0 <%= callState === 'incall' ? 'bg-[var(--accent-color)] shadow-sm shadow-[var(--accent-color)]/50' : callState === 'ringing' ? 'bg-[var(--accent-color)] shadow-sm shadow-[var(--accent-color)]/50' : 'bg-transparent' %>"></span>
+                                <span id="status-<%= emp.extension %>" class="text-sm font-bold uppercase tracking-wide <%= callState === 'incall' ? 'text-[var(--accent-color)]' : callState === 'ringing' ? 'text-[var(--accent-color)]' : 'text-zinc-500' %>">
                                     <%= callState === 'incall' ? t.incall : callState === 'ringing' ? t.ringing : t.noCall %>
                                 </span>
-                                <span id="timer-<%= emp.extension %>" class="text-sm font-mono font-bold text-[#ff3b30] tracking-wider <%= callState === 'incall' ? '' : 'hidden' %>">00:00</span>
+                                <span id="timer-<%= emp.extension %>" class="text-sm font-mono font-bold text-[var(--accent-color)] tracking-wider <%= callState === 'incall' ? '' : 'hidden' %>">00:00</span>
                             </div>
                             <span id="partner-<%= emp.extension %>" class="text-xs font-mono text-zinc-400 block truncate mt-1.5 <%= callState === 'incall' ? '' : 'hidden' %>">
                                 <%= t.connectedWith %><span class="font-bold text-white"><%= partnerNum %></span>
@@ -149,7 +149,7 @@ const isRtl = currentLang === 'ar';
                                 <select id="actionSelect-<%= emp.extension %>" 
                                         onchange="handleSelectAction('<%= emp.extension %>', this.value); this.value='';"
                                         <%= (callState === 'incall' || callState === 'ringing') ? '' : 'disabled' %>
-                                        class="action-select w-full bg-[#18181b] text-xs font-semibold rounded-lg pl-3 pr-8 py-2 border border-[#27272a] focus:outline-none focus:border-[#ff3b30] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150 text-slate-300">
+                                        class="action-select w-full bg-[#18181b] text-xs font-semibold rounded-lg pl-3 pr-8 py-2 border border-[#27272a] focus:outline-none focus:border-[var(--accent-color)] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150 text-slate-300">
                                     <option value="" disabled selected hidden><%= isRtl ? 'إجراءات المكالمة' : 'Call Actions' %></option>
                                     <option value="listen"><%= isRtl ? 'استماع (Listen)' : 'Listen' %></option>
                                     <option value="whisper"><%= isRtl ? 'همس (Whisper)' : 'Whisper' %></option>
@@ -164,7 +164,7 @@ const isRtl = currentLang === 'ar';
         </div>
         <div class="panel-surface rounded-2xl px-6 py-4 bg-black/40 flex <%= isRtl ? 'flex-row-reverse' : '' %> justify-between items-center shrink-0">
             <span class="text-xs font-bold uppercase tracking-widest text-zinc-500"><%= t.footerLeft %></span>
-            <span class="text-sm font-black text-white"><%= t.footerRight %> <span class="text-[#ff3b30]"><%= roster.length %></span></span>
+            <span class="text-sm font-black text-white"><%= t.footerRight %> <span class="text-[var(--accent-color)]"><%= roster.length %></span></span>
         </div>
     </div>
     <script src="/socket.io/socket.io.js"></script>
@@ -214,13 +214,13 @@ const isRtl = currentLang === 'ar';
                     const card = document.getElementById('card-' + ext);
                     if (!badge || !label) continue;
                     const online = statusMap[ext];
-                    badge.className = 'h-3 w-3 rounded-full ' + (online ? 'bg-[#ff3b30] shadow-sm shadow-[#ff3b30]/50' : 'bg-zinc-800');
-                    label.className = 'text-xs font-bold uppercase tracking-wider ' + (online ? 'text-[#ff3b30]' : 'text-zinc-500');
+                    badge.className = 'h-3 w-3 rounded-full ' + (online ? 'bg-[var(--accent-color)] shadow-sm shadow-[var(--accent-color)]/50' : 'bg-zinc-800');
+                    label.className = 'text-xs font-bold uppercase tracking-wider ' + (online ? 'text-[var(--accent-color)]' : 'text-zinc-500');
                     label.textContent = online ? '<%= t.online %>' : '<%= t.offline %>';
                     if (card) {
                         if (online) {
                             card.classList.remove('opacity-60', 'bg-black/5');
-                        } else if (!card.querySelector('#badge-' + ext)?.classList.contains('bg-[#ff3b30]')) {
+                        } else if (!card.querySelector('#badge-' + ext)?.classList.contains('bg-[var(--accent-color)]')) {
                             card.classList.add('opacity-60', 'bg-black/5');
                         }
                     }
@@ -238,7 +238,7 @@ const isRtl = currentLang === 'ar';
 
                 const base = "panel-surface rounded-xl p-6 flex flex-col justify-between transition-all duration-300 relative overflow-hidden shadow-md border";
                 const sipBadge = document.getElementById('sipBadge-' + extension);
-                const isOnline = sipBadge && sipBadge.classList.contains('bg-[#ff3b30]');
+                const isOnline = sipBadge && sipBadge.classList.contains('bg-[var(--accent-color)]');
 
                 const selectEl = document.getElementById('actionSelect-' + extension);
 
@@ -248,9 +248,9 @@ const isRtl = currentLang === 'ar';
                         if (!card.getAttribute('data-start')) {
                             card.setAttribute('data-start', Date.now());
                         }
-                        card.className = base + " border-[#ff3b30]/50 bg-[#18181b]" + (isOnline ? '' : ' opacity-60 bg-black/5');
-                        badge.className = "h-3 w-3 rounded-full shrink-0 bg-[#ff3b30] shadow-sm shadow-[#ff3b30]/50";
-                        status.className = "text-sm font-bold uppercase tracking-wide text-[#ff3b30]";
+                        card.className = base + " border-[var(--accent-color)]/50 bg-[#18181b]" + (isOnline ? '' : ' opacity-60 bg-black/5');
+                        badge.className = "h-3 w-3 rounded-full shrink-0 bg-[var(--accent-color)] shadow-sm shadow-[var(--accent-color)]/50";
+                        status.className = "text-sm font-bold uppercase tracking-wide text-[var(--accent-color)]";
                         status.textContent = labels.incall;
                         partner.innerHTML = labels.connected + '<span class="font-bold text-white">' + (callData.partner || '') + '</span>';
                         partner.classList.remove('hidden');
@@ -258,9 +258,9 @@ const isRtl = currentLang === 'ar';
                         timer.classList.remove('hidden');
                     } else {
                         card.removeAttribute('data-start');
-                        card.className = base + " border-[#ff3b30]/60 animate-pulse" + (isOnline ? '' : ' opacity-60 bg-black/5');
-                        badge.className = "h-3 w-3 rounded-full shrink-0 bg-[#ff3b30] shadow-sm shadow-[#ff3b30]/50";
-                        status.className = "text-sm font-bold uppercase tracking-wide text-[#ff3b30]";
+                        card.className = base + " border-[var(--accent-color)]/60 animate-pulse" + (isOnline ? '' : ' opacity-60 bg-black/5');
+                        badge.className = "h-3 w-3 rounded-full shrink-0 bg-[var(--accent-color)] shadow-sm shadow-[var(--accent-color)]/50";
+                        status.className = "text-sm font-bold uppercase tracking-wide text-[var(--accent-color)]";
                         status.textContent = labels.ringing;
                         partner.classList.add('hidden');
                         timer.classList.add('hidden');

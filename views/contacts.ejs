@@ -46,8 +46,8 @@ const isRtl = currentLang === 'ar';
             --text-primary: #ffffff;
             --text-secondary: #a1a1aa;
             --text-muted: #71717a;
-            --accent-color: #ff3b30;
-            --accent-hover: #ff453a;
+            --accent-color: var(--accent-color);
+            --accent-hover: var(--accent-hover);
         }
         body { 
             background-color: var(--bg-primary); 
@@ -86,7 +86,7 @@ const isRtl = currentLang === 'ar';
                 <p class="text-xs text-zinc-500 font-bold mt-1"><%= t.desc %></p>
             </div>
             <% if (isSuperAdmin) { %>
-            <button onclick="openAddContactModal()" class="bg-[#ff3b30] hover:bg-[#ff453a] text-white font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-md transition flex items-center gap-1.5 cursor-pointer">
+            <button onclick="openAddContactModal()" class="bg-[var(--accent-color)] hover:bg-[var(--accent-hover)] text-white font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-md transition flex items-center gap-1.5 cursor-pointer">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                 </svg>
@@ -131,7 +131,7 @@ const isRtl = currentLang === 'ar';
                                         <button onclick="openEditContactModal('<%= contact.id %>', '<%= contact.name %>', '<%= contact.last_name %>', '<%= contact.telefono %>')" class="px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-white text-[11px] font-bold uppercase rounded border border-zinc-700/60 transition cursor-pointer">
                                             <%= t.editBtn %>
                                         </button>
-                                        <button onclick="deleteContact('<%= contact.id %>')" class="px-2.5 py-1 bg-[#ff3b30]/10 hover:bg-[#ff3b30] text-[#ff3b30] hover:text-white text-[11px] font-bold uppercase rounded border border-[#ff3b30]/20 transition cursor-pointer">
+                                        <button onclick="deleteContact('<%= contact.id %>')" class="px-2.5 py-1 bg-[var(--accent-color)]/10 hover:bg-[var(--accent-color)] text-[var(--accent-color)] hover:text-white text-[11px] font-bold uppercase rounded border border-[var(--accent-color)]/20 transition cursor-pointer">
                                             <%= t.deleteBtn %>
                                         </button>
                                     </td>
@@ -144,7 +144,7 @@ const isRtl = currentLang === 'ar';
             </div>
             <div class="px-6 py-4 border-t border-[#27272a] bg-black/40 flex items-center justify-between">
                 <span class="text-xs font-bold uppercase tracking-widest text-zinc-500"><%= t.footerLeft %></span>
-                <span class="text-sm font-black text-white"><%= t.footerRight %> <span id="contactsCount" class="text-[#ff3b30]"><%= contacts.length %></span></span>
+                <span class="text-sm font-black text-white"><%= t.footerRight %> <span id="contactsCount" class="text-[var(--accent-color)]"><%= contacts.length %></span></span>
             </div>
         </div>
     </div>
@@ -167,18 +167,18 @@ const isRtl = currentLang === 'ar';
                 <div class="space-y-4">
                     <div>
                         <label class="block text-[10px] font-black uppercase text-zinc-400 mb-1.5 tracking-wider"><%= isRtl ? 'الاسم الأول' : 'First Name' %></label>
-                        <input type="text" id="editContactFirstName" required class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#ff3b30]">
+                        <input type="text" id="editContactFirstName" required class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[var(--accent-color)]">
                     </div>
                     <div>
                         <label class="block text-[10px] font-black uppercase text-zinc-400 mb-1.5 tracking-wider"><%= isRtl ? 'اسم العائلة' : 'Last Name' %></label>
-                        <input type="text" id="editContactLastName" required class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#ff3b30]">
+                        <input type="text" id="editContactLastName" required class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[var(--accent-color)]">
                     </div>
                     <div>
                         <label class="block text-[10px] font-black uppercase text-zinc-400 mb-1.5 tracking-wider"><%= isRtl ? 'رقم الهاتف' : 'Phone Number' %></label>
-                        <input type="text" id="editContactPhone" required class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#ff3b30]">
+                        <input type="text" id="editContactPhone" required class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[var(--accent-color)]">
                     </div>
                 </div>
-                <button type="submit" class="w-full bg-[#ff3b30] hover:bg-[#ff453a] text-white font-black py-2.5 rounded-lg text-xs uppercase tracking-wider shadow-md transition mt-6 cursor-pointer">
+                <button type="submit" class="w-full bg-[var(--accent-color)] hover:bg-[var(--accent-hover)] text-white font-black py-2.5 rounded-lg text-xs uppercase tracking-wider shadow-md transition mt-6 cursor-pointer">
                     <%= t.saveChanges %>
                 </button>
             </form>
@@ -202,18 +202,18 @@ const isRtl = currentLang === 'ar';
                 <div class="space-y-4">
                     <div>
                         <label class="block text-[10px] font-black uppercase text-zinc-400 mb-1.5 tracking-wider"><%= isRtl ? 'الاسم الأول' : 'First Name' %></label>
-                        <input type="text" id="contactFirstName" required class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#ff3b30]">
+                        <input type="text" id="contactFirstName" required class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[var(--accent-color)]">
                     </div>
                     <div>
                         <label class="block text-[10px] font-black uppercase text-zinc-400 mb-1.5 tracking-wider"><%= isRtl ? 'اسم العائلة' : 'Last Name' %></label>
-                        <input type="text" id="contactLastName" required class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#ff3b30]">
+                        <input type="text" id="contactLastName" required class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[var(--accent-color)]">
                     </div>
                     <div>
                         <label class="block text-[10px] font-black uppercase text-zinc-400 mb-1.5 tracking-wider"><%= isRtl ? 'رقم الهاتف' : 'Phone Number' %></label>
-                        <input type="text" id="contactPhone" required placeholder="e.g. 010..." class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#ff3b30]">
+                        <input type="text" id="contactPhone" required placeholder="e.g. 010..." class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[var(--accent-color)]">
                     </div>
                 </div>
-                <button type="submit" class="w-full bg-[#ff3b30] hover:bg-[#ff453a] text-white font-black py-2.5 rounded-lg text-xs uppercase tracking-wider shadow-md transition mt-6 cursor-pointer">
+                <button type="submit" class="w-full bg-[var(--accent-color)] hover:bg-[var(--accent-hover)] text-white font-black py-2.5 rounded-lg text-xs uppercase tracking-wider shadow-md transition mt-6 cursor-pointer">
                     <%= isRtl ? 'حفظ جهة الاتصال' : 'Save Contact' %>
                 </button>
             </form>

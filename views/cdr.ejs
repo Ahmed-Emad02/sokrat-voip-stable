@@ -24,7 +24,7 @@ const words = {
 const t = words[currentLang];
 const isRtl = currentLang === 'ar';
 const dispColors = {
-    'ANSWERED': 'bg-[#ff3b30]/10 text-[#ff3b30] border border-[#ff3b30]/20',
+    'ANSWERED': 'bg-[var(--accent-color)]/10 text-[var(--accent-color)] border border-[var(--accent-color)]/20',
     'BUSY': 'bg-[#fbbf24]/10 text-[#fbbf24] border border-[#fbbf24]/20',
     'NO ANSWER': 'bg-[#2dd4bf]/10 text-[#2dd4bf] border border-[#2dd4bf]/20',
     'FAILED': 'bg-[#a855f7]/10 text-[#a855f7] border border-[#a855f7]/20'
@@ -52,11 +52,11 @@ const dispColors = {
             --text-primary: #ffffff;
             --text-secondary: #a1a1aa;
             --text-muted: #71717a;
-            --accent-color: #ff3b30;
-            --accent-hover: #ff453a;
-            --status-online: #ff3b30;
+            --accent-color: var(--accent-color);
+            --accent-hover: var(--accent-hover);
+            --status-online: var(--accent-color);
             --status-offline: #71717a;
-            --status-active: #ff3b30;
+            --status-active: var(--accent-color);
         }
         body { 
             background-color: var(--bg-primary); 
@@ -115,15 +115,15 @@ const dispColors = {
             <input type="hidden" name="perPage" value="<%= filters.perPage %>">
             <div>
                 <label class="block text-xs font-black uppercase text-zinc-400 mb-2 tracking-wider"><%= t.startTime %></label>
-                <input type="datetime-local" name="startDate" value="<%= moment(filters.startDate).format('YYYY-MM-DDTHH:mm') %>" class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#ff3b30]">
+                <input type="datetime-local" name="startDate" value="<%= moment(filters.startDate).format('YYYY-MM-DDTHH:mm') %>" class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[var(--accent-color)]">
             </div>
             <div>
                 <label class="block text-xs font-black uppercase text-zinc-400 mb-2 tracking-wider"><%= t.endTime %></label>
-                <input type="datetime-local" name="endDate" value="<%= moment(filters.endDate).format('YYYY-MM-DDTHH:mm') %>" class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#ff3b30]">
+                <input type="datetime-local" name="endDate" value="<%= moment(filters.endDate).format('YYYY-MM-DDTHH:mm') %>" class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[var(--accent-color)]">
             </div>
             <div>
                 <label class="block text-xs font-black uppercase text-zinc-400 mb-2 tracking-wider"><%= t.roster %></label>
-                <select name="targetExtension" class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#ff3b30]">
+                <select name="targetExtension" class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[var(--accent-color)]">
                     <option value="ALL"><%= t.allExt %></option>
                     <% roster.forEach(emp => { %>
                         <option value="<%= emp.extension %>" <%= filters.targetExtension === emp.extension ? 'selected' : '' %>><%= emp.extension %> - <%= emp.name %></option>
@@ -132,7 +132,7 @@ const dispColors = {
             </div>
             <div>
                 <label class="block text-xs font-black uppercase text-zinc-400 mb-2 tracking-wider"><%= t.status %></label>
-                <select name="statusFilter" class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#ff3b30]">
+                <select name="statusFilter" class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[var(--accent-color)]">
                     <option value="ALL" <%= filters.statusFilter === 'ALL' ? 'selected' : '' %>><%= t.allDisp %></option>
                     <option value="ANSWERED" <%= filters.statusFilter === 'ANSWERED' ? 'selected' : '' %>>ANSWERED</option>
                     <option value="NO ANSWER" <%= filters.statusFilter === 'NO ANSWER' ? 'selected' : '' %>>NO ANSWER</option>
@@ -142,7 +142,7 @@ const dispColors = {
             </div>
             <div>
                 <label class="block text-xs font-black uppercase text-zinc-400 mb-2 tracking-wider"><%= t.direction %></label>
-                <select name="directionFilter" class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#ff3b30]">
+                <select name="directionFilter" class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[var(--accent-color)]">
                     <option value="ALL" <%= filters.directionFilter === 'ALL' ? 'selected' : '' %>><%= t.allDir %></option>
                     <option value="OUTBOUND" <%= filters.directionFilter === 'OUTBOUND' ? 'selected' : '' %>><%= t.dirOut %></option>
                     <option value="INBOUND" <%= filters.directionFilter === 'INBOUND' ? 'selected' : '' %>><%= t.dirIn %></option>
@@ -150,14 +150,14 @@ const dispColors = {
             </div>
             <div>
                 <label class="block text-xs font-black uppercase text-zinc-400 mb-2 tracking-wider"><%= t.src %></label>
-                <input type="text" name="searchSrc" value="<%= filters.searchSrc %>" placeholder="e.g., 101" class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-700 focus:outline-none focus:border-[#ff3b30]">
+                <input type="text" name="searchSrc" value="<%= filters.searchSrc %>" placeholder="e.g., 101" class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-700 focus:outline-none focus:border-[var(--accent-color)]">
             </div>
             <div>
                 <label class="block text-xs font-black uppercase text-zinc-400 mb-2 tracking-wider"><%= t.dst %></label>
-                <input type="text" name="searchDst" value="<%= filters.searchDst %>" placeholder="e.g., 010..." class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-700 focus:outline-none focus:border-[#ff3b30]">
+                <input type="text" name="searchDst" value="<%= filters.searchDst %>" placeholder="e.g., 010..." class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-700 focus:outline-none focus:border-[var(--accent-color)]">
             </div>
             <div class="md:col-span-7 flex flex-col sm:flex-row gap-4">
-                <button type="submit" class="flex-1 bg-[#ff3b30] hover:bg-[#ff453a] text-white font-black py-3 rounded-lg text-sm uppercase tracking-wider shadow-md transition cursor-pointer"><%= t.btn %></button>
+                <button type="submit" class="flex-1 bg-[var(--accent-color)] hover:bg-[var(--accent-hover)] text-white font-black py-3 rounded-lg text-sm uppercase tracking-wider shadow-md transition cursor-pointer"><%= t.btn %></button>
                 <button type="button" onclick="exportCSV()" class="bg-[var(--bg-card)] hover:bg-[var(--bg-hover)] text-[var(--text-primary)] font-black px-6 py-3 rounded-lg text-sm uppercase tracking-wider shadow-md transition border border-[var(--border-primary)] flex items-center justify-center gap-2 cursor-pointer" title="<%= isRtl ? 'تصدير CSV' : 'Export CSV' %>">
                     <svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -176,7 +176,7 @@ const dispColors = {
             <div class="flex items-center gap-1">
                 <button onclick="goToPage(<%= pagination.page - 1 %>)" <%= pagination.page <= 1 ? 'disabled' : '' %> class="px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition cursor-pointer <%= pagination.page <= 1 ? 'text-zinc-700 bg-zinc-900/50 cursor-not-allowed' : 'text-zinc-300 bg-[var(--bg-card)] hover:bg-[var(--bg-hover)] hover:text-white' %>"><%= t.pagPrev %></button>
                 <% for (let p = Math.max(1, pagination.page - 2); p <= Math.min(pagination.totalPages, pagination.page + 2); p++) { %>
-                    <button onclick="goToPage(<%= p %>)" class="px-3 py-1.5 rounded-lg text-xs font-black tracking-wider transition cursor-pointer <%= p === pagination.page ? 'bg-[#ff3b30] text-white shadow-sm' : 'text-zinc-400 bg-[var(--bg-card)] hover:bg-[var(--bg-hover)] hover:text-white' %>"><%= p %></button>
+                    <button onclick="goToPage(<%= p %>)" class="px-3 py-1.5 rounded-lg text-xs font-black tracking-wider transition cursor-pointer <%= p === pagination.page ? 'bg-[var(--accent-color)] text-white shadow-sm' : 'text-zinc-400 bg-[var(--bg-card)] hover:bg-[var(--bg-hover)] hover:text-white' %>"><%= p %></button>
                 <% } %>
                 <button onclick="goToPage(<%= pagination.page + 1 %>)" <%= pagination.page >= pagination.totalPages ? 'disabled' : '' %> class="px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition cursor-pointer <%= pagination.page >= pagination.totalPages ? 'text-zinc-700 bg-zinc-900/50 cursor-not-allowed' : 'text-zinc-300 bg-[var(--bg-card)] hover:bg-[var(--bg-hover)] hover:text-white' %>"><%= t.pagNext %></button>
             </div>
@@ -264,7 +264,7 @@ const dispColors = {
             <div class="px-6 py-4 border-t border-[#27272a] bg-black/40">
                 <div class="flex items-center justify-between">
                     <span class="text-xs font-bold uppercase tracking-widest text-zinc-500"><%= t.footerLeft %></span>
-                    <span class="text-sm font-black text-white"><%= t.footerRight %> <span class="text-[#ff3b30]"><%= pagination.total %></span></span>
+                    <span class="text-sm font-black text-white"><%= t.footerRight %> <span class="text-[var(--accent-color)]"><%= pagination.total %></span></span>
                 </div>
                 <% if (pagination.totalPages > 1) { %>
                 <div class="flex items-center justify-between mt-3 pt-3 border-t border-zinc-800/30">
@@ -274,7 +274,7 @@ const dispColors = {
                     <div class="flex items-center gap-1">
                         <button onclick="goToPage(<%= pagination.page - 1 %>)" <%= pagination.page <= 1 ? 'disabled' : '' %> class="px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition cursor-pointer <%= pagination.page <= 1 ? 'text-zinc-700 bg-zinc-900/50 cursor-not-allowed' : 'text-zinc-300 bg-[var(--bg-card)] hover:bg-[var(--bg-hover)] hover:text-white' %>"><%= t.pagPrev %></button>
                         <% for (let p = Math.max(1, pagination.page - 2); p <= Math.min(pagination.totalPages, pagination.page + 2); p++) { %>
-                            <button onclick="goToPage(<%= p %>)" class="px-3 py-1.5 rounded-lg text-xs font-black tracking-wider transition cursor-pointer <%= p === pagination.page ? 'bg-[#ff3b30] text-white shadow-sm' : 'text-zinc-400 bg-[var(--bg-card)] hover:bg-[var(--bg-hover)] hover:text-white' %>"><%= p %></button>
+                            <button onclick="goToPage(<%= p %>)" class="px-3 py-1.5 rounded-lg text-xs font-black tracking-wider transition cursor-pointer <%= p === pagination.page ? 'bg-[var(--accent-color)] text-white shadow-sm' : 'text-zinc-400 bg-[var(--bg-card)] hover:bg-[var(--bg-hover)] hover:text-white' %>"><%= p %></button>
                         <% } %>
                         <button onclick="goToPage(<%= pagination.page + 1 %>)" <%= pagination.page >= pagination.totalPages ? 'disabled' : '' %> class="px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition cursor-pointer <%= pagination.page >= pagination.totalPages ? 'text-zinc-700 bg-zinc-900/50 cursor-not-allowed' : 'text-zinc-300 bg-[var(--bg-card)] hover:bg-[var(--bg-hover)] hover:text-white' %>"><%= t.pagNext %></button>
                     </div>
