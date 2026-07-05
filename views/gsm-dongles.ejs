@@ -304,6 +304,29 @@ const initialSelectedDongleId = devices && devices.length > 0 ? devices[0].ID : 
 </head>
 <body class="flex flex-col min-h-screen m-0 p-0">
     <%- include('sidebar') %>
+    <style>
+        .hardware-table button.dongle-action-primary {
+            background-color: var(--accent-color) !important;
+            border-color: var(--accent-color) !important;
+            color: #ffffff !important;
+        }
+        .hardware-table button.dongle-action-primary:hover {
+            background-color: var(--accent-hover) !important;
+            border-color: var(--accent-hover) !important;
+        }
+        .hardware-table button.dongle-action-secondary {
+            background-color: var(--accent-soft) !important;
+            border-color: var(--accent-border) !important;
+            color: var(--accent-color) !important;
+        }
+        .hardware-table button.dongle-action-secondary:hover {
+            background-color: rgba(220, 38, 38, 0.16) !important;
+            border-color: var(--accent-color) !important;
+        }
+        .hardware-table .dongle-status-pill {
+            border-color: var(--accent-border) !important;
+        }
+    </style>
     
     <div class="flex-1 p-8 relative flex flex-col min-h-screen">
         
