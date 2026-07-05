@@ -186,6 +186,14 @@ function can(tab) { return allowed.includes(tab); }
     .light-theme button *,
     .light-theme [type="submit"],
     .light-theme [type="submit"] *,
+    .light-theme .text-white.bg-\[var\(--accent-color\)\],
+    .light-theme .text-white.bg-\[var\(--accent-hover\)\],
+    .light-theme button.text-white,
+    .light-theme .text-white.btn,
+    .light-theme .text-white.btn-primary,
+    .light-theme [class*="bg-red"] .text-white,
+    .light-theme .bg-\[var\(--accent-color\)\] .text-white,
+    .light-theme .bg-\[var\(--accent-hover\)\] .text-white,
     .light-theme .btn,
     .light-theme .btn *,
     .light-theme .bg-[var(--accent-color)],
@@ -195,6 +203,21 @@ function can(tab) { return allowed.includes(tab); }
     .light-theme .btn-primary,
     .light-theme .btn-primary * {
         color: #ffffff !important;
+    }
+
+    /* Fix dark borders in light theme globally */
+    .light-theme .border-\[\#27272a\],
+    .light-theme .border-b-\[\#27272a\],
+    .light-theme .border-t-\[\#27272a\],
+    .light-theme .border-r-\[\#27272a\],
+    .light-theme .border-l-\[\#27272a\],
+    .light-theme .border-\[\#27272a\/\.5\],
+    .light-theme .border-\[\#27272a\/\.60\],
+    .light-theme .border-\[\#27272a\/\.30\],
+    .light-theme .border-b-\[\#27272a\/\.60\],
+    .light-theme .border-t-\[\#27272a\/\.60\],
+    .light-theme [class*="border-[#27272a]"] {
+        border-color: #cbd5e1 !important;
     }
 
     html {

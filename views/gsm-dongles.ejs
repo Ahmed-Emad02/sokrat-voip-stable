@@ -179,6 +179,53 @@ const isRtl = currentLang === 'ar';
         .selected-row {
             background-color: var(--bg-selected) !important;
         }
+        
+        /* Light Theme Page-Specific Overrides for gsm-dongles.ejs */
+        .light-theme .panel-surface {
+            background-color: var(--bg-secondary) !important;
+            border-color: var(--border-primary) !important;
+        }
+        .light-theme .bg-black\/40 {
+            background-color: #e2e8f0 !important;
+        }
+        .light-theme .bg-black\/25 {
+            background-color: #f1f5f9 !important;
+        }
+        .light-theme .bg-zinc-950 {
+            background-color: var(--bg-card) !important;
+            border-color: #cbd5e1 !important;
+        }
+        .light-theme select,
+        .light-theme select option,
+        .light-theme input {
+            background-color: var(--bg-card) !important;
+            color: var(--text-primary) !important;
+            border-color: var(--border-primary) !important;
+        }
+        .light-theme .border-b,
+        .light-theme .border-t,
+        .light-theme .border {
+            border-color: #cbd5e1 !important;
+        }
+        .light-theme .text-zinc-400,
+        .light-theme .text-zinc-500,
+        .light-theme .text-zinc-300 {
+            color: #334155 !important;
+        }
+        .light-theme .text-white {
+            color: #000000 !important;
+        }
+        .light-theme [class*="border-[#27272a]"] {
+            border-color: #cbd5e1 !important;
+        }
+        .light-theme .terminal-screen {
+            background-color: #030303 !important;
+            border: 1px solid #1a1a1a !important;
+        }
+        .light-theme .log-screen {
+            background-color: #050505 !important;
+            border: 1px solid #1f1f23 !important;
+        }
     </style>
 </head>
 <body class="bg-[#09090b] text-slate-100 flex flex-col min-h-screen m-0 p-0">
@@ -410,7 +457,7 @@ const isRtl = currentLang === 'ar';
                     <form id="ussd-execution-form" class="flex flex-col gap-4">
                         <div class="flex flex-col gap-2">
                             <label class="text-xs font-semibold text-[var(--text-secondary)]"><%= isRtl ? 'اختر شريحة الاتصال' : 'Target Dongle' %></label>
-                            <select id="ussd-target-dongle" class="bg-zinc-950 border border-[var(--border-primary)] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[var(--accent-color)] cursor-pointer" required>
+                            <select id="ussd-target-dongle" class="bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-lg px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-color)] cursor-pointer" required>
                                 <option value="" disabled selected hidden><%= t.selectPlaceholder %></option>
                                 <% if (devices && devices.length > 0) { %>
                                     <% devices.forEach(d => { %>
@@ -422,9 +469,9 @@ const isRtl = currentLang === 'ar';
                         
                         <div class="flex flex-col gap-2">
                             <label class="text-xs font-semibold text-[var(--text-secondary)]"><%= isRtl ? 'رمز الـ USSD' : 'USSD Code' %></label>
-                            <div class="flex items-center bg-zinc-950 border border-[var(--border-primary)] rounded-lg px-3 focus-within:border-[var(--accent-color)] transition-colors">
+                            <div class="flex items-center bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-lg px-3 focus-within:border-[var(--accent-color)] transition-colors">
                                 <span class="text-[var(--accent-color)] font-bold font-mono text-sm leading-none select-none <%= isRtl ? 'ml-1' : 'mr-1' %>">&gt;</span>
-                                <input type="text" id="ussd-code-input" class="w-full bg-transparent border-0 outline-none py-2 text-sm text-white font-mono placeholder-zinc-700" placeholder="e.g. *100# or *50#" required autocomplete="off">
+                                <input type="text" id="ussd-code-input" class="w-full bg-transparent border-0 outline-none py-2 text-sm text-[var(--text-primary)] font-mono placeholder-zinc-500" placeholder="e.g. *100# or *50#" required autocomplete="off">
                             </div>
                         </div>
                         
