@@ -172,6 +172,14 @@ const initialSelectedDongleId = devices && devices.length > 0 ? devices[0].ID : 
             color: var(--accent-color);
         }
         
+        .hardware-table th,
+        .hardware-table td {
+            text-align: center !important;
+        }
+        .hardware-table td > div.flex {
+            justify-content: center !important;
+        }
+        
         .terminal-screen {
             background-color: #030303;
             border: 1px solid #1a1a1a;
@@ -363,7 +371,7 @@ const initialSelectedDongleId = devices && devices.length > 0 ? devices[0].ID : 
                     </h3>
                     
                     <div class="overflow-x-auto">
-                        <table class="hardware-table w-full text-sm text-start">
+                        <table class="hardware-table w-full text-sm text-center">
                             <thead>
                                 <tr class="border-b border-[var(--border-primary)] text-[var(--text-muted)] text-xs uppercase tracking-wider font-semibold">
                                     <th class="py-3 px-4"><%= t.thID %></th>
