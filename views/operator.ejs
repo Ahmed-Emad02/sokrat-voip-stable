@@ -115,29 +115,38 @@ const isRtl = currentLang === 'ar';
         }
 
         /* State: Idle (Online & Free) - Solid Amber/Orange theme */
-        #switchboardGrid .panel-surface.state-idle {
+        #switchboardGrid .panel-surface.state-idle,
+        .light-theme #switchboardGrid .panel-surface.state-idle {
             background-color: #f59e0b !important;
             border-color: rgba(255, 255, 255, 0.2) !important;
             color: #111827 !important;
         }
-        #switchboardGrid .panel-surface.state-idle:hover {
+        #switchboardGrid .panel-surface.state-idle:hover,
+        .light-theme #switchboardGrid .panel-surface.state-idle:hover {
             border-color: rgba(255, 255, 255, 0.4) !important;
             box-shadow: 0 8px 24px rgba(245, 158, 11, 0.2) !important;
         }
-        #switchboardGrid .panel-surface.state-idle .text-2xl.font-mono {
+        #switchboardGrid .panel-surface.state-idle .text-2xl.font-mono,
+        .light-theme #switchboardGrid .panel-surface.state-idle .text-2xl.font-mono {
             color: #111827 !important;
         }
         #switchboardGrid .panel-surface.state-idle .text-base.font-bold,
-        #switchboardGrid .panel-surface.state-idle .text-white {
+        #switchboardGrid .panel-surface.state-idle .text-white,
+        .light-theme #switchboardGrid .panel-surface.state-idle .text-base.font-bold,
+        .light-theme #switchboardGrid .panel-surface.state-idle .text-white {
             color: #111827 !important;
         }
-        #switchboardGrid .panel-surface.state-idle [id^="sipBadge-"] {
+        #switchboardGrid .panel-surface.state-idle [id^="sipBadge-"],
+        .light-theme #switchboardGrid .panel-surface.state-idle [id^="sipBadge-"] {
             background-color: #111827 !important;
             box-shadow: 0 0 8px rgba(17, 24, 39, 0.4) !important;
         }
         #switchboardGrid .panel-surface.state-idle [id^="sipLabel-"],
         #switchboardGrid .panel-surface.state-idle [id^="status-"],
-        #switchboardGrid .panel-surface.state-idle [id^="partner-"] {
+        #switchboardGrid .panel-surface.state-idle [id^="partner-"],
+        .light-theme #switchboardGrid .panel-surface.state-idle [id^="sipLabel-"],
+        .light-theme #switchboardGrid .panel-surface.state-idle [id^="status-"],
+        .light-theme #switchboardGrid .panel-surface.state-idle [id^="partner-"] {
             color: #111827 !important;
             font-weight: 800 !important;
         }
@@ -147,7 +156,8 @@ const isRtl = currentLang === 'ar';
         }
 
         /* State: Ringing - Pulsing Blue theme */
-        #switchboardGrid .panel-surface.state-ringing {
+        #switchboardGrid .panel-surface.state-ringing,
+        .light-theme #switchboardGrid .panel-surface.state-ringing {
             background-color: rgba(59, 130, 246, 0.08) !important;
             border-color: rgba(59, 130, 246, 0.5) !important;
             animation: pulse-border-blue 2s infinite;
@@ -158,31 +168,41 @@ const isRtl = currentLang === 'ar';
             100% { border-color: rgba(59, 130, 246, 0.3); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.1); }
         }
         #switchboardGrid .panel-surface.state-ringing [id^="sipBadge-"],
-        #switchboardGrid .panel-surface.state-ringing [id^="badge-"] {
+        #switchboardGrid .panel-surface.state-ringing [id^="badge-"],
+        .light-theme #switchboardGrid .panel-surface.state-ringing [id^="sipBadge-"],
+        .light-theme #switchboardGrid .panel-surface.state-ringing [id^="badge-"] {
             background-color: #3b82f6 !important;
-            box-shadow: 0 0 8px rgba(59, 130, 246, 0.6) !important;
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.5) !important;
         }
         #switchboardGrid .panel-surface.state-ringing [id^="sipLabel-"],
-        #switchboardGrid .panel-surface.state-ringing [id^="status-"] {
+        #switchboardGrid .panel-surface.state-ringing [id^="status-"],
+        .light-theme #switchboardGrid .panel-surface.state-ringing [id^="sipLabel-"],
+        .light-theme #switchboardGrid .panel-surface.state-ringing [id^="status-"] {
             color: #3b82f6 !important;
         }
 
         /* State: In Call - Red/Rose theme */
-        #switchboardGrid .panel-surface.state-incall {
+        #switchboardGrid .panel-surface.state-incall,
+        .light-theme #switchboardGrid .panel-surface.state-incall {
             background-color: rgba(239, 68, 68, 0.08) !important;
             border-color: rgba(239, 68, 68, 0.4) !important;
         }
-        #switchboardGrid .panel-surface.state-incall:hover {
+        #switchboardGrid .panel-surface.state-incall:hover,
+        .light-theme #switchboardGrid .panel-surface.state-incall:hover {
             border-color: rgba(239, 68, 68, 0.7) !important;
             box-shadow: 0 0 15px rgba(239, 68, 68, 0.1) !important;
         }
         #switchboardGrid .panel-surface.state-incall [id^="sipBadge-"],
-        #switchboardGrid .panel-surface.state-incall [id^="badge-"] {
+        #switchboardGrid .panel-surface.state-incall [id^="badge-"],
+        .light-theme #switchboardGrid .panel-surface.state-incall [id^="sipBadge-"],
+        .light-theme #switchboardGrid .panel-surface.state-incall [id^="badge-"] {
             background-color: #ef4444 !important;
             box-shadow: 0 0 8px rgba(239, 68, 68, 0.5) !important;
         }
         #switchboardGrid .panel-surface.state-incall [id^="sipLabel-"],
-        #switchboardGrid .panel-surface.state-incall [id^="status-"] {
+        #switchboardGrid .panel-surface.state-incall [id^="status-"],
+        .light-theme #switchboardGrid .panel-surface.state-incall [id^="sipLabel-"],
+        .light-theme #switchboardGrid .panel-surface.state-incall [id^="status-"] {
             color: #ef4444 !important;
         }
 
