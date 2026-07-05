@@ -374,7 +374,6 @@ const isRtl = currentLang === 'ar';
                                 <tr class="bg-black/40 text-zinc-400 text-xs font-black uppercase border-b border-[#27272a] sticky top-0 z-10">
                                     <th class="p-4 tracking-wider text-start cursor-pointer hover:text-white transition select-none" onclick="sortOverview('extension')"><%= t.extension %> ${sortIndicator('extension')}</th>
                                     <th class="p-4 tracking-wider text-start cursor-pointer hover:text-white transition select-none" onclick="sortOverview('name')"><%= t.employee %> ${sortIndicator('name')}</th>
-                                    <th class="p-4 tracking-wider text-center cursor-pointer hover:text-white transition select-none" onclick="sortOverview('agentStatus')"><%= t.agentStatus %> ${sortIndicator('agentStatus')}</th>
                                     <th class="p-4 tracking-wider text-center cursor-pointer hover:text-white transition select-none" onclick="sortOverview('totalCalls')"><%= t.totalCalls %> ${sortIndicator('totalCalls')}</th>
                                     <th class="p-4 tracking-wider text-center cursor-pointer hover:text-white transition select-none" onclick="sortOverview('inboundCalls')"><%= t.inboundLabel %> ${sortIndicator('inboundCalls')}</th>
                                     <th class="p-4 tracking-wider text-center cursor-pointer hover:text-white transition select-none" onclick="sortOverview('outboundCalls')"><%= t.outboundLabel %> ${sortIndicator('outboundCalls')}</th>
@@ -385,27 +384,15 @@ const isRtl = currentLang === 'ar';
             `;
 
             if (sorted.length === 0) {
-                html += `<tr><td colspan="7" class="p-8 text-center text-zinc-500 font-sans"><%= t.noData %></td></tr>`;
+                html += `<tr><td colspan="6" class="p-8 text-center text-zinc-500 font-sans"><%= t.noData %></td></tr>`;
             } else {
                 sorted.forEach(row => {
                     const talkMin = Math.round(row.totalTalkSec / 60);
                     
-                    // Agent status colors - themed red/silver
-                    let agentBadge = '';
-                    if (row.agentStatus === 'Available') {
-                        agentBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-600 text-white border border-emerald-600">Available</span>';
-                    } else if (row.agentStatus === 'Offline') {
-                        agentBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[var(--accent-color)] text-white border border-[var(--accent-color)]">Offline</span>';
-                    } else {
-                        // Paused / On Break states
-                        agentBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-zinc-600 text-white border border-zinc-600">${row.agentStatus}</span>`;
-                    }
-
                     html += `
                         <tr class="hover:bg-zinc-900/50 cursor-pointer transition" onclick="selectExtension('${row.extension}')">
                             <td class="p-4 text-[var(--accent-color)] font-black text-sm">${row.extension}</td>
                             <td class="p-4 text-white font-sans font-bold text-sm">${row.name}</td>
-                            <td class="p-4 text-center">${agentBadge}</td>
                             <td class="p-4 text-center text-white font-bold text-sm">${row.totalCalls}</td>
                             <td class="p-4 text-center text-slate-300">${row.inboundCalls}</td>
                             <td class="p-4 text-center text-slate-300">${row.outboundCalls}</td>
