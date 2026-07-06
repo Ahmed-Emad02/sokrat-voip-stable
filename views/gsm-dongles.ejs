@@ -458,7 +458,7 @@ const initialSelectedDongleId = devices && devices.length > 0 ? devices[0].ID : 
                                             <td class="py-3.5 px-4">
                                                 <div class="flex items-center gap-2">
                                                      <span class="font-mono text-xs">
-                                                         <%= d.RSSI || '0' %>
+                                                         
                                                          <% 
                                                             const rssiVal = parseInt(d.RSSI) || 0;
                                                             const pct = Math.round((rssiVal / 31) * 100);
@@ -469,7 +469,7 @@ const initialSelectedDongleId = devices && devices.length > 0 ? devices[0].ID : 
                                                                 pctColor = '#f59e0b'; // Orange/Yellow
                                                             }
                                                          %>
-                                                         <span style="color: <%= pctColor %>" class="font-bold ml-1 rtl:mr-1 rtl:ml-0">(<%= pct %>%)</span>
+                                                         <span style="color: <%= pctColor %>" class="font-bold"><%= pct %>%</span>
                                                      </span>
                                                      <svg width="54" height="28" viewBox="0 0 54 28" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                          <% 
@@ -1663,7 +1663,7 @@ const initialSelectedDongleId = devices && devices.length > 0 ? devices[0].ID : 
                                     <td class="py-3.5 px-4">
                                         <div class="flex items-center gap-2">
                                              <span class="font-mono text-xs">
-                                                 ${d.RSSI || '0'}
+                                                 
                                                  ${function(){
                                                      var rssiVal = parseInt(d.RSSI) || 0;
                                                      var pct = Math.round((rssiVal / 31) * 100);
@@ -1673,7 +1673,7 @@ const initialSelectedDongleId = devices && devices.length > 0 ? devices[0].ID : 
                                                      } else if (rssiVal < 23) {
                                                          pctColor = '#f59e0b'; // Orange/Yellow
                                                      }
-                                                     return '<span style="color: ' + pctColor + '" class="font-bold ml-1 rtl:mr-1 rtl:ml-0">(' + pct + '%)</span>';
+                                                     return '<span style="color: ' + pctColor + '" class="font-bold">' + pct + '%</span>';
                                                  }()}
                                              </span>
                                             <svg width="54" height="28" viewBox="0 0 54 28" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -2034,11 +2034,22 @@ app.post('/api/gsm-dongles/reset-usb-port', (req, res) => {
             if (err || !stdout.trim()) {
                 return res.json({ success: false, error: `Cannot find USB device for /dev/${ttyDev}. Dongle may not be connected.` });
             }
-            const usbMatch = stdout.match(/\/usb\d+\/([0-9]+-[0-9]+)\//);
-            if (!usbMatch) {
-                return res.json({ success: false, error: `Cannot parse USB bus ID from udev path: ${stdout.trim()}` });
+            
+            // Traverse upwards from udev path to find the closest valid USB device ID in sysfs
+            let usbId = null;
+            const pathParts = stdout.trim().split('/');
+            for (let k = pathParts.length - 1; k >= 0; k--) {
+                const part = pathParts[k];
+                if (part && fs.existsSync(`/sys/bus/usb/devices/${part}`)) {
+                    usbId = part;
+                    break;
+                }
             }
-            const usbId = usbMatch[1];
+
+            if (!usbId) {
+                return res.json({ success: false, error: `Cannot find USB bus ID under sysfs from path: ${stdout.trim()}` });
+            }
+
             const authorizedPath = `/sys/bus/usb/devices/${usbId}/authorized`;
 
             if (!fs.existsSync(authorizedPath)) {
