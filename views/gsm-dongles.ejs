@@ -555,6 +555,56 @@ const initialSelectedDongleId = devices && devices.length > 0 ? devices[0].ID : 
                         <div class="flex justify-between items-center border-b border-[var(--border-primary)]/30 pb-3"><span class="text-[var(--text-muted)]"><%= t.thIMSI %>:</span> <span id="info-imsi" class="font-mono text-white">-</span></div>
                         <div class="flex justify-between items-center border-b border-[var(--border-primary)]/30 pb-3"><span class="text-[var(--text-muted)]"><%= t.submode %>:</span> <span id="info-submode" class="font-bold text-white">-</span></div>
                     </div>
+
+                    <!-- Real-Time Signal & Diagnostic Panel -->
+                    <div class="mt-6 pt-6 border-t border-[var(--border-primary)]/40 flex flex-col gap-4">
+                        <h5 class="text-[11px] font-black uppercase text-[var(--text-secondary)] tracking-wider flex items-center gap-1.5">
+                            <svg class="text-[var(--accent-color)]" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="8" x2="12" y2="12"/>
+                                <line x1="12" y1="16" x2="12.01" y2="16"/>
+                            </svg>
+                            <%= isRtl ? 'الحالة والتشخيص المباشر' : 'Live Status & Diagnostics' %>
+                        </h5>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <!-- Signal Strength Meter -->
+                            <div class="bg-black/15 border border-[var(--border-primary)]/30 rounded-xl p-4 flex flex-col items-center justify-center text-center">
+                                <span class="text-[10px] font-black uppercase text-[var(--text-muted)] tracking-wider mb-2"><%= isRtl ? 'مستوى الإشارة' : 'Signal Level' %></span>
+                                <div class="flex items-end gap-1.5 h-8 mb-2" id="diag-signal-bars">
+                                    <!-- Rendered dynamically via js -->
+                                </div>
+                                <span id="diag-signal-text" class="text-xs font-bold text-white font-mono">-</span>
+                            </div>
+
+                            <!-- Registration Status -->
+                            <div class="bg-black/15 border border-[var(--border-primary)]/30 rounded-xl p-4 flex flex-col items-center justify-center text-center">
+                                <span class="text-[10px] font-black uppercase text-[var(--text-muted)] tracking-wider mb-2"><%= isRtl ? 'حالة الخدمة' : 'Service Status' %></span>
+                                <div id="diag-service-badge" class="mb-2">
+                                    <!-- Dynamic badge -->
+                                </div>
+                                <span id="diag-carrier-text" class="text-xs font-bold text-[var(--accent-color)]">-</span>
+                            </div>
+                        </div>
+
+                        <!-- System Checklist -->
+                        <div class="bg-black/15 border border-[var(--border-primary)]/30 rounded-xl p-3">
+                            <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                                <div class="flex flex-col items-center gap-1">
+                                    <span class="text-[9px] font-black uppercase text-[var(--text-muted)] tracking-wider"><%= isRtl ? 'الصوت' : 'Voice' %></span>
+                                    <span id="chk-voice" class="text-zinc-500 font-bold font-mono">-</span>
+                                </div>
+                                <div class="flex flex-col items-center gap-1 border-x border-[var(--border-primary)]/20">
+                                    <span class="text-[9px] font-black uppercase text-[var(--text-muted)] tracking-wider"><%= isRtl ? 'الرسائل' : 'SMS' %></span>
+                                    <span id="chk-sms" class="text-zinc-500 font-bold font-mono">-</span>
+                                </div>
+                                <div class="flex flex-col items-center gap-1">
+                                    <span class="text-[9px] font-black uppercase text-[var(--text-muted)] tracking-wider">USSD</span>
+                                    <span id="chk-ussd" class="text-zinc-500 font-bold font-mono">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- SMS Inbox Panel -->
@@ -849,6 +899,9 @@ const initialSelectedDongleId = devices && devices.length > 0 ? devices[0].ID : 
                     updateSmsInboxTitle();
                     filterAndRenderSms();
 
+                    // Update Live Status & Diagnostics Block
+                    updateLiveDiagnostics(dev);
+
                     // Sync select dropdown
                     if (ussdTarget) {
                         ussdTarget.value = id;
@@ -857,6 +910,137 @@ const initialSelectedDongleId = devices && devices.length > 0 ? devices[0].ID : 
                     console.error("Error inside selectDevice:", err);
                 }
             };
+
+            function updateLiveDiagnostics(dev) {
+                try {
+                    const rssi = parseInt(dev.RSSI) || 0;
+                    
+                    // 1. Signal bars SVG rects
+                    const barsContainer = document.getElementById('diag-signal-bars');
+                    if (barsContainer) {
+                        let activeColor = '#10b981'; // Green
+                        let levelText = isRtl ? 'ممتاز' : 'Excellent';
+                        if (rssi === 0) {
+                            levelText = isRtl ? 'بدون إشارة' : 'No Signal';
+                            activeColor = '#ef4444';
+                        } else if (rssi < 9) {
+                            levelText = isRtl ? 'ضعيف جداً' : 'Very Weak';
+                            activeColor = '#ef4444'; // Red
+                        } else if (rssi < 15) {
+                            levelText = isRtl ? 'ضعيف' : 'Weak';
+                            activeColor = '#ef4444'; // Red
+                        } else if (rssi < 20) {
+                            levelText = isRtl ? 'متوسط' : 'Moderate';
+                            activeColor = '#f59e0b'; // Orange
+                        } else if (rssi < 25) {
+                            levelText = isRtl ? 'جيد' : 'Good';
+                            activeColor = '#10b981'; // Green
+                        }
+                        
+                        document.getElementById('diag-signal-text').textContent = `${rssi} / 31 (${levelText})`;
+                        
+                        let barsHtml = '';
+                        const th = [1, 5, 9, 13, 18, 23, 28];
+                        const hh = [6, 10, 14, 18, 22, 26, 30]; // slightly taller heights
+                        for (let i = 0; i < 7; i++) {
+                            const h = hh[i];
+                            const fill = rssi >= th[i] ? activeColor : 'rgba(255,255,255,0.08)';
+                            barsHtml += `<div style="width:6px; height:${h}px; border-radius:1px; background-color:${fill}; transition: background-color 0.2s;"></div>`;
+                        }
+                        barsContainer.innerHTML = barsHtml;
+                    }
+
+                    // 2. Registration Status Badge & Carrier
+                    const st = (dev.State || '').toLowerCase();
+                    const isGsmNotResponding = st.includes('gsm') && st.includes('not responding');
+                    const isNotInitializing = st.includes('not initializing');
+                    const isNotRegistered = st.includes('not registered');
+                    const isFree = st === 'free';
+                    const isNotConnected = st.includes('not connect') || st === 'not_connected';
+                    const isError = isGsmNotResponding || isNotRegistered;
+                    
+                    const badgeContainer = document.getElementById('diag-service-badge');
+                    const carrierEl = document.getElementById('diag-carrier-text');
+                    
+                    if (carrierEl) {
+                        carrierEl.textContent = dev['Provider Name'] || (isRtl ? 'غير معروف' : 'Unknown');
+                    }
+                    
+                    if (badgeContainer) {
+                        let badgeHtml = '';
+                        if (isFree) {
+                            badgeHtml = `
+                                <span class="inline-flex items-center gap-1.5 bg-green-900/20 text-green-400 rounded-full px-2.5 py-0.5 text-xs font-semibold border border-green-900/30">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-green-500 shrink-0 animate-pulse"></span>
+                                    \${isRtl ? 'جاهز ومتاح' : 'Ready / Idle'}
+                                </span>
+                            `;
+                        } else if (isError) {
+                            badgeHtml = `
+                                <span class="inline-flex items-center gap-1.5 bg-red-900/20 text-red-400 rounded-full px-2.5 py-0.5 text-xs font-semibold border border-red-900/30">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-red-500 shrink-0"></span>
+                                    \${isRtl ? 'خطأ في التسجيل' : 'Registration Fail'}
+                                </span>
+                            `;
+                        } else if (isNotConnected) {
+                            badgeHtml = `
+                                <span class="inline-flex items-center gap-1.5 bg-zinc-900/50 text-zinc-400 rounded-full px-2.5 py-0.5 text-xs font-semibold border border-zinc-700/30">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-zinc-500 shrink-0"></span>
+                                    \${isRtl ? 'غير متصل' : 'Disconnected'}
+                                </span>
+                            `;
+                        } else {
+                            // Active / busy state or initializing
+                            const stateLabel = isRtl 
+                                ? (st.includes('active') || st.includes('dial') || st.includes('ring') ? 'نشط ومستعمل' : 'قيد التهيئة')
+                                : (st.includes('active') || st.includes('dial') || st.includes('ring') ? 'Active / In Use' : 'Initializing');
+                            
+                            badgeHtml = `
+                                <span class="inline-flex items-center gap-1.5 bg-amber-900/20 text-amber-400 rounded-full px-2.5 py-0.5 text-xs font-semibold border border-amber-900/30">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0 animate-ping"></span>
+                                    \${stateLabel}
+                                </span>
+                            `;
+                        }
+                        badgeContainer.innerHTML = badgeHtml;
+                    }
+
+                    // 3. System Checklist
+                    const voiceEl = document.getElementById('chk-voice');
+                    const smsEl = document.getElementById('chk-sms');
+                    const ussdEl = document.getElementById('chk-ussd');
+                    
+                    if (voiceEl && smsEl && ussdEl) {
+                        if (isFree || st.includes('active') || st.includes('dial') || st.includes('ring')) {
+                            voiceEl.className = 'text-green-500 font-bold font-mono';
+                            voiceEl.textContent = '● OK';
+                            smsEl.className = 'text-green-500 font-bold font-mono';
+                            smsEl.textContent = '● OK';
+                            ussdEl.className = 'text-green-500 font-bold font-mono';
+                            ussdEl.textContent = '● OK';
+                        } else if (isNotConnected) {
+                            voiceEl.className = 'text-zinc-500 font-bold font-mono';
+                            voiceEl.textContent = '● OFF';
+                            smsEl.className = 'text-zinc-500 font-bold font-mono';
+                            smsEl.textContent = '● OFF';
+                            ussdEl.className = 'text-zinc-500 font-bold font-mono';
+                            ussdEl.textContent = '● OFF';
+                        } else {
+                            // Initializing or Error
+                            const label = isError ? '● FAIL' : '● WAIT';
+                            const cls = isError ? 'text-red-500 font-bold font-mono' : 'text-amber-500 font-bold font-mono';
+                            voiceEl.className = cls;
+                            voiceEl.textContent = label;
+                            smsEl.className = cls;
+                            smsEl.textContent = label;
+                            ussdEl.className = cls;
+                            ussdEl.textContent = label;
+                        }
+                    }
+                } catch (e) {
+                    console.error("Error updating live diagnostics:", e);
+                }
+            }
 
             // Initialize detail selection if devices exist
             if (loadedDevices.length > 0) {
