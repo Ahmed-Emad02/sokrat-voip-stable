@@ -38,6 +38,7 @@ fi
 # Step 3 — Clone the Repository
 # ──────────────────────────────────────────────
 echo "[3/12] Cloning repository..."
+systemctl stop issabel-dashboard 2>/dev/null || true
 yum install -y git net-tools
 if [ -d "$INSTALL_DIR" ]; then
     echo "  Directory $INSTALL_DIR exists, pulling latest..."
