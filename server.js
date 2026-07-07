@@ -603,21 +603,7 @@ async function refreshAgentStatus() {
 setInterval(refreshAgentStatus, 3000);
 setTimeout(refreshAgentStatus, 1000);
 
-// -- Instant Dongle Auto-Heal (1s check, instant restart) --
-function checkDongleHealth() {
-    execFile(ASTERISK_BIN, ['-rx', 'dongle show device state dongle0'], (err, stdout) => {
-        if (err || !stdout) return;
-        const dialing = parseInt((stdout.match(/Dialing\s+:\s+(\d+)/) || [])[1] || '0', 10);
-        const active = parseInt((stdout.match(/Active\s+:\s+(\d+)/) || [])[1] || '0', 10);
-        const cds = (stdout.match(/Current device state\s+:\s+(.+)/) || [])[1] || '';
-        if ((dialing + active) > 0 && cds.trim().toLowerCase() === 'start') {
-            console.log('AUTO-HEAL: dongle0 stuck (dialing=' + dialing + ' active=' + active + '), restarting immediately...');
-            execFile(ASTERISK_BIN, ['-rx', 'dongle restart now dongle0']);
-        }
-    });
-}
-setInterval(checkDongleHealth, 10000);
-setTimeout(checkDongleHealth, 5000);
+// Auto-heal check removed to prevent active call interruptions
 
 
 
