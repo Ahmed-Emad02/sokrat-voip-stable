@@ -164,10 +164,16 @@ const dispColors = {
             <div class="panel-surface rounded-xl p-5 card-stat border border-[#27272a]/30">
                 <p class="text-[10px] font-bold uppercase text-zinc-500 tracking-wider"><%= t.totalCalls %></p>
                 <p class="text-3xl font-black text-white mt-1"><%= stats.totalCalls %></p>
+                <div class="mt-2 h-1 w-full bg-zinc-800/50 rounded-full overflow-hidden">
+                    <div class="h-full bg-[var(--accent-color)] rounded-full transition-all duration-500" style="width: 100%"></div>
+                </div>
             </div>
             <div class="panel-surface rounded-xl p-5 card-stat border border-[#27272a]/30">
                 <p class="text-[10px] font-bold uppercase text-zinc-500 tracking-wider"><%= t.answeredCalls %></p>
                 <p class="text-3xl font-black text-white mt-1"><%= stats.answeredCalls %></p>
+                <div class="mt-2 h-1 w-full bg-zinc-800/50 rounded-full overflow-hidden">
+                    <div class="h-full bg-emerald-500 rounded-full transition-all duration-500" style="width: <%= stats.totalCalls ? (stats.answeredCalls / stats.totalCalls) * 100 : 0 %>%"></div>
+                </div>
             </div>
             <div class="panel-surface rounded-xl p-5 card-stat border border-[#27272a]/30">
                 <p class="text-[10px] font-bold uppercase text-zinc-500 tracking-wider"><%= t.inbound %></p>
@@ -181,7 +187,53 @@ const dispColors = {
             </div>
             <div class="panel-surface rounded-xl p-5 card-stat border border-[#27272a]/30">
                 <p class="text-[10px] font-bold uppercase text-zinc-500 tracking-wider"><%= t.answerRate %></p>
-                <p class="text-3xl font-black text-zinc-400 mt-1"><%= stats.totalCalls ? Math.round((stats.answeredCalls / stats.totalCalls) * 100) : 0 %>%</p>
+                <p class="text-3xl font-black text-white mt-1"><%= stats.totalCalls ? Math.round((stats.answeredCalls / stats.totalCalls) * 100) : 0 %>%</p>
+                <div class="mt-2 flex items-center gap-2">
+                    <div class="flex-1 h-1 bg-zinc-800/50 rounded-full overflow-hidden">
+                        <div class="h-full bg-[var(--accent-color)] rounded-full transition-all duration-500" style="width: <%= stats.totalCalls ? (stats.answeredCalls / stats.totalCalls) * 100 : 0 %>%"></div>
+                    </div>
+                    <span class="text-[10px] font-bold text-zinc-500"><%= Math.round(stats.inboundMin + stats.outboundMin) %> <%= t.min %></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 1: Call Volume Trend + Disposition Breakdown -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 shrink-0">
+            <div class="panel-surface border border-[#27272a]/30 rounded-2xl shadow-xl">
+                <div class="px-5 py-4 border-b border-[#27272a] bg-black/20">
+                    <h2 class="text-sm font-bold text-white uppercase tracking-wider">Call Volume Trend</h2>
+                </div>
+                <div class="p-4">
+                    <div id="trendChart" class="w-full h-72"></div>
+                </div>
+            </div>
+            <div class="panel-surface border border-[#27272a]/30 rounded-2xl shadow-xl">
+                <div class="px-5 py-4 border-b border-[#27272a] bg-black/20">
+                    <h2 class="text-sm font-bold text-white uppercase tracking-wider">Call Disposition</h2>
+                </div>
+                <div class="p-4">
+                    <div id="dispositionChart" class="w-full h-72"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 2: Hourly Distribution + Top Talkers -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 shrink-0">
+            <div class="panel-surface border border-[#27272a]/30 rounded-2xl shadow-xl">
+                <div class="px-5 py-4 border-b border-[#27272a] bg-black/20">
+                    <h2 class="text-sm font-bold text-white uppercase tracking-wider">Hourly Call Distribution</h2>
+                </div>
+                <div class="p-4">
+                    <div id="hourlyChart" class="w-full h-64"></div>
+                </div>
+            </div>
+            <div class="panel-surface border border-[#27272a]/30 rounded-2xl shadow-xl">
+                <div class="px-5 py-4 border-b border-[#27272a] bg-black/20">
+                    <h2 class="text-sm font-bold text-white uppercase tracking-wider">Top Talkers</h2>
+                </div>
+                <div class="p-4">
+                    <div id="topTalkersChart" class="w-full h-64"></div>
+                </div>
             </div>
         </div>
 
@@ -221,15 +273,6 @@ const dispColors = {
             </div>
 
             <div class="flex-1 flex flex-col min-h-0 gap-6">
-                <div class="panel-surface border border-[#27272a]/30 rounded-2xl shadow-xl shrink-0">
-                    <div class="px-5 py-4 border-b border-[#27272a] bg-black/20">
-                        <h2 class="text-sm font-bold text-white uppercase tracking-wider"><%= t.inbound %> / <%= t.outbound %></h2>
-                    </div>
-                    <div class="p-4">
-                        <div id="pieChart" class="w-full h-64"></div>
-                    </div>
-                </div>
-
                 <div class="panel-surface border border-[#27272a]/30 rounded-2xl shadow-xl flex flex-col flex-1 min-h-0">
                     <div class="px-5 py-4 border-b border-[#27272a] bg-black/20 shrink-0">
                         <h2 class="text-sm font-bold text-white uppercase tracking-wider"><%= t.recentCalls %></h2>
@@ -275,59 +318,229 @@ const dispColors = {
     </div>
 
     <script>
+        const trendData = <%- trendData %>;
+        const dispositionData = <%- dispositionData %>;
+        const hourlyData = <%- hourlyData %>;
+        const topTalkersData = <%- topTalkers %>;
+
         document.addEventListener('DOMContentLoaded', () => {
             const clockEl = document.getElementById('digitalClock');
             if (clockEl) { setInterval(() => { clockEl.textContent = new Date().toTimeString().split(' ')[0]; }, 1000); }
 
             const isLight = document.body.classList.contains('light-theme');
-            const pieChart = echarts.init(document.getElementById('pieChart'), isLight ? null : 'dark');
-            
             const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent-color').trim() || '#dc2626';
-            // Vibrant gradients compliant with Light/Dark system
-            const inboundGradient = new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: accent },
-                { offset: 1, color: '#991b1b' }
-            ]);
-            const outboundGradient = new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: '#00b4d8' },
-                { offset: 1, color: '#0077b6' }
-            ]);
 
-            pieChart.setOption({
+            // -- Call Volume Trend --
+            const trendChart = echarts.init(document.getElementById('trendChart'), isLight ? null : 'dark');
+            trendChart.setOption({
                 backgroundColor: 'transparent',
-                tooltip: { 
-                    trigger: 'item', 
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: isLight ? '#ffffff' : '#18181b',
+                    borderColor: isLight ? '#e4e4e7' : '#27272a',
+                    textStyle: { color: isLight ? '#09090b' : '#ffffff', fontSize: 11 }
+                },
+                legend: {
+                    bottom: 0,
+                    textStyle: { color: isLight ? '#27272a' : '#a1a1aa', fontSize: 10, fontWeight: 'bold' }
+                },
+                grid: { left: 40, right: 20, top: 20, bottom: 50 },
+                xAxis: {
+                    type: 'category',
+                    data: trendData.map(d => d.date.slice(5)),
+                    axisLine: { lineStyle: { color: '#27272a' } },
+                    axisLabel: { color: isLight ? '#52525b' : '#a1a1aa', fontSize: 9, fontWeight: 'bold' }
+                },
+                yAxis: {
+                    type: 'value',
+                    splitLine: { lineStyle: { color: isLight ? '#e4e4e7' : '#27272a', type: 'dashed' } },
+                    axisLabel: { color: isLight ? '#52525b' : '#71717a', fontSize: 9 }
+                },
+                series: [
+                    {
+                        name: 'Total',
+                        type: 'line',
+                        smooth: true,
+                        symbol: 'circle',
+                        symbolSize: 6,
+                        lineStyle: { width: 2.5, color: accent },
+                        areaStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: accent + '60' },
+                                { offset: 1, color: accent + '05' }
+                            ])
+                        },
+                        itemStyle: { color: accent },
+                        data: trendData.map(d => d.total)
+                    },
+                    {
+                        name: 'Inbound',
+                        type: 'bar',
+                        barWidth: 6,
+                        barGap: '20%',
+                        itemStyle: { color: accent, borderRadius: [3, 3, 0, 0] },
+                        data: trendData.map(d => d.inbound)
+                    },
+                    {
+                        name: 'Outbound',
+                        type: 'bar',
+                        barWidth: 6,
+                        itemStyle: { color: '#00b4d8', borderRadius: [3, 3, 0, 0] },
+                        data: trendData.map(d => d.outbound)
+                    }
+                ]
+            });
+            window.addEventListener('resize', () => trendChart.resize());
+
+            // -- Disposition Breakdown --
+            const accentColor = accent;
+            const dispPalette = {
+                'ANSWERED': accentColor,
+                'BUSY': '#fbbf24',
+                'NO ANSWER': '#2dd4bf',
+                'FAILED': '#a855f7',
+                'CONGESTION': '#f97316',
+                'UNKNOWN': '#71717a'
+            };
+            const dispChart = echarts.init(document.getElementById('dispositionChart'), isLight ? null : 'dark');
+            dispChart.setOption({
+                backgroundColor: 'transparent',
+                tooltip: {
+                    trigger: 'item',
                     formatter: '{b}: {c} calls ({d}%)',
                     backgroundColor: isLight ? '#ffffff' : '#18181b',
                     borderColor: isLight ? '#e4e4e7' : '#27272a',
                     textStyle: { color: isLight ? '#09090b' : '#ffffff', fontSize: 11 }
                 },
-                legend: { 
-                    bottom: '0%', 
-                    textStyle: { color: isLight ? '#27272a' : '#a1a1aa', fontSize: 11, fontWeight: 'bold' } 
+                legend: {
+                    bottom: 0,
+                    textStyle: { color: isLight ? '#27272a' : '#a1a1aa', fontSize: 10, fontWeight: 'bold' }
                 },
                 series: [{
-                    name: 'Direction',
                     type: 'pie',
-                    radius: ['45%', '70%'],
-                    itemStyle: { 
-                        borderRadius: 10, 
-                        borderColor: isLight ? '#ffffff' : '#121212', 
+                    radius: ['35%', '65%'],
+                    center: ['50%', '45%'],
+                    roseType: 'area',
+                    itemStyle: {
+                        borderRadius: 6,
+                        borderColor: isLight ? '#ffffff' : '#121212',
                         borderWidth: 2.5,
-                        shadowBlur: 15,
-                        shadowColor: 'rgba(0, 0, 0, 0.2)'
+                        shadowBlur: 20,
+                        shadowColor: 'rgba(0, 0, 0, 0.25)'
                     },
-                    label: { show: false },
-                    data: [
-                        { value: <%= stats.inboundCount %>, name: '<%= t.inbound %>', itemStyle: { color: inboundGradient } },
-                        { value: <%= stats.outboundCount %>, name: '<%= t.outbound %>', itemStyle: { color: outboundGradient } }
-                    ],
+                    label: {
+                        show: true,
+                        formatter: '{b}\n{d}%',
+                        fontSize: 10,
+                        fontWeight: 'bold',
+                        color: isLight ? '#27272a' : '#d4d4d8'
+                    },
+                    data: dispositionData.map(d => ({
+                        value: d.value,
+                        name: d.name,
+                        itemStyle: { color: dispPalette[d.name] || '#71717a' }
+                    })),
                     animationEasing: 'cubicOut',
                     animationDuration: 650
                 }]
             });
-            window.pieChart = pieChart;
-            window.addEventListener('resize', () => pieChart.resize());
+            window.addEventListener('resize', () => dispChart.resize());
+
+            // -- Hourly Distribution --
+            const hourlyChart = echarts.init(document.getElementById('hourlyChart'), isLight ? null : 'dark');
+            hourlyChart.setOption({
+                backgroundColor: 'transparent',
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: isLight ? '#ffffff' : '#18181b',
+                    borderColor: isLight ? '#e4e4e7' : '#27272a',
+                    textStyle: { color: isLight ? '#09090b' : '#ffffff', fontSize: 11 }
+                },
+                grid: { left: 40, right: 20, top: 20, bottom: 30 },
+                xAxis: {
+                    type: 'category',
+                    data: hourlyData.map(d => d.hour),
+                    axisLine: { lineStyle: { color: '#27272a' } },
+                    axisLabel: { color: isLight ? '#52525b' : '#a1a1aa', fontSize: 9, fontWeight: 'bold' }
+                },
+                yAxis: {
+                    type: 'value',
+                    splitLine: { lineStyle: { color: isLight ? '#e4e4e7' : '#27272a', type: 'dashed' } },
+                    axisLabel: { color: isLight ? '#52525b' : '#71717a', fontSize: 9 }
+                },
+                series: [{
+                    type: 'bar',
+                    barWidth: '70%',
+                    itemStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: accent },
+                            { offset: 1, color: accent + '40' }
+                        ]),
+                        borderRadius: [4, 4, 0, 0]
+                    },
+                    data: hourlyData.map(d => d.calls),
+                    animationEasing: 'cubicOut',
+                    animationDuration: 500
+                }]
+            });
+            window.addEventListener('resize', () => hourlyChart.resize());
+
+            // -- Top Talkers --
+            const talkersChart = echarts.init(document.getElementById('topTalkersChart'), isLight ? null : 'dark');
+            talkersChart.setOption({
+                backgroundColor: 'transparent',
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'shadow' },
+                    backgroundColor: isLight ? '#ffffff' : '#18181b',
+                    borderColor: isLight ? '#e4e4e7' : '#27272a',
+                    textStyle: { color: isLight ? '#09090b' : '#ffffff', fontSize: 11 },
+                    formatter: function(params) {
+                        const p = params[0];
+                        const data = topTalkersData[p.dataIndex];
+                        return p.name + '<br/>Talk Time: ' + Math.round(data.talkSec / 60) + ' min<br/>Calls: ' + data.calls;
+                    }
+                },
+                grid: { left: 120, right: 40, top: 10, bottom: 10 },
+                xAxis: {
+                    type: 'value',
+                    splitLine: { lineStyle: { color: isLight ? '#e4e4e7' : '#27272a', type: 'dashed' } },
+                    axisLabel: { color: isLight ? '#52525b' : '#71717a', fontSize: 9, formatter: '{value} min' }
+                },
+                yAxis: {
+                    type: 'category',
+                    data: topTalkersData.map(d => d.name.split(' (')[0]),
+                    axisLine: { show: false },
+                    axisTick: { show: false },
+                    axisLabel: { color: isLight ? '#27272a' : '#ffffff', fontSize: 10, fontWeight: 'bold' }
+                },
+                series: [{
+                    type: 'bar',
+                    barWidth: '60%',
+                    itemStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+                            { offset: 0, color: accent },
+                            { offset: 1, color: '#00b4d8' }
+                        ]),
+                        borderRadius: [0, 4, 4, 0]
+                    },
+                    data: topTalkersData.map(d => Math.round(d.talkSec / 60)),
+                    label: {
+                        show: true,
+                        position: 'right',
+                        formatter: function(params) {
+                            const data = topTalkersData[params.dataIndex];
+                            return data.calls + ' calls';
+                        },
+                        fontSize: 9,
+                        fontWeight: 'bold',
+                        color: isLight ? '#52525b' : '#a1a1aa'
+                    },
+                    animationEasing: 'cubicOut',
+                    animationDuration: 600
+                }]
+            });
+            window.addEventListener('resize', () => talkersChart.resize());
 
             // Initialize Flatpickr on datetime inputs
             flatpickr('input[type="datetime-local"]', {

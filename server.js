@@ -1277,7 +1277,52 @@ app.get('/', async (req, res) => {
             calldate: r.calldate, src: r.src, dst: r.dst, billsec: r.billsec, disposition: r.disposition
         }));
 
-        res.render('dashboard', { stats, employeeMetrics: Object.values(employeeMetrics), calls, filters: { startDate, endDate }, moment });
+        // --- Chart Data ---
+        const trendMap = {};
+        const dispCounts = {};
+        const hourlyMap = {};
+        rows.forEach(row => {
+            const day = moment(row.calldate).format('YYYY-MM-DD');
+            trendMap[day] = trendMap[day] || { total: 0, inbound: 0, outbound: 0 };
+            trendMap[day].total++;
+            const isOutbound = isOutboundCdr(row);
+            if (isOutbound) trendMap[day].outbound++;
+            else trendMap[day].inbound++;
+
+            const disp = row.disposition || 'UNKNOWN';
+            dispCounts[disp] = (dispCounts[disp] || 0) + 1;
+
+            const hour = moment(row.calldate).format('H');
+            hourlyMap[hour] = (hourlyMap[hour] || 0) + 1;
+        });
+
+        const trendData = Object.entries(trendMap)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([date, d]) => ({ date, ...d }));
+
+        const dispositionData = Object.entries(dispCounts).map(([name, value]) => ({ name, value }));
+
+        const hourlyData = Array.from({ length: 24 }, (_, i) => ({
+            hour: String(i).padStart(2, '0'),
+            calls: hourlyMap[String(i)] || 0
+        }));
+
+        const topTalkers = Object.values(employeeMetrics)
+            .sort((a, b) => b.totalTalkSec - a.totalTalkSec)
+            .slice(0, 10)
+            .map(e => ({ name: e.name + ' (' + e.extension + ')', talkSec: e.totalTalkSec, calls: e.totalCalls }));
+
+        res.render('dashboard', {
+            stats,
+            employeeMetrics: Object.values(employeeMetrics),
+            calls,
+            filters: { startDate, endDate },
+            moment,
+            trendData: JSON.stringify(trendData),
+            dispositionData: JSON.stringify(dispositionData),
+            hourlyData: JSON.stringify(hourlyData),
+            topTalkers: JSON.stringify(topTalkers)
+        });
     } catch (error) { res.status(500).send("Dashboard Error: " + error.message); }
 });
 
@@ -1785,7 +1830,7 @@ function enrichPreciseState(devices, callback) {
 // Caching layer for 'dongle show devices' to prevent CLI command storms
 let cachedDevicesOutput = null;
 let lastDevicesOutputFetch = 0;
-const DEVICES_CACHE_TTL = 1000; // Cache for 1 second
+const DEVICES_CACHE_TTL = 1000;
 
 function getDevicesOutputCached(callback) {
     const now = Date.now();
@@ -1793,14 +1838,121 @@ function getDevicesOutputCached(callback) {
         return callback(null, cachedDevicesOutput);
     }
     execFile(ASTERISK_BIN, ['-rx', 'dongle show devices'], (error, stdout, stderr) => {
-        if (error) {
-            return callback(error || new Error(stderr), null);
-        }
+        if (error) return callback(error || new Error(stderr), null);
         cachedDevicesOutput = stdout;
         lastDevicesOutputFetch = now;
         callback(null, stdout);
     });
 }
+
+// Global object to keep track of dongle states and potential stuck calls
+const dongleCallStates = {}; // { dongleId: { state: "start" | "ringing" | "dialing" | "free", activeCalls: 0, dialingCalls: 0 } }
+
+// Function to check dongle health and restart if stuck
+async function checkDongleHealthAndRestart() {
+    execFile(ASTERISK_BIN, ['-rx', 'dongle show devices'], (error, stdout) => {
+        if (error) {
+            console.error('GSM MONITOR: Error running "dongle show devices":', error.message);
+            return;
+        }
+
+        const lines = stdout.trim().split('\n');
+        if (lines.length < 2) return; // Not enough lines for header + at least one device
+
+        const header = lines[0];
+        const colNames = ["ID", "Group", "State", "RSSI", "Mode", "Submode", "Provider Name", "Model", "Firmware", "IMEI", "IMSI", "Number"];
+        const indices = colNames.map(name => header.indexOf(name));
+        indices.push(header.length + 100);
+
+        const currentDevices = {};
+        for (let i = 1; i < lines.length; i++) {
+            const line = lines[i];
+            if (!line.trim() || line.startsWith('-----') || line.includes('ID')) continue;
+            const row = {};
+            for (let j = 0; j < colNames.length; j++) {
+                const start = indices[j];
+                const end = indices[j+1];
+                if (start !== -1 && start < line.length) {
+                    row[colNames[j]] = line.substring(start, Math.min(end, line.length)).trim();
+                } else {
+                    row[colNames[j]] = '';
+                }
+            }
+            if (row.ID && row.ID.startsWith("dongle")) {
+                currentDevices[row.ID] = row;
+            }
+        }
+
+        // Check for active calls and dialing channels for each dongle
+        execFile(ASTERISK_BIN, ['-rx', 'dongle show channels'], (errChannels, stdoutChannels) => {
+            if (errChannels) {
+                console.error('GSM MONITOR: Error running "dongle show channels":', errChannels.message);
+                return;
+            }
+
+            const channelLines = stdoutChannels.trim().split('\n');
+            const dongleChannelCounts = {}; // { dongleId: { active: 0, dialing: 0 } }
+
+            channelLines.forEach(line => {
+                const match = line.match(/Dongle\/(dongle\d+)-/i);
+                if (match) {
+                    const dongleId = match[1].toLowerCase();
+                    dongleChannelCounts[dongleId] = dongleChannelCounts[dongleId] || { active: 0, dialing: 0 };
+                    
+                    if (line.includes('Up')) { // A simplified check for active calls
+                        dongleChannelCounts[dongleId].active++;
+                    } else if (line.includes('Dialing')) { // A simplified check for dialing state
+                        dongleChannelCounts[dongleId].dialing++;
+                    }
+                }
+            });
+
+            for (const dongleId in currentDevices) {
+                const device = currentDevices[dongleId];
+                const currentState = device.State;
+                const channelCounts = dongleChannelCounts[dongleId] || { active: 0, dialing: 0 };
+
+                // Logic for "stuck" state: Device is in 'start' state but has active/dialing channels
+                // or if it's stuck in 'Dialing' and has no channels
+                const isStuck = (currentState.toLowerCase() === 'start' && (channelCounts.active > 0 || channelCounts.dialing > 0)) ||
+                                (currentState.toLowerCase() === 'dialing' && channelCounts.active === 0 && channelCounts.dialing === 0 && (Date.now() - (dongleCallStates[dongleId]?.lastStateChange || 0) > 15000)); // Consider stuck if 'Dialing' for >15s without channels
+
+                if (!dongleCallStates[dongleId]) {
+                    dongleCallStates[dongleId] = {
+                        state: currentState.toLowerCase(),
+                        activeCalls: channelCounts.active,
+                        dialingCalls: channelCounts.dialing,
+                        lastStateChange: Date.now()
+                    };
+                } else {
+                    if (dongleCallStates[dongleId].state !== currentState.toLowerCase() ||
+                        dongleCallStates[dongleId].activeCalls !== channelCounts.active ||
+                        dongleCallStates[dongleId].dialingCalls !== channelCounts.dialing) {
+                        dongleCallStates[dongleId].state = currentState.toLowerCase();
+                        dongleCallStates[dongleId].activeCalls = channelCounts.active;
+                        dongleCallStates[dongleId].dialingCalls = channelCounts.dialing;
+                        dongleCallStates[dongleId].lastStateChange = Date.now();
+                    }
+                }
+
+
+                if (isStuck) {
+                    console.warn(`GSM MONITOR: Detected stuck dongle ${dongleId}. Current state: ${currentState}, Active: ${channelCounts.active}, Dialing: ${channelCounts.dialing}. Restarting...`);
+                    execFile(ASTERISK_BIN, ['-rx', `dongle restart now ${dongleId}`], (restartErr, restartStdout) => {
+                        if (restartErr) {
+                            console.error(`GSM MONITOR: Error restarting dongle ${dongleId}:`, restartErr.message);
+                        } else {
+                            console.log(`GSM MONITOR: Dongle ${dongleId} restarted successfully.`, restartStdout.trim());
+                        }
+                    });
+                }
+            }
+        });
+    });
+}
+
+// Run dongle health check every 1 second
+setInterval(checkDongleHealthAndRestart, 1000);
 
 // Parse Asterisk 'dongle show devices' CLI output
 function parseDevicesOutput(output, keepRaw = false, astDbMappings = {}) {
