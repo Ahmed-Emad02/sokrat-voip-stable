@@ -2689,8 +2689,8 @@ app.post('/api/contacts/csv-import', csvUpload.single('file'), async (req, res) 
                 // Clean spaces, dashes, and parentheses
                 phone = phone.replace(/[\s\-\(\)]/g, '');
                 
-                // Auto-recover leading zero if stripped by Excel (starts with 1-9 and is purely numeric)
-                if (/^\d+$/.test(phone) && !phone.startsWith('0')) {
+                // Auto-recover leading zero if stripped by Excel (starts with 1-9, is purely numeric, and is at least 7 digits long)
+                if (/^\d+$/.test(phone) && !phone.startsWith('0') && phone.length >= 7) {
                     phone = '0' + phone;
                 }
                 
