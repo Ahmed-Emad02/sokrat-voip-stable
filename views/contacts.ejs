@@ -97,12 +97,20 @@ const isRtl = currentLang === 'ar';
                 <p class="text-xs text-zinc-500 font-bold mt-1"><%= t.desc %></p>
             </div>
             <% if (isSuperAdmin) { %>
-            <button onclick="openAddContactModal()" class="bg-[var(--accent-color)] hover:bg-[var(--accent-hover)] text-white font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-md transition flex items-center gap-1.5 cursor-pointer">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                </svg>
-                <span><%= isRtl ? 'إضافة جهة اتصال' : 'Add Contact' %></span>
-            </button>
+            <div class="flex items-center gap-3">
+                <button onclick="openImportCsvModal()" class="bg-zinc-800 hover:bg-zinc-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-md transition flex items-center gap-1.5 cursor-pointer border border-zinc-700/60">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                    <span><%= isRtl ? 'استيراد CSV' : 'Import CSV' %></span>
+                </button>
+                <button onclick="openAddContactModal()" class="bg-[var(--accent-color)] hover:bg-[var(--accent-hover)] text-white font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-md transition flex items-center gap-1.5 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span><%= isRtl ? 'إضافة جهة اتصال' : 'Add Contact' %></span>
+                </button>
+            </div>
             <% } %>
         </div>
 
@@ -231,6 +239,47 @@ const isRtl = currentLang === 'ar';
                 </button>
             </form>
             <p id="addContactModalMsg" class="text-xs text-center mt-3.5 hidden"></p>
+        </div>
+    </div>
+
+    <!-- Import CSV Modal -->
+    <div id="importCsvModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300">
+        <div id="importCsvModalContainer" class="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl w-full max-w-md p-6 shadow-2xl scale-95 transition-all duration-300 transform">
+            <div class="flex justify-between items-center mb-5 <%= isRtl ? 'flex-row-reverse' : '' %>">
+                <h3 class="text-sm font-black text-white uppercase tracking-wider"><%= isRtl ? 'استيراد جهات اتصال CSV' : 'Import CSV Contacts' %></h3>
+                <button onclick="closeImportCsvModal()" class="text-zinc-500 hover:text-white transition cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <form id="importCsvForm" onsubmit="submitImportCsv(event)">
+                <div class="space-y-4">
+                    <p class="text-xs text-zinc-400 leading-relaxed">
+                        <%= isRtl ? 'يرجى اختيار ملف CSV يحتوي على البيانات بالترتيب التالي: الاسم الأول، اسم العائلة، رقم الهاتف.' : 'Upload a CSV file containing contact records. Format should be: First Name, Last Name, Phone.' %>
+                    </p>
+                    
+                    <div class="flex items-center justify-between p-3 bg-[#09090b] border border-[#27272a] rounded-lg">
+                        <span class="text-xs text-zinc-500 font-bold"><%= isRtl ? 'قالب CSV القياسي:' : 'Standard CSV Template:' %></span>
+                        <button type="button" onclick="downloadCsvTemplate()" class="text-xs font-bold text-[var(--accent-color)] hover:underline flex items-center gap-1 cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M7 10l5 5m0 0l5-5m-5 5V3" />
+                            </svg>
+                            <span><%= isRtl ? 'تحميل القالب' : 'Download Template' %></span>
+                        </button>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-black uppercase text-zinc-400 mb-1.5 tracking-wider"><%= isRtl ? 'ملف CSV' : 'CSV File' %></label>
+                        <input type="file" id="csvFileSelect" accept=".csv" required class="w-full bg-[#09090b] border border-[#27272a] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[var(--accent-color)] file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-zinc-800 file:text-white hover:file:bg-zinc-700 file:cursor-pointer">
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-[var(--accent-color)] hover:bg-[var(--accent-hover)] text-white font-black py-2.5 rounded-lg text-xs uppercase tracking-wider shadow-md transition mt-6 cursor-pointer">
+                    <%= isRtl ? 'بدء استيراد جهات الاتصال' : 'Import Contacts' %>
+                </button>
+            </form>
+            <p id="importCsvModalMsg" class="text-xs text-center mt-3.5 hidden"></p>
         </div>
     </div>
     <% } %>
@@ -413,6 +462,80 @@ const isRtl = currentLang === 'ar';
                 }
             } catch (err) {
                 alert('Network error deleting contact');
+            }
+        function openImportCsvModal() {
+            const modal = document.getElementById('importCsvModal');
+            const container = document.getElementById('importCsvModalContainer');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.classList.add('opacity-100', 'pointer-events-auto');
+            container.classList.remove('scale-95');
+            container.classList.add('scale-100');
+        }
+
+        function closeImportCsvModal() {
+            const modal = document.getElementById('importCsvModal');
+            const container = document.getElementById('importCsvModalContainer');
+            modal.classList.remove('opacity-100', 'pointer-events-auto');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            container.classList.remove('scale-100');
+            container.classList.add('scale-95');
+            setTimeout(() => {
+                document.getElementById('importCsvForm').reset();
+                document.getElementById('importCsvModalMsg').classList.add('hidden');
+            }, 300);
+        }
+
+        function downloadCsvTemplate() {
+            const csvContent = "First Name,Last Name,Phone\nJohn,Doe,01012345678\nJane,Smith,01234567890\n";
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", "contacts_template.csv");
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        async function submitImportCsv(e) {
+            e.preventDefault();
+            const fileInput = document.getElementById('csvFileSelect');
+            const msgEl = document.getElementById('importCsvModalMsg');
+            
+            if (fileInput.files.length === 0) {
+                msgEl.className = 'text-xs text-center mt-3.5 text-red-400';
+                msgEl.textContent = 'Please select a CSV file';
+                msgEl.classList.remove('hidden');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            msgEl.classList.remove('hidden', 'text-green-400', 'text-red-400');
+            msgEl.className = 'text-xs text-center mt-3.5 text-zinc-400';
+            msgEl.textContent = 'Importing...';
+
+            try {
+                const resp = await fetch('/api/contacts/csv-import', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    msgEl.className = 'text-xs text-center mt-3.5 text-green-400';
+                    msgEl.textContent = data.message || 'Contacts imported successfully!';
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    msgEl.className = 'text-xs text-center mt-3.5 text-red-400';
+                    msgEl.textContent = data.error || 'Error importing CSV';
+                }
+            } catch (err) {
+                msgEl.className = 'text-xs text-center mt-3.5 text-red-400';
+                msgEl.textContent = 'Network error importing CSV';
             }
         }
         <% } %>
