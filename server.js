@@ -2678,14 +2678,22 @@ app.post('/api/contacts/csv-import', csvUpload.single('file'), async (req, res) 
             
             const first = cells[0];
             const last = cells[1];
-            const phone = cells[2];
+            let phone = cells[2];
             
             // Skip headers
-            if (first.toLowerCase() === 'name' || first.toLowerCase() === 'first name' || phone.toLowerCase() === 'phone') {
+            if (first.toLowerCase() === 'name' || first.toLowerCase() === 'first name' || (phone && phone.toLowerCase() === 'phone')) {
                 continue;
             }
             
             if (first && phone) {
+                // Clean spaces, dashes, and parentheses
+                phone = phone.replace(/[\s\-\(\)]/g, '');
+                
+                // Auto-recover leading zero if stripped by Excel (starts with 1-9 and is purely numeric)
+                if (/^\d+$/.test(phone) && !phone.startsWith('0')) {
+                    phone = '0' + phone;
+                }
+                
                 values.push(`('${escapeSql(first)}', '${escapeSql(last)}', '${escapeSql(phone)}', 1, 'isPublic', 'external')`);
             }
         }
