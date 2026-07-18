@@ -297,7 +297,7 @@ let pendingOffline = {};
 let isPeerListLoaded = false;
 let amiClient = null;
 
-// --- AUTO-DETECT DONGLE SIM NUMBERS & POPULATE AstDB ---
+// --- AUTO-DETECT DONGLE IMEI/SIM & CONFIGURE TRUNKS ---
 async function detectDonglesAndSetTrunkCID() {
     try {
         const { execFile: execFileCb } = require('child_process');
@@ -309,24 +309,25 @@ async function detectDonglesAndSetTrunkCID() {
         if (!devicesOutput) return;
 
         const lines = devicesOutput.split('\n').filter(l => l.trim() && !l.startsWith('ID'));
-        const dongleNumbers = {};
+        const dongleInfo = {};
 
         for (const line of lines) {
             const parts = line.trim().split(/\s{2,}/);
             if (parts.length < 10) continue;
             const name = parts[0];
-            const number = parts[parts.length - 1];
-            if (number && number !== 'Unknown' && number !== 'N/A' && number.startsWith('+')) {
-                dongleNumbers[name] = number;
+            const imei = parts[9] || '';
+            const number = parts[parts.length - 1] || '';
+            if (imei && imei !== 'Unknown' && /^\d{15}$/.test(imei)) {
+                dongleInfo[name] = { imei, number: (number && number !== 'Unknown' && number.startsWith('+')) ? number : null };
             }
         }
 
-        if (!Object.keys(dongleNumbers).length) {
-            console.log('DONGLE-CID: No dongles with valid SIM numbers detected');
+        if (!Object.keys(dongleInfo).length) {
+            console.log('DONGLE-CID: No dongles with valid IMEI detected');
             return;
         }
 
-        console.log('DONGLE-CID: Detected dongle numbers:', dongleNumbers);
+        console.log('DONGLE-CID: Detected dongles:', dongleInfo);
 
         const conn = await mysql.createConnection({
             host: process.env.DB_HOST || 'localhost',
@@ -337,15 +338,27 @@ async function detectDonglesAndSetTrunkCID() {
 
         const [trunks] = await conn.execute('SELECT trunkid, channelid FROM trunks WHERE tech = ?', ['custom']);
         for (const trunk of trunks) {
-            for (const [dongleName, number] of Object.entries(dongleNumbers)) {
+            for (const [dongleName, info] of Object.entries(dongleInfo)) {
                 if (trunk.channelid && trunk.channelid.includes(dongleName)) {
-                    await execFileAsync(ASTERISK_BIN, ['-rx', `database put TRUNK ${trunk.trunkid} outcid ${number}`]);
-                    console.log(`DONGLE-CID: Set trunk ${trunk.trunkid} (${dongleName}) caller ID to ${number}`);
+                    const newChannelId = `dongle/I:${info.imei}/$OUTNUM$`;
+                    if (trunk.channelid !== newChannelId) {
+                        await conn.execute('UPDATE trunks SET channelid = ? WHERE trunkid = ?', [newChannelId, trunk.trunkid]);
+                        console.log(`DONGLE-CID: Updated trunk ${trunk.trunkid} channel to IMEI-based: ${newChannelId}`);
+                    }
+                    if (info.number) {
+                        await execFileAsync(ASTERISK_BIN, ['-rx', `database put TRUNK ${trunk.trunkid} outcid ${info.number}`]);
+                        console.log(`DONGLE-CID: Set trunk ${trunk.trunkid} (${dongleName}) caller ID to ${info.number}`);
+                    }
                 }
             }
         }
 
         await conn.end();
+
+        const { execFile: rcExec } = require('child_process');
+        rcExec('/var/lib/asterisk/bin/retrieve_conf', [], (err) => {
+            if (!err) console.log('DONGLE-CID: retrieve_conf completed');
+        });
     } catch (e) {
         console.error('DONGLE-CID: Detection error:', e.message);
     }
