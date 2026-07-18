@@ -635,7 +635,7 @@ const initialSelectedDongleId = devices && devices.length > 0 ? devices[0].ID : 
                         </button>
                     </div>
                     
-                    <div class="overflow-y-auto flex-1 min-h-[300px] flex flex-col gap-3 pe-1" id="sms-inbox-container">
+                    <div class="overflow-y-auto flex-1 max-h-[400px] min-h-[200px] flex flex-col gap-3 pe-1" id="sms-inbox-container">
                         <div class="text-center py-8 text-[var(--text-muted)] italic" id="sms-empty-placeholder">
                             <%= isRtl ? 'لا يوجد رسائل واردة حالياً' : 'No incoming SMS messages' %>
                         </div>
@@ -694,7 +694,7 @@ const initialSelectedDongleId = devices && devices.length > 0 ? devices[0].ID : 
                         <div class="w-9 h-3"></div> <!-- Spacer -->
                     </div>
                     
-                    <div class="terminal-screen p-4 flex-1 overflow-y-auto text-xs text-emerald-400 font-mono flex flex-col gap-2 rounded-b-2xl" id="terminal-screen">
+                    <div class="terminal-screen p-4 flex-1 max-h-[400px] overflow-y-auto text-xs text-emerald-400 font-mono flex flex-col gap-2 rounded-b-2xl" id="terminal-screen">
                         <div class="text-green-400 font-mono text-sm select-none" id="terminal-placeholder">
                             <%= t.terminalPlaceholder %>
                         </div>
