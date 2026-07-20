@@ -116,6 +116,16 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
             background-color: var(--bg-hover) !important;
             color: var(--text-primary) !important;
         }
+        .ext-pill {
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.15s ease;
+        }
+        .ext-pill.active {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: var(--accent-color);
+            border-color: rgba(239, 68, 68, 0.4);
+        }
     </style>
 </head>
 <body class="flex flex-col md:flex-row min-h-screen m-0 p-0">
@@ -166,6 +176,10 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
             <button onclick="switchTab('ringgroups')" id="tab-btn-ringgroups" class="config-tab-btn config-tab-inactive flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                 <span><%= isRtl ? 'مجموعات الاتصال (Ring Groups)' : 'Ring Groups' %></span>
+            </button>
+            <button onclick="switchTab('recordings')" id="tab-btn-recordings" class="config-tab-btn config-tab-inactive flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+                <span><%= isRtl ? 'التسجيلات الصوتية (System Recordings)' : 'System Recordings' %></span>
             </button>
             <button onclick="switchTab('trunks')" id="tab-btn-trunks" class="config-tab-btn config-tab-inactive flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
@@ -238,20 +252,88 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
                                 <th class="py-3 px-4"><%= isRtl ? 'رقم المجموعة' : 'Group #' %></th>
                                 <th class="py-3 px-4"><%= isRtl ? 'الوصف' : 'Description' %></th>
                                 <th class="py-3 px-4"><%= isRtl ? 'استراتيجية الاتصال' : 'Strategy' %></th>
-                                <th class="py-3 px-4"><%= isRtl ? 'زمن الرنين (ث)' : 'Ring Time (s)' %></th>
+                                <th class="py-3 px-4"><%= isRtl ? 'الإعلان' : 'Announcement' %></th>
                                 <th class="py-3 px-4"><%= isRtl ? 'قائمة التحويلات' : 'Extension List' %></th>
+                                <th class="py-3 px-4"><%= isRtl ? 'تخطي المشغول' : 'Skip Busy' %></th>
+                                <th class="py-3 px-4"><%= isRtl ? 'التسجيل' : 'Recording' %></th>
                                 <th class="py-3 px-4 text-center"><%= isRtl ? 'الإجراءات' : 'Actions' %></th>
                             </tr>
                         </thead>
                         <tbody id="ringgroups-table-body" class="divide-y divide-[var(--border-primary)] text-sm font-medium text-[var(--text-primary)]">
-                            <tr><td colspan="6" class="py-8 text-center text-[var(--text-muted)]">Loading ring groups...</td></tr>
+                            <tr><td colspan="8" class="py-8 text-center text-[var(--text-muted)]">Loading ring groups...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- TAB 3: TRUNKS MANAGEMENT -->
+        <!-- TAB 3: SYSTEM RECORDINGS MANAGEMENT -->
+        <div id="section-recordings" class="tab-section hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Upload New Recording Card -->
+                <div class="config-card p-6 lg:col-span-1 h-fit">
+                    <div class="mb-5 pb-3 border-b border-[var(--border-primary)]">
+                        <h2 class="text-lg font-extrabold text-[var(--text-primary)] flex items-center gap-2">
+                            <svg class="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                            <span><%= isRtl ? 'رفع تسجيل صوتي جديد' : 'Upload System Recording' %></span>
+                        </h2>
+                        <p class="text-xs text-[var(--text-muted)] mt-1"><%= isRtl ? 'صيغ الملفات المقبولة: MP3, WAV, M4A, OGG, FLAC (سيتم تحويلها تلقائيًا)' : 'Accepted formats: MP3, WAV, M4A, OGG, FLAC (auto-converted to 8kHz WAV)' %></p>
+                    </div>
+                    <form id="systemRecordingUploadForm" onsubmit="uploadSystemRecording(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1"><%= isRtl ? 'اسم التسجيل (Display Name) *' : 'Recording Name *' %></label>
+                            <input type="text" id="sysRecName" required placeholder="e.g. Welcome Announcement" class="config-input w-full">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1"><%= isRtl ? 'ملف الصوت *' : 'Audio File *' %></label>
+                            <input type="file" id="sysRecFile" accept="audio/*,.mpeg,.mpg" required class="w-full text-xs text-[var(--text-secondary)] file:mr-3 rtl:file:mr-0 rtl:file:ml-3 file:py-2 file:px-3 file:rounded-lg file:border file:border-[var(--border-primary)] file:bg-[var(--bg-card)] file:text-xs file:font-bold file:text-[var(--text-primary)] hover:file:bg-[var(--bg-hover)] file:cursor-pointer transition cursor-pointer">
+                        </div>
+                        <!-- Upload Progress Bar -->
+                        <div id="sysRecProgressWrap" class="hidden space-y-1">
+                            <div class="flex justify-between text-[11px] font-semibold text-[var(--text-muted)]">
+                                <span id="sysRecStatus">Uploading & converting...</span>
+                                <span id="sysRecPercent">0%</span>
+                            </div>
+                            <div class="w-full h-1.5 bg-[var(--bg-card)] rounded-full overflow-hidden">
+                                <div id="sysRecProgressBar" class="h-full bg-[var(--accent-color)] rounded-full transition-all duration-300" style="width:0%"></div>
+                            </div>
+                        </div>
+                        <button type="submit" id="sysRecSubmitBtn" class="config-btn-primary w-full py-2.5 text-xs flex items-center justify-center gap-2 cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                            <span><%= isRtl ? 'رفع وحفظ التسجيل' : 'Upload Recording' %></span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Existing Recordings List Table -->
+                <div class="config-card p-6 lg:col-span-2">
+                    <div class="mb-5 pb-3 border-b border-[var(--border-primary)]">
+                        <h2 class="text-lg font-extrabold text-[var(--text-primary)]"><%= isRtl ? 'التسجيلات الصوتية المسجلة في المقسم' : 'System Recordings List' %></h2>
+                        <p class="text-xs text-[var(--text-muted)]"><%= isRtl ? 'قائمة التسجيلات المستخدمة في مجموعات الاتصال والمسارات الواردة' : 'List of custom sound recordings available for Ring Groups & Inbound Routes' %></p>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-[var(--bg-card)] border-b border-[var(--border-primary)] text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">
+                                    <th class="py-3 px-4">ID</th>
+                                    <th class="py-3 px-4"><%= isRtl ? 'اسم التسجيل' : 'Recording Name' %></th>
+                                    <th class="py-3 px-4"><%= isRtl ? 'مسار الملف' : 'System Filename' %></th>
+                                    <th class="py-3 px-4 text-center"><%= isRtl ? 'الإجراءات' : 'Actions' %></th>
+                                </tr>
+                            </thead>
+                            <tbody id="recordings-table-body" class="divide-y divide-[var(--border-primary)] text-sm font-medium text-[var(--text-primary)]">
+                                <tr><td colspan="4" class="py-8 text-center text-[var(--text-muted)]">Loading recordings...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- TAB 4: TRUNKS MANAGEMENT -->
         <div id="section-trunks" class="tab-section hidden">
             <div class="config-card p-6">
                 <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
@@ -285,7 +367,7 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
             </div>
         </div>
 
-        <!-- TAB 4: INBOUND ROUTES -->
+        <!-- TAB 5: INBOUND ROUTES -->
         <div id="section-inbound" class="tab-section hidden">
             <div class="config-card p-6">
                 <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
@@ -318,7 +400,7 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
             </div>
         </div>
 
-        <!-- TAB 5: OUTBOUND ROUTES -->
+        <!-- TAB 6: OUTBOUND ROUTES -->
         <div id="section-outbound" class="tab-section hidden">
             <div class="config-card p-6">
                 <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
@@ -407,7 +489,7 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
 
     <!-- MODAL 2: RING GROUP FORM -->
     <div id="ringGroupModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-        <div class="bg-[var(--bg-secondary)] rounded-2xl border border-[var(--border-primary)] shadow-2xl max-w-lg w-full p-6 text-[var(--text-primary)]">
+        <div class="bg-[var(--bg-secondary)] rounded-2xl border border-[var(--border-primary)] shadow-2xl max-w-xl w-full p-6 text-[var(--text-primary)] max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-5 pb-3 border-b border-[var(--border-primary)]">
                 <h3 id="rgModalTitle" class="text-base font-extrabold text-[var(--text-primary)]">Add Ring Group</h3>
                 <button onclick="closeModal('ringGroupModal')" class="text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer">✕</button>
@@ -416,15 +498,15 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
                 <input type="hidden" id="rgEditMode" value="false">
                 <div class="flex flex-col gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Ring Group Number *</label>
-                        <input type="text" id="rgNum" required placeholder="e.g. 600" class="config-input w-full">
+                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1"><%= isRtl ? 'رقم مجموعة الاتصال (Group #) *' : 'Ring Group Number *' %></label>
+                        <input type="text" id="rgNum" required placeholder="e.g. 600" class="config-input w-full font-mono">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Description *</label>
-                        <input type="text" id="rgDesc" required placeholder="e.g. Support Team" class="config-input w-full">
+                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1"><%= isRtl ? 'وصف المجموعة (Group Description) *' : 'Group Description *' %></label>
+                        <input type="text" id="rgDesc" required placeholder="e.g. Sales Support Team" class="config-input w-full">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Ring Strategy</label>
+                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1"><%= isRtl ? 'استراتيجية الاتصال (Ring Strategy)' : 'Ring Strategy' %></label>
                         <select id="rgStrategy" class="config-input w-full">
                             <option value="ringall">ringall (Ring all available channels)</option>
                             <option value="hunt">hunt (Take turns ringing)</option>
@@ -435,17 +517,48 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Ring Time (Seconds)</label>
-                        <input type="number" id="rgTime" value="20" class="config-input w-full">
+                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1"><%= isRtl ? 'إعلان الصوت الوارد (Announcement)' : 'Announcement Recording' %></label>
+                        <select id="rgAnnMsg" class="config-input w-full">
+                            <option value="0">None / No Announcement</option>
+                        </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Extension List * (Comma or dash separated)</label>
-                        <textarea id="rgList" required rows="3" placeholder="e.g. 101, 102, 103" class="config-input w-full font-mono"></textarea>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase"><%= isRtl ? 'قائمة التحويلات (Extension List) *' : 'Extension List *' %></label>
+                            <span class="text-[11px] text-[var(--text-muted)]"><%= isRtl ? 'انقر على التحويلات أدناه للاختيار السريع' : 'Click pills below for Quick Pick' %></span>
+                        </div>
+                        <textarea id="rgList" required rows="3" placeholder="e.g. 101, 102, 103" class="config-input w-full font-mono text-sm"></textarea>
+                        
+                        <!-- Quick Pick Interactive Extension Pills -->
+                        <div class="mt-2.5 p-3 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-xl space-y-1.5">
+                            <div class="text-[11px] font-bold text-[var(--text-secondary)] flex items-center justify-between">
+                                <span><%= isRtl ? 'الاختيار السريع للتحويلات (Quick Pick):' : 'Quick Pick Active Extensions:' %></span>
+                                <button type="button" onclick="clearQuickPickExts()" class="text-[10px] text-red-400 hover:underline">Clear All</button>
+                            </div>
+                            <div id="rgQuickPickContainer" class="flex flex-wrap gap-1.5 pt-1">
+                                <span class="text-[11px] text-[var(--text-muted)]">Loading active extensions...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1"><%= isRtl ? 'زمن الرنين (ثواني)' : 'Ring Time (Seconds)' %></label>
+                        <input type="number" id="rgTime" value="20" class="config-input w-full">
+                    </div>
+                    <!-- System Defaults Information Banner -->
+                    <div class="p-3 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-xl text-xs space-y-1">
+                        <div class="font-bold text-[var(--text-primary)] flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <span><%= isRtl ? 'الإعدادات التلقائية المطبقة:' : 'Automatic Applied Defaults:' %></span>
+                        </div>
+                        <ul class="text-[var(--text-muted)] list-disc list-inside text-[11px] space-y-0.5 font-medium">
+                            <li><strong>Skip Busy Agent:</strong> YES (cwignore = CHECKED)</li>
+                            <li><strong>Record Calls:</strong> ALWAYS (recording = always)</li>
+                        </ul>
                     </div>
                 </div>
                 <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-[var(--border-primary)]">
-                    <button type="button" onclick="closeModal('ringGroupModal')" class="config-btn-secondary px-4 py-2 text-xs">Cancel</button>
-                    <button type="submit" class="config-btn-primary px-5 py-2 text-xs">Save Ring Group</button>
+                    <button type="button" onclick="closeModal('ringGroupModal')" class="config-btn-secondary px-4 py-2 text-xs"><%= isRtl ? 'إلغاء' : 'Cancel' %></button>
+                    <button type="submit" class="config-btn-primary px-5 py-2 text-xs"><%= isRtl ? 'حفظ مجموعة الاتصال' : 'Save Ring Group' %></button>
                 </div>
             </form>
         </div>
@@ -565,6 +678,8 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
     <script>
         const isRtl = <%= isRtl ? 'true' : 'false' %>;
         let loadedTrunksList = [];
+        let loadedRecordingsList = [];
+        let loadedExtensionsList = [];
 
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
@@ -594,7 +709,8 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
             btn.classList.add('config-tab-active');
 
             if (tabId === 'extensions') fetchExtensions();
-            if (tabId === 'ringgroups') fetchRingGroups();
+            if (tabId === 'ringgroups') { fetchRecordings(); fetchRingGroups(); fetchExtensions(); }
+            if (tabId === 'recordings') fetchRecordings();
             if (tabId === 'trunks') fetchTrunks();
             if (tabId === 'inbound') fetchInboundRoutes();
             if (tabId === 'outbound') fetchOutboundRoutes();
@@ -637,6 +753,9 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
                 .then(res => res.json())
                 .then(data => {
                     if (!data.success || !data.extensions) return;
+                    loadedExtensionsList = data.extensions;
+                    renderQuickPickPills();
+                    if (!tbody) return;
                     tbody.innerHTML = '';
                     if (data.extensions.length === 0) {
                         tbody.innerHTML = '<tr><td colspan="8" class="py-6 text-center text-[var(--text-muted)]">No extensions found.</td></tr>';
@@ -733,6 +852,59 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
         }
 
         // --- 2. RING GROUPS ---
+        function renderQuickPickPills() {
+            const container = document.getElementById('rgQuickPickContainer');
+            if (!container) return;
+            container.innerHTML = '';
+            if (loadedExtensionsList.length === 0) {
+                container.innerHTML = '<span class="text-[11px] text-[var(--text-muted)]">No extensions available.</span>';
+                return;
+            }
+            const currentSelected = parseRgListArray();
+
+            loadedExtensionsList.forEach(ext => {
+                const isSelected = currentSelected.includes(String(ext.extension));
+                const pill = document.createElement('div');
+                pill.className = `ext-pill text-xs px-2.5 py-1 rounded-lg border font-mono font-bold ${isSelected ? 'active' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] border-[var(--border-primary)]'}`;
+                pill.textContent = `${ext.extension} (${ext.name || 'Ext'})`;
+                pill.onclick = () => toggleQuickPickExt(String(ext.extension));
+                container.appendChild(pill);
+            });
+        }
+
+        function parseRgListArray() {
+            const val = document.getElementById('rgList').value || '';
+            return val.split(/[\s\-,]+/).map(s => s.trim()).filter(Boolean);
+        }
+
+        function toggleQuickPickExt(extNum) {
+            let list = parseRgListArray();
+            if (list.includes(extNum)) {
+                list = list.filter(e => e !== extNum);
+            } else {
+                list.push(extNum);
+            }
+            document.getElementById('rgList').value = list.join(', ');
+            renderQuickPickPills();
+        }
+
+        function clearQuickPickExts() {
+            document.getElementById('rgList').value = '';
+            renderQuickPickPills();
+        }
+
+        function populateAnnouncementsDropdown() {
+            const sel = document.getElementById('rgAnnMsg');
+            if (!sel) return;
+            sel.innerHTML = '<option value="0">None / No Announcement</option>';
+            loadedRecordingsList.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r.id;
+                opt.textContent = `${r.displayname} (ID: ${r.id})`;
+                sel.appendChild(opt);
+            });
+        }
+
         function fetchRingGroups() {
             const tbody = document.getElementById('ringgroups-table-body');
             fetch('/api/config/ringgroups')
@@ -741,21 +913,26 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
                     if (!data.success || !data.ringgroups) return;
                     tbody.innerHTML = '';
                     if (data.ringgroups.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-[var(--text-muted)]">No ring groups found.</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="8" class="py-6 text-center text-[var(--text-muted)]">No ring groups found.</td></tr>';
                         return;
                     }
                     data.ringgroups.forEach(rg => {
                         const tr = document.createElement('tr');
                         tr.className = 'hover:bg-[var(--bg-hover)] transition-colors';
+                        const recMatch = loadedRecordingsList.find(r => r.id == rg.annmsg_id);
+                        const annText = recMatch ? recMatch.displayname : (rg.annmsg_id ? 'ID #' + rg.annmsg_id : 'None');
+
                         tr.innerHTML = `
                             <td class="py-3 px-4 font-mono font-bold text-[var(--text-primary)]">${rg.grpnum}</td>
                             <td class="py-3 px-4 font-bold text-[var(--text-primary)]">${rg.description || '-'}</td>
                             <td class="py-3 px-4 font-mono text-xs text-[var(--text-secondary)]">${rg.strategy || 'ringall'}</td>
-                            <td class="py-3 px-4 font-mono text-xs text-[var(--text-secondary)]">${rg.grptime}s</td>
-                            <td class="py-3 px-4 font-mono text-xs text-[var(--text-secondary)]">${rg.grppre ? rg.grppre + '-' : ''}${rg.grplist}</td>
+                            <td class="py-3 px-4 font-mono text-xs text-[var(--text-secondary)]">${annText}</td>
+                            <td class="py-3 px-4 font-mono text-xs text-[var(--text-secondary)]">${rg.grplist}</td>
+                            <td class="py-3 px-4"><span class="px-2 py-0.5 text-[11px] font-bold rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">Yes</span></td>
+                            <td class="py-3 px-4"><span class="px-2 py-0.5 text-[11px] font-bold rounded bg-purple-500/15 text-purple-400 border border-purple-500/20">Always</span></td>
                             <td class="py-3 px-4 text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    <button onclick="editRingGroup('${rg.grpnum}', '${rg.description}', '${rg.strategy}', '${rg.grptime}', '${rg.grplist}')" class="px-2.5 py-1 text-xs font-semibold text-blue-400 hover:bg-blue-500/10 rounded border border-blue-500/30">Edit</button>
+                                    <button onclick="editRingGroup('${rg.grpnum}', \`${(rg.description || '').replace(/`/g, '\\`')}\`, '${rg.strategy}', '${rg.grptime}', '${rg.grplist}', '${rg.annmsg_id || 0}')" class="px-2.5 py-1 text-xs font-semibold text-blue-400 hover:bg-blue-500/10 rounded border border-blue-500/30">Edit</button>
                                     <button onclick="deleteRingGroup('${rg.grpnum}')" class="px-2.5 py-1 text-xs font-semibold text-red-400 hover:bg-red-500/10 rounded border border-red-500/30">Delete</button>
                                 </div>
                             </td>
@@ -771,10 +948,12 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
             document.getElementById('rgEditMode').value = "false";
             document.getElementById('rgNum').disabled = false;
             document.getElementById('ringGroupForm').reset();
+            populateAnnouncementsDropdown();
+            renderQuickPickPills();
             openModal('ringGroupModal');
         }
 
-        function editRingGroup(grpnum, description, strategy, grptime, grplist) {
+        function editRingGroup(grpnum, description, strategy, grptime, grplist, annmsg_id) {
             document.getElementById('rgModalTitle').textContent = (isRtl ? 'تعديل المجموعة ' : 'Edit Ring Group ') + grpnum;
             document.getElementById('rgEditMode').value = "true";
             document.getElementById('rgNum').value = grpnum;
@@ -783,6 +962,9 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
             document.getElementById('rgStrategy').value = strategy || 'ringall';
             document.getElementById('rgTime').value = grptime || 20;
             document.getElementById('rgList').value = grplist || '';
+            populateAnnouncementsDropdown();
+            document.getElementById('rgAnnMsg').value = annmsg_id || 0;
+            renderQuickPickPills();
             openModal('ringGroupModal');
         }
 
@@ -794,6 +976,7 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
             const strategy = document.getElementById('rgStrategy').value;
             const grptime = document.getElementById('rgTime').value;
             const grplist = document.getElementById('rgList').value.trim();
+            const annmsg_id = document.getElementById('rgAnnMsg').value;
 
             const url = isEdit ? '/api/config/ringgroups/' + grpnum : '/api/config/ringgroups';
             const method = isEdit ? 'PUT' : 'POST';
@@ -801,7 +984,7 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
             fetch(url, {
                 method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ grpnum, description, strategy, grptime, grplist })
+                body: JSON.stringify({ grpnum, description, strategy, grptime, grplist, annmsg_id })
             })
             .then(res => res.json())
             .then(data => {
@@ -825,7 +1008,117 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
                 });
         }
 
-        // --- 3. TRUNKS ---
+        // --- 3. SYSTEM RECORDINGS ---
+        function fetchRecordings() {
+            const tbody = document.getElementById('recordings-table-body');
+            fetch('/api/config/recordings')
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success || !data.recordings) return;
+                    loadedRecordingsList = data.recordings;
+                    populateAnnouncementsDropdown();
+                    if (!tbody) return;
+                    tbody.innerHTML = '';
+                    if (data.recordings.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="4" class="py-6 text-center text-[var(--text-muted)]">No system recordings found.</td></tr>';
+                        return;
+                    }
+                    data.recordings.forEach(rec => {
+                        const tr = document.createElement('tr');
+                        tr.className = 'hover:bg-[var(--bg-hover)] transition-colors';
+                        tr.innerHTML = `
+                            <td class="py-3 px-4 font-mono font-bold text-[var(--text-muted)]">${rec.id}</td>
+                            <td class="py-3 px-4 font-bold text-[var(--text-primary)]">${rec.displayname}</td>
+                            <td class="py-3 px-4 font-mono text-xs text-blue-400 font-semibold">${rec.filename}</td>
+                            <td class="py-3 px-4 text-center">
+                                <button onclick="deleteRecording(${rec.id}, \`${(rec.displayname || '').replace(/`/g, '\\`')}\`)" class="px-2.5 py-1 text-xs font-semibold text-red-400 hover:bg-red-500/10 rounded border border-red-500/30">Delete</button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                })
+                .catch(err => console.error(err));
+        }
+
+        async function uploadSystemRecording(e) {
+            e.preventDefault();
+            const nameInput = document.getElementById('sysRecName');
+            const fileInput = document.getElementById('sysRecFile');
+            const submitBtn = document.getElementById('sysRecSubmitBtn');
+            const progressWrap = document.getElementById('sysRecProgressWrap');
+            const progressBar = document.getElementById('sysRecProgressBar');
+            const percentText = document.getElementById('sysRecPercent');
+            const statusText = document.getElementById('sysRecStatus');
+
+            if (!fileInput.files.length) {
+                showToast('Please select an audio file.', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('name', nameInput.value.trim());
+
+            submitBtn.disabled = true;
+            progressWrap.classList.remove('hidden');
+            progressBar.style.width = '0%';
+            percentText.textContent = '0%';
+            statusText.textContent = 'Uploading & converting...';
+
+            try {
+                const xhr = new XMLHttpRequest();
+                const result = await new Promise((resolve, reject) => {
+                    xhr.upload.addEventListener('progress', (ev) => {
+                        if (ev.lengthComputable) {
+                            const pct = Math.round((ev.loaded / ev.total) * 100);
+                            progressBar.style.width = pct + '%';
+                            percentText.textContent = pct + '%';
+                        }
+                    });
+                    xhr.addEventListener('load', () => {
+                        if (xhr.status >= 200 && xhr.status < 300) {
+                            resolve(JSON.parse(xhr.responseText));
+                        } else {
+                            try { reject(JSON.parse(xhr.responseText)); }
+                            catch (err) { reject({ error: 'HTTP ' + xhr.status }); }
+                        }
+                    });
+                    xhr.addEventListener('error', () => reject({ error: 'Network error' }));
+                    xhr.open('POST', '/api/settings/recordings/upload');
+                    xhr.send(formData);
+                });
+
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    document.getElementById('systemRecordingUploadForm').reset();
+                    fetchRecordings();
+                } else {
+                    showToast(result.error || 'Upload failed', 'error');
+                }
+            } catch (err) {
+                showToast(err.error || err.message || 'Upload failed', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                setTimeout(() => {
+                    progressWrap.classList.add('hidden');
+                    progressBar.style.width = '0%';
+                }, 3000);
+            }
+        }
+
+        function deleteRecording(id, name) {
+            if (!confirm(`Delete system recording '${name}' (ID #${id})?`)) return;
+            fetch('/api/config/recordings/' + id, { method: 'DELETE' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        fetchRecordings();
+                    } else showToast(data.error, 'error');
+                });
+        }
+
+        // --- 4. TRUNKS ---
         function fetchTrunks() {
             const tbody = document.getElementById('trunks-table-body');
             fetch('/api/config/trunks')
@@ -834,6 +1127,7 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
                     if (!data.success || !data.trunks) return;
                     loadedTrunksList = data.trunks;
                     updateOutboundTrunkSelect();
+                    if (!tbody) return;
                     tbody.innerHTML = '';
                     if (data.trunks.length === 0) {
                         tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-[var(--text-muted)]">No trunks found.</td></tr>';
@@ -916,7 +1210,7 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
                 });
         }
 
-        // --- 4. INBOUND ROUTES ---
+        // --- 5. INBOUND ROUTES ---
         function fetchInboundRoutes() {
             const tbody = document.getElementById('inbound-table-body');
             fetch('/api/config/routes/inbound')
@@ -989,9 +1283,10 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
             });
         }
 
-        // --- 5. OUTBOUND ROUTES ---
+        // --- 6. OUTBOUND ROUTES ---
         function updateOutboundTrunkSelect() {
             const sel = document.getElementById('outTrunkSelect');
+            if (!sel) return;
             sel.innerHTML = '<option value="">-- Select Trunk --</option>';
             loadedTrunksList.forEach(t => {
                 const opt = document.createElement('option');
@@ -1076,6 +1371,7 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
         // Initialize on load
         document.addEventListener('DOMContentLoaded', () => {
             fetchExtensions();
+            fetchRecordings();
             fetchTrunks();
         });
     </script>

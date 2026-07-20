@@ -2975,11 +2975,11 @@ app.delete('/api/config/extensions/:extension', async (req, res) => {
 
 // --- 2. RING GROUPS MANAGEMENT APIs ---
 
-// GET /api/config/ringgroups - List Ring Groups
+// GET /api/config/ringgroups - List all Ring Groups
 app.get('/api/config/ringgroups', async (req, res) => {
     try {
         const [ringgroups] = await pool.query(`
-            SELECT grpnum, strategy, grptime, grplist, description, postdest
+            SELECT grpnum, strategy, grptime, grplist, description, annmsg_id, postdest, cwignore, recording
             FROM \`asterisk\`.\`ringgroups\`
             ORDER BY CAST(grpnum AS UNSIGNED) ASC
         `);
@@ -2992,7 +2992,7 @@ app.get('/api/config/ringgroups', async (req, res) => {
 // POST /api/config/ringgroups - Create Ring Group
 app.post('/api/config/ringgroups', async (req, res) => {
     try {
-        const { grpnum, description, grplist, strategy, grptime } = req.body;
+        const { grpnum, description, grplist, strategy, grptime, annmsg_id } = req.body;
         if (!grpnum || !/^\d+$/.test(grpnum)) {
             return res.status(400).json({ success: false, error: 'Valid numeric Ring Group number is required.' });
         }
@@ -3010,6 +3010,7 @@ app.post('/api/config/ringgroups', async (req, res) => {
         const extListFormatted = String(grplist).replace(/[\r\n, ]+/g, '-').replace(/^-+|-+$/g, '');
         const ringStrategy = strategy || 'ringall';
         const ringTime = parseInt(grptime, 10) || 20;
+        const annMsgId = parseInt(annmsg_id, 10) || 0;
         const postDest = `ext-group,${num},1`;
 
         const [existing] = await pool.query('SELECT grpnum FROM `asterisk`.`ringgroups` WHERE grpnum = ?', [num]);
@@ -3017,13 +3018,14 @@ app.post('/api/config/ringgroups', async (req, res) => {
             return res.status(400).json({ success: false, error: `Ring Group ${num} already exists.` });
         }
 
+        // Defaults: skip busy agent -> cwignore='CHECKED', record calls -> recording='always'
         await pool.query(`
             INSERT INTO \`asterisk\`.\`ringgroups\` 
             (grpnum, strategy, grptime, grppre, grplist, annmsg_id, postdest, description, alertinfo, remotealert_id, needsconf, toolate_id, ringing, cwignore, cfignore, cpickup, recording)
-            VALUES (?, ?, ?, '', ?, 0, ?, ?, '', 0, '', 0, 'Ring', '', '', '', 'dontcare')
-        `, [num, ringStrategy, ringTime, extListFormatted, postDest, desc]);
+            VALUES (?, ?, ?, '', ?, ?, ?, ?, '', 0, '', 0, 'Ring', 'CHECKED', '', '', 'always')
+        `, [num, ringStrategy, ringTime, extListFormatted, annMsgId, postDest, desc]);
 
-        res.json({ success: true, message: `Ring Group ${num} created successfully.` });
+        res.json({ success: true, message: `Ring Group ${num} created with Skip Busy=Yes & Record=Always successfully.` });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
@@ -3033,18 +3035,19 @@ app.post('/api/config/ringgroups', async (req, res) => {
 app.put('/api/config/ringgroups/:grpnum', async (req, res) => {
     try {
         const num = String(req.params.grpnum).trim();
-        const { description, grplist, strategy, grptime } = req.body;
+        const { description, grplist, strategy, grptime, annmsg_id } = req.body;
 
         const desc = String(description || '').trim();
         const extListFormatted = String(grplist || '').replace(/[\r\n, ]+/g, '-').replace(/^-+|-+$/g, '');
         const ringStrategy = strategy || 'ringall';
         const ringTime = parseInt(grptime, 10) || 20;
+        const annMsgId = parseInt(annmsg_id, 10) || 0;
 
         await pool.query(`
             UPDATE \`asterisk\`.\`ringgroups\`
-            SET description = ?, grplist = ?, strategy = ?, grptime = ?
+            SET description = ?, grplist = ?, strategy = ?, grptime = ?, annmsg_id = ?, cwignore = 'CHECKED', recording = 'always'
             WHERE grpnum = ?
-        `, [desc, extListFormatted, ringStrategy, ringTime, num]);
+        `, [desc, extListFormatted, ringStrategy, ringTime, annMsgId, num]);
 
         res.json({ success: true, message: `Ring Group ${num} updated successfully.` });
     } catch (error) {
@@ -3058,6 +3061,45 @@ app.delete('/api/config/ringgroups/:grpnum', async (req, res) => {
         const num = String(req.params.grpnum).trim();
         await pool.query('DELETE FROM `asterisk`.`ringgroups` WHERE grpnum = ?', [num]);
         res.json({ success: true, message: `Ring Group ${num} deleted successfully.` });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// --- SYSTEM RECORDINGS MANAGEMENT APIs ---
+
+// GET /api/config/recordings - List all system recordings
+app.get('/api/config/recordings', async (req, res) => {
+    try {
+        const [recordings] = await pool.query(`
+            SELECT id, displayname, filename, description
+            FROM \`asterisk\`.\`recordings\`
+            ORDER BY id DESC
+        `);
+        res.json({ success: true, recordings });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// DELETE /api/config/recordings/:id - Delete system recording
+app.delete('/api/config/recordings/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id, 10);
+        if (!id) return res.status(400).json({ success: false, error: 'Invalid recording ID.' });
+
+        const [rows] = await pool.query('SELECT filename FROM `asterisk`.`recordings` WHERE id = ?', [id]);
+        if (rows.length > 0) {
+            const relFile = rows[0].filename;
+            if (relFile) {
+                const soundPath = path.join('/var/lib/asterisk/sounds', relFile + '.wav');
+                if (fs.existsSync(soundPath)) {
+                    try { fs.unlinkSync(soundPath); } catch (e) {}
+                }
+            }
+            await pool.query('DELETE FROM `asterisk`.`recordings` WHERE id = ?', [id]);
+        }
+        res.json({ success: true, message: 'Recording deleted successfully.' });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
