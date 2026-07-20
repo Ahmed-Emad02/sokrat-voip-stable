@@ -3648,20 +3648,7 @@ app.post('/api/config/voicemail/greeting', async (req, res) => {
             return res.status(400).json({ success: false, error: 'No extensions selected.' });
         }
         
-        // 1. Normalize source recording to standard 8kHz 16-bit mono PCM WAV
-        const normalizedTmp = path.join(UPLOAD_TMP, `norm-rec-${Date.now()}.wav`);
-        try {
-            await new Promise((resolve, reject) => {
-                exec(`sox "${wavSrcPath}" -r 8000 -c 1 -b 16 "${normalizedTmp}"`, (err) => {
-                    if (err) reject(err); else resolve();
-                });
-            });
-        } catch {
-            // Fallback if sox normalization faces issue
-            fs.copyFileSync(wavSrcPath, normalizedTmp);
-        }
-
-        // 2. Convert and copy greetings to target directories using Asterisk native converter
+        // Convert and copy greetings to target directories using sox for 100% reliable format output
         for (const ext of targetExtensions) {
             const mailboxDir = `/var/spool/asterisk/voicemail/default/${ext}`;
             if (!fs.existsSync(mailboxDir)) {
@@ -3676,21 +3663,19 @@ app.post('/api/config/voicemail/greeting', async (req, res) => {
             const gsmDestBusy = path.join(mailboxDir, 'busy.gsm');
             const wavDestBusy = path.join(mailboxDir, 'busy.wav');
             
-            await new Promise(resolve => exec(`${ASTERISK_BIN} -rx "file convert ${normalizedTmp} ${gsmDestUnavail}"`, resolve));
-            await new Promise(resolve => exec(`${ASTERISK_BIN} -rx "file convert ${normalizedTmp} ${wavDestUnavail}"`, resolve));
-            await new Promise(resolve => exec(`${ASTERISK_BIN} -rx "file convert ${normalizedTmp} ${gsmDestBusy}"`, resolve));
-            await new Promise(resolve => exec(`${ASTERISK_BIN} -rx "file convert ${normalizedTmp} ${wavDestBusy}"`, resolve));
+            await new Promise(resolve => exec(`sox "${wavSrcPath}" -r 8000 -c 1 -b 16 "${gsmDestUnavail}"`, resolve));
+            await new Promise(resolve => exec(`sox "${wavSrcPath}" -r 8000 -c 1 -b 16 "${wavDestUnavail}"`, resolve));
+            await new Promise(resolve => exec(`sox "${wavSrcPath}" -r 8000 -c 1 -b 16 "${gsmDestBusy}"`, resolve));
+            await new Promise(resolve => exec(`sox "${wavSrcPath}" -r 8000 -c 1 -b 16 "${wavDestBusy}"`, resolve));
             
             exec(`chown -R asterisk:asterisk "${mailboxDir}"`);
         }
         
-        if (fs.existsSync(normalizedTmp)) fs.unlinkSync(normalizedTmp);
-        
-        // 3. Ensure Asterisk default intro prompts are muted with silent GSM files
+        // Ensure Asterisk default intro prompts are muted with silent GSM files
         const silentTmp = path.join(UPLOAD_TMP, `silent-${Date.now()}.wav`);
         await new Promise(resolve => exec(`sox -n -r 8000 -c 1 -b 16 "${silentTmp}" trim 0.0 0.1`, resolve));
-        await new Promise(resolve => exec(`${ASTERISK_BIN} -rx "file convert ${silentTmp} /var/lib/asterisk/sounds/en/vm-intro.gsm"`, resolve));
-        await new Promise(resolve => exec(`${ASTERISK_BIN} -rx "file convert ${silentTmp} /var/lib/asterisk/sounds/en/vm-leavemsg.gsm"`, resolve));
+        await new Promise(resolve => exec(`sox "${silentTmp}" -r 8000 -c 1 -b 16 /var/lib/asterisk/sounds/en/vm-intro.gsm`, resolve));
+        await new Promise(resolve => exec(`sox "${silentTmp}" -r 8000 -c 1 -b 16 /var/lib/asterisk/sounds/en/vm-leavemsg.gsm`, resolve));
         exec(`rm -f /var/lib/asterisk/sounds/en/vm-intro.wav /var/lib/asterisk/sounds/en/vm-leavemsg.wav "${silentTmp}"`);
         exec(`chown asterisk:asterisk /var/lib/asterisk/sounds/en/vm-intro.gsm /var/lib/asterisk/sounds/en/vm-leavemsg.gsm`);
         
