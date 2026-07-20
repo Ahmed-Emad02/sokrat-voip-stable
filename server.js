@@ -1693,6 +1693,8 @@ function scanVoicemails() {
             const duration = parseInt(meta.duration) || 0;
             if (duration === 0) continue;
 
+            const origtime = meta.origtime ? parseInt(meta.origtime) * 1000 : 0;
+
             messages.push({
                 mailbox: ext.name,
                 callerid: (meta.callerid || '').replace(/"/g, ''),
