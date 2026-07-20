@@ -3333,16 +3333,47 @@ app.delete('/api/config/routes/inbound', async (req, res) => {
 // GET /api/config/routes/outbound - List Outbound Routes
 app.get('/api/config/routes/outbound', async (req, res) => {
     try {
-        const [routes] = await pool.query(`
-            SELECT r.route_id, r.name, r.outcid,
-                   p.match_pattern_prefix, p.match_pattern_pass, p.match_cid,
-                   t.trunk_id, tr.name AS trunk_name
-            FROM \`asterisk\`.\`outbound_routes\` r
-            LEFT JOIN \`asterisk\`.\`outbound_route_patterns\` p ON p.route_id = r.route_id
-            LEFT JOIN \`asterisk\`.\`outbound_route_trunks\` t ON t.route_id = r.route_id
-            LEFT JOIN \`asterisk\`.\`trunks\` tr ON tr.trunkid = t.trunk_id
-            ORDER BY r.route_id ASC
+        const [routesRows] = await pool.query(`
+            SELECT route_id, name FROM \`asterisk\`.\`outbound_routes\` ORDER BY route_id ASC
         `);
+        const [patternsRows] = await pool.query(`
+            SELECT route_id, match_pattern_prefix, match_pattern_pass, match_cid, prepend_digits
+            FROM \`asterisk\`.\`outbound_route_patterns\`
+        `);
+        const [trunksRows] = await pool.query(`
+            SELECT rt.route_id, rt.trunk_id, rt.seq, t.name AS trunk_name
+            FROM \`asterisk\`.\`outbound_route_trunks\` rt
+            LEFT JOIN \`asterisk\`.\`trunks\` t ON t.trunkid = rt.trunk_id
+            ORDER BY rt.seq ASC
+        `);
+
+        // Group them
+        const routes = routesRows.map(r => {
+            const route_id = r.route_id;
+            const patterns = patternsRows
+                .filter(p => p.route_id === route_id)
+                .map(p => ({
+                    prefix: p.match_pattern_prefix || '',
+                    pattern: p.match_pattern_pass || '',
+                    cid: p.match_cid || '',
+                    prepend: p.prepend_digits || ''
+                }));
+            const trunks = trunksRows
+                .filter(t => t.route_id === route_id)
+                .map(t => ({
+                    trunk_id: t.trunk_id,
+                    seq: t.seq,
+                    trunk_name: t.trunk_name || `ID #${t.trunk_id}`
+                }));
+
+            return {
+                route_id,
+                name: r.name,
+                patterns,
+                trunks
+            };
+        });
+
         res.json({ success: true, routes });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -3352,19 +3383,18 @@ app.get('/api/config/routes/outbound', async (req, res) => {
 // POST /api/config/routes/outbound - Create Outbound Route
 app.post('/api/config/routes/outbound', async (req, res) => {
     try {
-        const { name, match_pattern_prefix, match_pattern_pass, match_cid, trunk_id } = req.body;
+        const { name, patterns, trunks } = req.body;
         if (!name || !name.trim()) {
             return res.status(400).json({ success: false, error: 'Route Name is required.' });
         }
-        if (!match_pattern_pass || !match_pattern_pass.trim()) {
-            return res.status(400).json({ success: false, error: 'Match Pattern is required.' });
+        if (!patterns || !Array.isArray(patterns) || patterns.length === 0) {
+            return res.status(400).json({ success: false, error: 'At least one Dial Pattern is required.' });
+        }
+        if (!trunks || !Array.isArray(trunks) || trunks.length === 0) {
+            return res.status(400).json({ success: false, error: 'At least one Trunk in sequence is required.' });
         }
 
         const routeName = String(name).trim();
-        const prefix = String(match_pattern_prefix || '').trim();
-        const pattern = String(match_pattern_pass).trim();
-        const cid = String(match_cid || '').trim();
-        const trunkId = parseInt(trunk_id, 10);
 
         // 1. Insert into outbound_routes
         const [rResult] = await pool.query(`
@@ -3374,27 +3404,77 @@ app.post('/api/config/routes/outbound', async (req, res) => {
 
         const routeId = rResult.insertId;
 
-        // 2. Insert into outbound_route_patterns
-        await pool.query(`
-            INSERT INTO \`asterisk\`.\`outbound_route_patterns\` (route_id, match_pattern_prefix, match_pattern_pass, match_cid, prepend_digits)
-            VALUES (?, ?, ?, ?, '')
-        `, [routeId, prefix, pattern, cid]);
-
-        // 3. Insert into outbound_route_trunks
-        if (trunkId) {
+        // 2. Insert patterns
+        for (const p of patterns) {
             await pool.query(`
-                INSERT INTO \`asterisk\`.\`outbound_route_trunks\` (route_id, trunk_id, seq)
-                VALUES (?, ?, 0)
-            `, [routeId, trunkId]);
+                INSERT INTO \`asterisk\`.\`outbound_route_patterns\` (route_id, match_pattern_prefix, match_pattern_pass, match_cid, prepend_digits)
+                VALUES (?, ?, ?, ?, ?)
+            `, [routeId, String(p.prefix || '').trim(), String(p.pattern || '').trim(), String(p.cid || '').trim(), String(p.prepend || '').trim()]);
         }
 
-        // 4. Insert into outbound_route_sequence
+        // 3. Insert trunks in order (seq)
+        for (let i = 0; i < trunks.length; i++) {
+            await pool.query(`
+                INSERT INTO \`asterisk\`.\`outbound_route_trunks\` (route_id, trunk_id, seq)
+                VALUES (?, ?, ?)
+            `, [routeId, parseInt(trunks[i], 10), i]);
+        }
+
+        // 4. Insert sequence
         await pool.query(`
             INSERT INTO \`asterisk\`.\`outbound_route_sequence\` (route_id, seq)
             VALUES (?, 0)
         `, [routeId]);
 
         res.json({ success: true, message: `Outbound Route '${routeName}' created successfully.` });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// PUT /api/config/routes/outbound/:route_id - Modify Outbound Route
+app.put('/api/config/routes/outbound/:route_id', async (req, res) => {
+    try {
+        const routeId = parseInt(req.params.route_id, 10);
+        const { name, patterns, trunks } = req.body;
+        if (!name || !name.trim()) {
+            return res.status(400).json({ success: false, error: 'Route Name is required.' });
+        }
+        if (!patterns || !Array.isArray(patterns) || patterns.length === 0) {
+            return res.status(400).json({ success: false, error: 'At least one Dial Pattern is required.' });
+        }
+        if (!trunks || !Array.isArray(trunks) || trunks.length === 0) {
+            return res.status(400).json({ success: false, error: 'At least one Trunk in sequence is required.' });
+        }
+
+        const routeName = String(name).trim();
+
+        // 1. Update outbound_routes name
+        await pool.query(`
+            UPDATE \`asterisk\`.\`outbound_routes\`
+            SET name = ?
+            WHERE route_id = ?
+        `, [routeName, routeId]);
+
+        // 2. Refresh patterns
+        await pool.query('DELETE FROM `asterisk`.`outbound_route_patterns` WHERE route_id = ?', [routeId]);
+        for (const p of patterns) {
+            await pool.query(`
+                INSERT INTO \`asterisk\`.\`outbound_route_patterns\` (route_id, match_pattern_prefix, match_pattern_pass, match_cid, prepend_digits)
+                VALUES (?, ?, ?, ?, ?)
+            `, [routeId, String(p.prefix || '').trim(), String(p.pattern || '').trim(), String(p.cid || '').trim(), String(p.prepend || '').trim()]);
+        }
+
+        // 3. Refresh trunks in order
+        await pool.query('DELETE FROM `asterisk`.`outbound_route_trunks` WHERE route_id = ?', [routeId]);
+        for (let i = 0; i < trunks.length; i++) {
+            await pool.query(`
+                INSERT INTO \`asterisk\`.\`outbound_route_trunks\` (route_id, trunk_id, seq)
+                VALUES (?, ?, ?)
+            `, [routeId, parseInt(trunks[i], 10), i]);
+        }
+
+        res.json({ success: true, message: `Outbound Route '${routeName}' updated successfully.` });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }

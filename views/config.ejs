@@ -419,15 +419,13 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
                             <tr class="bg-[var(--bg-card)] border-b border-[var(--border-primary)] text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">
                                 <th class="py-3 px-4">ID</th>
                                 <th class="py-3 px-4"><%= isRtl ? 'اسم المسار' : 'Route Name' %></th>
-                                <th class="py-3 px-4"><%= isRtl ? 'البادئة (Prefix)' : 'Prefix' %></th>
-                                <th class="py-3 px-4"><%= isRtl ? 'نمط المطابقة (Pattern)' : 'Match Pattern' %></th>
-                                <th class="py-3 px-4"><%= isRtl ? 'فلتر المتصل (CallerID)' : 'CallerID Match' %></th>
-                                <th class="py-3 px-4"><%= isRtl ? 'خط الربط' : 'Trunk' %></th>
+                                <th class="py-3 px-4"><%= isRtl ? 'أنماط الاتصال' : 'Dial Patterns' %></th>
+                                <th class="py-3 px-4"><%= isRtl ? 'تسلسل خطوط الربط' : 'Trunk Sequence' %></th>
                                 <th class="py-3 px-4 text-center"><%= isRtl ? 'الإجراءات' : 'Actions' %></th>
                             </tr>
                         </thead>
                         <tbody id="outbound-table-body" class="divide-y divide-[var(--border-primary)] text-sm font-medium text-[var(--text-primary)]">
-                            <tr><td colspan="7" class="py-8 text-center text-[var(--text-muted)]">Loading outbound routes...</td></tr>
+                            <tr><td colspan="5" class="py-8 text-center text-[var(--text-muted)]">Loading outbound routes...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -655,34 +653,66 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
 
     <!-- MODAL 5: OUTBOUND ROUTE FORM -->
     <div id="outboundModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-        <div class="bg-[var(--bg-secondary)] rounded-2xl border border-[var(--border-primary)] shadow-2xl max-w-lg w-full p-6 text-[var(--text-primary)]">
+        <div class="bg-[var(--bg-secondary)] rounded-2xl border border-[var(--border-primary)] shadow-2xl max-w-xl w-full p-6 text-[var(--text-primary)]">
             <div class="flex items-center justify-between mb-5 pb-3 border-b border-[var(--border-primary)]">
-                <h3 class="text-base font-extrabold text-[var(--text-primary)]">Add Outbound Route</h3>
+                <h3 id="outboundModalTitle" class="text-base font-extrabold text-[var(--text-primary)]">Add Outbound Route</h3>
                 <button onclick="closeModal('outboundModal')" class="text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer">✕</button>
             </div>
             <form id="outboundForm" onsubmit="saveOutboundRoute(event)">
-                <div class="flex flex-col gap-4">
+                <input type="hidden" id="outboundEditId" value="">
+                <div class="flex flex-col gap-5 max-h-[70vh] overflow-y-auto pr-1">
                     <div>
                         <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Route Name *</label>
                         <input type="text" id="outName" required placeholder="e.g. Outbound-All" class="config-input w-full">
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Prefix (Optional)</label>
-                        <input type="text" id="outPrefix" placeholder="e.g. 9" class="config-input w-full font-mono">
+                    
+                    <!-- DIAL PATTERNS SECTION -->
+                    <div class="border border-[var(--border-primary)] rounded-xl p-4 bg-[var(--bg-card)]/30">
+                        <label class="block text-xs font-bold text-[var(--text-primary)] uppercase mb-2">Dial Patterns *</label>
+                        
+                        <div id="outboundPatternsList" class="space-y-2 mb-3">
+                            <!-- Rendered dynamically -->
+                        </div>
+                        
+                        <div class="grid grid-cols-4 gap-2 bg-[var(--bg-secondary)] p-3 border border-[var(--border-primary)] rounded-lg">
+                            <div>
+                                <label class="block text-[10px] text-[var(--text-secondary)] uppercase mb-0.5">Prepend</label>
+                                <input type="text" id="patPrepend" placeholder="prepend" class="config-input w-full text-xs font-mono py-1 px-2">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-[var(--text-secondary)] uppercase mb-0.5">Prefix</label>
+                                <input type="text" id="patPrefix" placeholder="prefix" class="config-input w-full text-xs font-mono py-1 px-2">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-[var(--text-secondary)] uppercase mb-0.5">Pattern *</label>
+                                <input type="text" id="patPattern" placeholder="e.g. X." class="config-input w-full text-xs font-mono py-1 px-2">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-[var(--text-secondary)] uppercase mb-0.5">CallerID</label>
+                                <input type="text" id="patCid" placeholder="CID" class="config-input w-full text-xs font-mono py-1 px-2">
+                            </div>
+                        </div>
+                        <button type="button" onclick="addDialPatternToModalList()" class="mt-2 text-xs text-blue-400 font-semibold hover:underline flex items-center gap-1">
+                            <span>+ Add Pattern</span>
+                        </button>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Match Pattern *</label>
-                        <input type="text" id="outPattern" required placeholder="e.g. X. or _01XXXXXXXXX" class="config-input w-full font-mono">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">CallerID Match (Optional)</label>
-                        <input type="text" id="outCid" placeholder="e.g. 101 or leave empty" class="config-input w-full font-mono">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Trunk Sequence</label>
-                        <select id="outTrunkSelect" class="config-input w-full">
-                            <option value="">Loading trunks...</option>
-                        </select>
+                    
+                    <!-- TRUNK SEQUENCE SECTION -->
+                    <div class="border border-[var(--border-primary)] rounded-xl p-4 bg-[var(--bg-card)]/30">
+                        <label class="block text-xs font-bold text-[var(--text-primary)] uppercase mb-2">Trunk Sequence *</label>
+                        
+                        <div id="outboundTrunksSequenceList" class="space-y-2 mb-3">
+                            <!-- Rendered dynamically -->
+                        </div>
+                        
+                        <div class="flex items-center gap-2">
+                            <select id="sequenceTrunkSelect" class="config-input w-full text-xs">
+                                <option value="">-- Choose Trunk --</option>
+                            </select>
+                            <button type="button" onclick="addTrunkToModalSequence()" class="px-3 py-2 text-xs bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded cursor-pointer transition">
+                                Add
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-[var(--border-primary)]">
@@ -700,6 +730,8 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
         let loadedRecordingsList = [];
         let loadedExtensionsList = [];
         let loadedRingGroupsList = [];
+        let modalPatternsList = [];
+        let modalTrunksSequence = [];
 
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
@@ -1517,16 +1549,107 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
         }
 
         // --- 6. OUTBOUND ROUTES ---
-        function updateOutboundTrunkSelect() {
-            const sel = document.getElementById('outTrunkSelect');
-            if (!sel) return;
-            sel.innerHTML = '<option value="">-- Select Trunk --</option>';
-            loadedTrunksList.forEach(t => {
-                const opt = document.createElement('option');
-                opt.value = t.trunkid;
-                opt.textContent = `${t.name} (ID: ${t.trunkid})`;
-                sel.appendChild(opt);
+        function renderModalPatterns() {
+            const listEl = document.getElementById('outboundPatternsList');
+            if (!listEl) return;
+            listEl.innerHTML = '';
+            if (modalPatternsList.length === 0) {
+                listEl.innerHTML = '<span class="text-xs text-[var(--text-muted)] italic">No patterns added yet.</span>';
+                return;
+            }
+            modalPatternsList.forEach((pat, idx) => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between bg-[var(--bg-secondary)] border border-[var(--border-primary)] px-3 py-1.5 rounded-lg text-xs font-mono';
+                div.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        ${pat.prepend ? `<span class="text-[var(--text-muted)]">(${pat.prepend})</span>` : ''}
+                        ${pat.prefix ? `<span class="text-[var(--text-muted)]">${pat.prefix} |</span>` : ''}
+                        <span class="font-bold text-[var(--text-primary)]">${pat.pattern}</span>
+                        ${pat.cid ? `<span class="text-blue-400">/ ${pat.cid}</span>` : ''}
+                    </div>
+                    <button type="button" onclick="removeDialPatternFromModalList(${idx})" class="text-red-400 hover:text-red-500 cursor-pointer">
+                        ✕
+                    </button>
+                `;
+                listEl.appendChild(div);
             });
+        }
+
+        function addDialPatternToModalList() {
+            const patternInput = document.getElementById('patPattern');
+            const pattern = patternInput.value.trim();
+            if (!pattern) {
+                showToast(isRtl ? 'حقل النمط مطلوب.' : 'Pattern field is required.', 'error');
+                return;
+            }
+            const prepend = document.getElementById('patPrepend').value.trim();
+            const prefix = document.getElementById('patPrefix').value.trim();
+            const cid = document.getElementById('patCid').value.trim();
+            
+            modalPatternsList.push({ prepend, prefix, pattern, cid });
+            renderModalPatterns();
+            
+            patternInput.value = '';
+            document.getElementById('patPrepend').value = '';
+            document.getElementById('patPrefix').value = '';
+            document.getElementById('patCid').value = '';
+        }
+
+        function removeDialPatternFromModalList(idx) {
+            modalPatternsList.splice(idx, 1);
+            renderModalPatterns();
+        }
+
+        function renderModalTrunksSequence() {
+            const listEl = document.getElementById('outboundTrunksSequenceList');
+            if (!listEl) return;
+            listEl.innerHTML = '';
+            if (modalTrunksSequence.length === 0) {
+                listEl.innerHTML = '<span class="text-xs text-[var(--text-muted)] italic">No trunks in sequence yet.</span>';
+                return;
+            }
+            modalTrunksSequence.forEach((trunkId, idx) => {
+                const trunkMatch = loadedTrunksList.find(t => t.trunkid == trunkId);
+                const trunkName = trunkMatch ? trunkMatch.name : `Trunk ID #${trunkId}`;
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between bg-[var(--bg-secondary)] border border-[var(--border-primary)] px-3 py-1.5 rounded-lg text-xs';
+                div.innerHTML = `
+                    <span class="font-bold text-[var(--text-primary)] font-mono">${idx + 1}. ${trunkName}</span>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="moveTrunkInSequence(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} class="text-blue-400 hover:text-blue-500 disabled:opacity-35 disabled:cursor-not-allowed text-[11px] cursor-pointer">▲</button>
+                        <button type="button" onclick="moveTrunkInSequence(${idx}, 1)" ${idx === modalTrunksSequence.length - 1 ? 'disabled' : ''} class="text-blue-400 hover:text-blue-500 disabled:opacity-35 disabled:cursor-not-allowed text-[11px] cursor-pointer">▼</button>
+                        <button type="button" onclick="removeTrunkFromModalSequence(${idx})" class="text-red-400 hover:text-red-500 ml-2 cursor-pointer">✕</button>
+                    </div>
+                `;
+                listEl.appendChild(div);
+            });
+        }
+
+        function addTrunkToModalSequence() {
+            const selectEl = document.getElementById('sequenceTrunkSelect');
+            const trunkId = selectEl.value;
+            if (!trunkId) return;
+            if (modalTrunksSequence.includes(trunkId)) {
+                showToast(isRtl ? 'خط الربط موجود بالفعل في التسلسل.' : 'Trunk is already in the sequence.', 'error');
+                return;
+            }
+            modalTrunksSequence.push(trunkId);
+            renderModalTrunksSequence();
+            selectEl.value = '';
+        }
+
+        function moveTrunkInSequence(idx, dir) {
+            const targetIdx = idx + dir;
+            if (targetIdx < 0 || targetIdx >= modalTrunksSequence.length) return;
+            const temp = modalTrunksSequence[idx];
+            modalTrunksSequence[idx] = modalTrunksSequence[targetIdx];
+            modalTrunksSequence[targetIdx] = temp;
+            renderModalTrunksSequence();
+        }
+
+        function removeTrunkFromModalSequence(idx) {
+            modalTrunksSequence.splice(idx, 1);
+            renderModalTrunksSequence();
         }
 
         function fetchOutboundRoutes() {
@@ -1537,21 +1660,39 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
                     if (!data.success || !data.routes) return;
                     tbody.innerHTML = '';
                     if (data.routes.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="7" class="py-6 text-center text-[var(--text-muted)]">No outbound routes found.</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="5" class="py-6 text-center text-[var(--text-muted)]">No outbound routes found.</td></tr>';
                         return;
                     }
                     data.routes.forEach(r => {
                         const tr = document.createElement('tr');
                         tr.className = 'hover:bg-[var(--bg-hover)] transition-colors';
+                        
+                        const patHtml = r.patterns.map(p => {
+                            let text = '';
+                            if (p.prepend) text += `(${p.prepend})`;
+                            if (p.prefix) text += `${p.prefix}|`;
+                            text += p.pattern;
+                            if (p.cid) text += `/${p.cid}`;
+                            return `<div class="font-mono text-xs bg-[var(--bg-card)] px-2 py-0.5 rounded border border-[var(--border-primary)]/40 w-fit inline-block mr-1 mb-1">${text}</div>`;
+                        }).join(' ') || '<span class="text-[var(--text-muted)]">-</span>';
+                        
+                        const trunkHtml = r.trunks.map(t => {
+                            return `<div class="font-mono text-xs text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 w-fit inline-block mr-1 mb-1">${t.trunk_name}</div>`;
+                        }).join(' ➔ ') || '<span class="text-[var(--text-muted)]">-</span>';
+                        
+                        const patternsJson = JSON.stringify(r.patterns).replace(/"/g, '&quot;');
+                        const trunksJson = JSON.stringify(r.trunks).replace(/"/g, '&quot;');
+
                         tr.innerHTML = `
                             <td class="py-3 px-4 font-mono font-bold text-[var(--text-muted)]">${r.route_id}</td>
                             <td class="py-3 px-4 font-bold text-[var(--text-primary)]">${r.name}</td>
-                            <td class="py-3 px-4 font-mono text-xs text-[var(--text-secondary)]">${r.match_pattern_prefix || '-'}</td>
-                            <td class="py-3 px-4 font-mono text-xs text-blue-400 font-bold">${r.match_pattern_pass || '-'}</td>
-                            <td class="py-3 px-4 font-mono text-xs text-[var(--text-secondary)]">${r.match_cid || '-'}</td>
-                            <td class="py-3 px-4 font-mono text-xs text-emerald-400 font-bold">${r.trunk_name || r.trunk_id || '-'}</td>
+                            <td class="py-3 px-4">${patHtml}</td>
+                            <td class="py-3 px-4">${trunkHtml}</td>
                             <td class="py-3 px-4 text-center">
-                                <button onclick="deleteOutboundRoute(${r.route_id})" class="px-2.5 py-1 text-xs font-semibold text-red-400 hover:bg-red-500/10 rounded border border-red-500/30">Delete</button>
+                                <div class="flex items-center justify-center gap-2">
+                                    <button onclick="editOutboundRoute(${r.route_id}, '${r.name}', '${patternsJson}', '${trunksJson}')" class="px-2.5 py-1 text-xs font-semibold text-blue-400 hover:bg-blue-500/10 rounded border border-blue-500/30">Edit</button>
+                                    <button onclick="deleteOutboundRoute(${r.route_id})" class="px-2.5 py-1 text-xs font-semibold text-red-400 hover:bg-red-500/10 rounded border border-red-500/30">Delete</button>
+                                </div>
                             </td>
                         `;
                         tbody.appendChild(tr);
@@ -1561,23 +1702,88 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
         }
 
         function openOutboundModal() {
+            document.getElementById('outboundModalTitle').textContent = isRtl ? 'إضافة مسار صادر' : 'Add Outbound Route';
+            document.getElementById('outboundEditId').value = "";
             document.getElementById('outboundForm').reset();
-            updateOutboundTrunkSelect();
+            modalPatternsList = [];
+            modalTrunksSequence = [];
+            
+            const sel = document.getElementById('sequenceTrunkSelect');
+            if (sel) {
+                sel.innerHTML = '<option value="">-- Choose Trunk --</option>';
+                loadedTrunksList.forEach(t => {
+                    const opt = document.createElement('option');
+                    opt.value = t.trunkid;
+                    opt.textContent = `${t.name} (${t.tech})`;
+                    sel.appendChild(opt);
+                });
+            }
+
+            renderModalPatterns();
+            renderModalTrunksSequence();
+            openModal('outboundModal');
+        }
+
+        function editOutboundRoute(routeId, name, patternsJson, trunksJson) {
+            document.getElementById('outboundModalTitle').textContent = (isRtl ? 'تعديل المسار الصادر ' : 'Edit Outbound Route ') + name;
+            document.getElementById('outboundEditId').value = routeId;
+            document.getElementById('outName').value = name || '';
+
+            try {
+                modalPatternsList = JSON.parse(patternsJson) || [];
+            } catch(e) {
+                modalPatternsList = [];
+            }
+
+            try {
+                const trs = JSON.parse(trunksJson) || [];
+                trs.sort((a,b) => a.seq - b.seq);
+                modalTrunksSequence = trs.map(t => String(t.trunk_id));
+            } catch(e) {
+                modalTrunksSequence = [];
+            }
+
+            const sel = document.getElementById('sequenceTrunkSelect');
+            if (sel) {
+                sel.innerHTML = '<option value="">-- Choose Trunk --</option>';
+                loadedTrunksList.forEach(t => {
+                    const opt = document.createElement('option');
+                    opt.value = t.trunkid;
+                    opt.textContent = `${t.name} (${t.tech})`;
+                    sel.appendChild(opt);
+                });
+            }
+
+            renderModalPatterns();
+            renderModalTrunksSequence();
             openModal('outboundModal');
         }
 
         function saveOutboundRoute(e) {
             e.preventDefault();
+            const editId = document.getElementById('outboundEditId').value;
             const name = document.getElementById('outName').value.trim();
-            const match_pattern_prefix = document.getElementById('outPrefix').value.trim();
-            const match_pattern_pass = document.getElementById('outPattern').value.trim();
-            const match_cid = document.getElementById('outCid').value.trim();
-            const trunk_id = document.getElementById('outTrunkSelect').value;
 
-            fetch('/api/config/routes/outbound', {
-                method: 'POST',
+            if (modalPatternsList.length === 0) {
+                showToast(isRtl ? 'يرجى إضافة نمط اتصال واحد على الأقل.' : 'Please add at least one Dial Pattern.', 'error');
+                return;
+            }
+            if (modalTrunksSequence.length === 0) {
+                showToast(isRtl ? 'يرجى تحديد خط ربط واحد على الأقل في التسلسل.' : 'Please select at least one Trunk in the sequence.', 'error');
+                return;
+            }
+
+            const url = editId ? '/api/config/routes/outbound/' + editId : '/api/config/routes/outbound';
+            const method = editId ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, match_pattern_prefix, match_pattern_pass, match_cid, trunk_id })
+                body: JSON.stringify({
+                    name,
+                    patterns: modalPatternsList,
+                    trunks: modalTrunksSequence
+                })
             })
             .then(res => res.json())
             .then(data => {
