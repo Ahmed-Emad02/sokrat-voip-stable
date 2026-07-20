@@ -624,9 +624,23 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
                         <input type="text" id="inExtension" placeholder="e.g. 01012345678 or leave empty for ANY" class="config-input w-full font-mono">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Destination *</label>
-                        <input type="text" id="inDestination" required placeholder="e.g. ext-group,600,1 or from-did-direct,101,1" class="config-input w-full font-mono">
-                        <p class="text-[11px] text-[var(--text-muted)] mt-1">Format: <code>ext-group,600,1</code> (Ring Group 600) or <code>from-did-direct,101,1</code> (Extension 101)</p>
+                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Set Destination *</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+                            <select id="inDestType" onchange="onInboundDestTypeChange()" class="config-input w-full" required>
+                                <option value="">== choose one ==</option>
+                                <option value="extensions"><%= isRtl ? 'الهواتف الفرعية (Extensions)' : 'Extensions' %></option>
+                                <option value="ringgroups"><%= isRtl ? 'مجموعات الرنين (Ring Groups)' : 'Ring Groups' %></option>
+                                <option value="custom"><%= isRtl ? 'تطبيق مخصص (Custom)' : 'Custom Application' %></option>
+                            </select>
+                            
+                            <div id="inDestTargetContainer">
+                                <select id="inDestTargetSelect" onchange="updateInboundDestinationValue()" class="config-input w-full hidden">
+                                    <option value="">== choose target ==</option>
+                                </select>
+                                <input type="text" id="inDestTargetInput" oninput="updateInboundDestinationValue()" placeholder="e.g. custom-context,s,1" class="config-input w-full font-mono hidden">
+                            </div>
+                        </div>
+                        <input type="hidden" id="inDestination" required>
                     </div>
                 </div>
                 <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-[var(--border-primary)]">
@@ -683,6 +697,7 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
         let loadedTrunksList = [];
         let loadedRecordingsList = [];
         let loadedExtensionsList = [];
+        let loadedRingGroupsList = [];
 
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
@@ -715,7 +730,7 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
             if (tabId === 'ringgroups') { fetchRecordings(); fetchRingGroups(); fetchExtensions(); }
             if (tabId === 'recordings') fetchRecordings();
             if (tabId === 'trunks') fetchTrunks();
-            if (tabId === 'inbound') fetchInboundRoutes();
+            if (tabId === 'inbound') { fetchExtensions(); fetchRingGroups(); fetchInboundRoutes(); }
             if (tabId === 'outbound') fetchOutboundRoutes();
         }
 
@@ -915,6 +930,7 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
                 .then(res => res.json())
                 .then(data => {
                     if (!data.success || !data.ringgroups) return;
+                    loadedRingGroupsList = data.ringgroups;
                     tbody.innerHTML = '';
                     if (data.ringgroups.length === 0) {
                         tbody.innerHTML = '<tr><td colspan="9" class="py-6 text-center text-[var(--text-muted)]">No ring groups found.</td></tr>';
@@ -1283,6 +1299,28 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
         }
 
         // --- 5. INBOUND ROUTES ---
+        function formatDestination(dest) {
+            if (!dest) return '-';
+            
+            if (dest.startsWith('from-did-direct,')) {
+                const parts = dest.split(',');
+                const extNum = parts[1];
+                const extMatch = loadedExtensionsList.find(e => e.extension == extNum);
+                const nameStr = extMatch ? ` - ${extMatch.name}` : '';
+                return `Extension: ${extNum}${nameStr}`;
+            }
+            
+            if (dest.startsWith('ext-group,')) {
+                const parts = dest.split(',');
+                const grpNum = parts[1];
+                const rgMatch = loadedRingGroupsList.find(rg => rg.grpnum == grpNum);
+                const descStr = rgMatch ? ` - ${rgMatch.description}` : '';
+                return `Ring Group: ${grpNum}${descStr}`;
+            }
+            
+            return dest; // Fallback to raw string
+        }
+
         function fetchInboundRoutes() {
             const tbody = document.getElementById('inbound-table-body');
             fetch('/api/config/routes/inbound')
@@ -1300,7 +1338,7 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
                         tr.innerHTML = `
                             <td class="py-3 px-4 font-bold text-[var(--text-primary)]">${r.description}</td>
                             <td class="py-3 px-4 font-mono text-xs text-[var(--text-secondary)]">${r.extension || '<span class="text-[var(--text-muted)]">ANY</span>'}</td>
-                            <td class="py-3 px-4 font-mono text-xs text-blue-400 font-bold">${r.destination}</td>
+                            <td class="py-3 px-4 font-mono text-xs text-blue-400 font-bold">${formatDestination(r.destination)}</td>
                             <td class="py-3 px-4 text-center">
                                 <button onclick="deleteInboundRoute('${r.extension || ''}', '${r.description}')" class="px-2.5 py-1 text-xs font-semibold text-red-400 hover:bg-red-500/10 rounded border border-red-500/30">Delete</button>
                             </td>
@@ -1311,8 +1349,82 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
                 .catch(err => console.error(err));
         }
 
+        function loadInboundDestOptions() {
+            const destType = document.getElementById('inDestType').value;
+            const selectEl = document.getElementById('inDestTargetSelect');
+            const inputEl = document.getElementById('inDestTargetInput');
+            const actualInput = document.getElementById('inDestination');
+
+            selectEl.classList.add('hidden');
+            inputEl.classList.add('hidden');
+            selectEl.required = false;
+            inputEl.required = false;
+            
+            if (destType === 'extensions') {
+                selectEl.innerHTML = '<option value="">== choose extension ==</option>';
+                selectEl.classList.remove('hidden');
+                selectEl.required = true;
+                
+                loadedExtensionsList.forEach(ext => {
+                    const opt = document.createElement('option');
+                    opt.value = `from-did-direct,${ext.extension},1`;
+                    opt.textContent = `${ext.extension} - ${ext.name || ''}`;
+                    selectEl.appendChild(opt);
+                });
+                if (actualInput.value.startsWith('from-did-direct,')) {
+                    selectEl.value = actualInput.value;
+                }
+            } else if (destType === 'ringgroups') {
+                selectEl.innerHTML = '<option value="">== choose ring group ==</option>';
+                selectEl.classList.remove('hidden');
+                selectEl.required = true;
+                
+                loadedRingGroupsList.forEach(rg => {
+                    const opt = document.createElement('option');
+                    opt.value = `ext-group,${rg.grpnum},1`;
+                    opt.textContent = `${rg.grpnum} - ${rg.description || ''}`;
+                    selectEl.appendChild(opt);
+                });
+                if (actualInput.value.startsWith('ext-group,')) {
+                    selectEl.value = actualInput.value;
+                }
+            } else if (destType === 'custom') {
+                inputEl.classList.remove('hidden');
+                inputEl.required = true;
+                if (actualInput.value && !actualInput.value.startsWith('from-did-direct,') && !actualInput.value.startsWith('ext-group,')) {
+                    inputEl.value = actualInput.value;
+                } else {
+                    inputEl.value = '';
+                }
+            }
+        }
+
+        function onInboundDestTypeChange() {
+            loadInboundDestOptions();
+            updateInboundDestinationValue();
+        }
+
+        function updateInboundDestinationValue() {
+            const destType = document.getElementById('inDestType').value;
+            const selectEl = document.getElementById('inDestTargetSelect');
+            const inputEl = document.getElementById('inDestTargetInput');
+            const actualInput = document.getElementById('inDestination');
+            
+            if (destType === 'extensions' || destType === 'ringgroups') {
+                actualInput.value = selectEl.value;
+            } else if (destType === 'custom') {
+                actualInput.value = inputEl.value.trim();
+            } else {
+                actualInput.value = '';
+            }
+        }
+
         function openInboundModal() {
             document.getElementById('inboundForm').reset();
+            document.getElementById('inDestType').value = "";
+            document.getElementById('inDestTargetSelect').classList.add('hidden');
+            document.getElementById('inDestTargetInput').classList.add('hidden');
+            document.getElementById('inDestination').value = "";
             openModal('inboundModal');
         }
 
@@ -1321,6 +1433,11 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
             const description = document.getElementById('inDescription').value.trim();
             const extension = document.getElementById('inExtension').value.trim();
             const destination = document.getElementById('inDestination').value.trim();
+
+            if (!destination) {
+                showToast(isRtl ? 'يرجى اختيار الوجهة.' : 'Please select a destination.', 'error');
+                return;
+            }
 
             fetch('/api/config/routes/inbound', {
                 method: 'POST',
