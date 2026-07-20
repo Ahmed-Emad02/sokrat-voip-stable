@@ -2733,8 +2733,15 @@ app.post('/api/contacts/delete', async (req, res) => {
 // --- PBX CONFIGURATION TAB VIEW & REST APIS ---
 
 // GET /config - render Configuration Management page
-app.get('/config', (req, res) => {
-    res.render('config', { moment });
+app.get('/config', requireAuth, (req, res) => {
+    const currentLang = req.query.lang || 'en';
+    res.render('config', {
+        moment,
+        currentPage: '/config',
+        currentLang,
+        isRtl: currentLang === 'ar',
+        isSuperAdmin: isSuperAdmin(req)
+    });
 });
 
 // Helper function to reload PBX config via retrieve_conf & core reload
