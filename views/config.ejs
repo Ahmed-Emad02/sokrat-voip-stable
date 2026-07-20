@@ -339,12 +339,12 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
             <div class="config-card p-6">
                 <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
                     <div>
-                        <h2 class="text-lg font-extrabold text-[var(--text-primary)]"><%= isRtl ? 'خطوط الربط (SIP Trunks)' : 'SIP Trunks' %></h2>
-                        <p class="text-xs text-[var(--text-muted)]"><%= isRtl ? 'إعداد خطوط الربط الخارجي وتفاصيل PEER' : 'Manage SIP trunks and PEER configurations' %></p>
+                        <h2 class="text-lg font-extrabold text-[var(--text-primary)]"><%= isRtl ? 'خطوط الربط (Trunks)' : 'Trunks' %></h2>
+                        <p class="text-xs text-[var(--text-muted)]"><%= isRtl ? 'إعداد خطوط الربط ومسارات الاتصال المخصصة' : 'Manage custom trunks and dial strings' %></p>
                     </div>
                     <button onclick="openTrunkModal()" class="config-btn-primary px-4 py-2 flex items-center gap-2 text-xs cursor-pointer">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
-                        <span><%= isRtl ? 'إضافة خط ربط جديد' : 'Add SIP Trunk' %></span>
+                        <span><%= isRtl ? 'إضافة خط ربط جديد' : 'Add Trunk' %></span>
                     </button>
                 </div>
 
@@ -355,13 +355,12 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
                                 <th class="py-3 px-4">ID</th>
                                 <th class="py-3 px-4"><%= isRtl ? 'اسم الخط' : 'Trunk Name' %></th>
                                 <th class="py-3 px-4"><%= isRtl ? 'التقنية' : 'Tech' %></th>
-                                <th class="py-3 px-4"><%= isRtl ? 'رقم المتصل الصادر' : 'Outbound CID' %></th>
-                                <th class="py-3 px-4"><%= isRtl ? 'الحد الأقصى للقنوات' : 'Max Channels' %></th>
+                                <th class="py-3 px-4"><%= isRtl ? 'الطلب المخصص' : 'Custom Dial String' %></th>
                                 <th class="py-3 px-4 text-center"><%= isRtl ? 'الإجراءات' : 'Actions' %></th>
                             </tr>
                         </thead>
                         <tbody id="trunks-table-body" class="divide-y divide-[var(--border-primary)] text-sm font-medium text-[var(--text-primary)]">
-                            <tr><td colspan="6" class="py-8 text-center text-[var(--text-muted)]">Loading trunks...</td></tr>
+                            <tr><td colspan="5" class="py-8 text-center text-[var(--text-muted)]">Loading trunks...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -570,7 +569,7 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
     <div id="trunkModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-[var(--bg-secondary)] rounded-2xl border border-[var(--border-primary)] shadow-2xl max-w-xl w-full p-6 text-[var(--text-primary)]">
             <div class="flex items-center justify-between mb-5 pb-3 border-b border-[var(--border-primary)]">
-                <h3 id="trunkModalTitle" class="text-base font-extrabold text-[var(--text-primary)]">Add SIP Trunk</h3>
+                <h3 id="trunkModalTitle" class="text-base font-extrabold text-[var(--text-primary)]">Add Custom Trunk</h3>
                 <button onclick="closeModal('trunkModal')" class="text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer">✕</button>
             </div>
             <form id="trunkForm" onsubmit="saveTrunk(event)">
@@ -581,16 +580,11 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
                         <input type="text" id="trunkName" required placeholder="e.g. vodafone_trunk" class="config-input w-full font-mono">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Outbound CallerID</label>
-                        <input type="text" id="trunkCid" placeholder="e.g. 01012345678" class="config-input w-full">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Maximum Channels</label>
-                        <input type="number" id="trunkMaxChans" placeholder="e.g. 10" class="config-input w-full">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">PEER Details (Manual key=value lines)</label>
-                        <textarea id="trunkPeerDetails" rows="6" placeholder="host=192.168.100.50&#10;type=peer&#10;context=from-trunk&#10;secret=mysecret&#10;username=myuser&#10;insecure=port,invite&#10;disallow=all&#10;allow=ulaw,alaw" class="config-input w-full font-mono text-xs"></textarea>
+                        <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase mb-1">Custom Dial String *</label>
+                        <input type="text" id="trunkDialString" required placeholder="e.g. dongle/dongle0/$OUTNUM$" class="config-input w-full font-mono">
+                        <p class="text-[11px] text-[var(--text-muted)] mt-1">
+                            Format: <code>tech/dial_target/$OUTNUM$</code> or similar custom dialplan resource.
+                        </p>
                     </div>
                 </div>
                 <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-[var(--border-primary)]">
@@ -1206,7 +1200,7 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
                     if (!tbody) return;
                     tbody.innerHTML = '';
                     if (data.trunks.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-[var(--text-muted)]">No trunks found.</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="5" class="py-6 text-center text-[var(--text-muted)]">No trunks found.</td></tr>';
                         return;
                     }
                     data.trunks.forEach(t => {
@@ -1216,11 +1210,10 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
                             <td class="py-3 px-4 font-mono font-bold text-[var(--text-muted)]">${t.trunkid}</td>
                             <td class="py-3 px-4 font-bold text-[var(--text-primary)] font-mono">${t.name}</td>
                             <td class="py-3 px-4 font-mono text-xs uppercase text-[var(--text-secondary)]">${t.tech}</td>
-                            <td class="py-3 px-4 font-mono text-xs text-[var(--text-secondary)]">${t.outcid || '-'}</td>
-                            <td class="py-3 px-4 font-mono text-xs text-[var(--text-secondary)]">${t.maxchans || 'Unlimited'}</td>
+                            <td class="py-3 px-4 font-mono text-xs text-blue-400 font-semibold">${t.channelid || '-'}</td>
                             <td class="py-3 px-4 text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    <button onclick="editTrunk(${t.trunkid}, '${t.name}', '${t.outcid}', '${t.maxchans}', \`${t.peerdetails.replace(/`/g, '\\`')}\`)" class="px-2.5 py-1 text-xs font-semibold text-blue-400 hover:bg-blue-500/10 rounded border border-blue-500/30">Edit</button>
+                                    <button onclick="editTrunk(${t.trunkid}, '${t.name}', \`${(t.channelid || '').replace(/`/g, '\\`')}\`)" class="px-2.5 py-1 text-xs font-semibold text-blue-400 hover:bg-blue-500/10 rounded border border-blue-500/30">Edit</button>
                                     <button onclick="deleteTrunk(${t.trunkid})" class="px-2.5 py-1 text-xs font-semibold text-red-400 hover:bg-red-500/10 rounded border border-red-500/30">Delete</button>
                                 </div>
                             </td>
@@ -1232,19 +1225,17 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
         }
 
         function openTrunkModal() {
-            document.getElementById('trunkModalTitle').textContent = isRtl ? 'إضافة خط ربط جديد' : 'Add SIP Trunk';
+            document.getElementById('trunkModalTitle').textContent = isRtl ? 'إضافة خط ربط جديد' : 'Add Custom Trunk';
             document.getElementById('trunkEditId').value = "";
             document.getElementById('trunkForm').reset();
             openModal('trunkModal');
         }
 
-        function editTrunk(trunkid, name, outcid, maxchans, peerdetails) {
+        function editTrunk(trunkid, name, channelid) {
             document.getElementById('trunkModalTitle').textContent = (isRtl ? 'تعديل خط الربط ' : 'Edit Trunk ') + name;
             document.getElementById('trunkEditId').value = trunkid;
             document.getElementById('trunkName').value = name || '';
-            document.getElementById('trunkCid').value = outcid || '';
-            document.getElementById('trunkMaxChans').value = maxchans || '';
-            document.getElementById('trunkPeerDetails').value = peerdetails || '';
+            document.getElementById('trunkDialString').value = channelid || '';
             openModal('trunkModal');
         }
 
@@ -1252,9 +1243,7 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
             e.preventDefault();
             const editId = document.getElementById('trunkEditId').value;
             const name = document.getElementById('trunkName').value.trim();
-            const outcid = document.getElementById('trunkCid').value.trim();
-            const maxchans = document.getElementById('trunkMaxChans').value.trim();
-            const peerdetails = document.getElementById('trunkPeerDetails').value;
+            const channelid = document.getElementById('trunkDialString').value.trim();
 
             const url = editId ? '/api/config/trunks/' + editId : '/api/config/trunks';
             const method = editId ? 'PUT' : 'POST';
@@ -1262,7 +1251,7 @@ var isRtl = (typeof isRtl !== 'undefined') ? isRtl : (activeLang === 'ar');
             fetch(url, {
                 method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, outcid, maxchans, peerdetails })
+                body: JSON.stringify({ name, channelid })
             })
             .then(res => res.json())
             .then(data => {

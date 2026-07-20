@@ -3156,118 +3156,68 @@ app.get('/api/config/recordings/audio/:id', async (req, res) => {
 
 // --- 3. TRUNKS MANAGEMENT APIs ---
 
-// GET /api/config/trunks - List Trunks with PEER details
+// GET /api/config/trunks - List Trunks
 app.get('/api/config/trunks', async (req, res) => {
     try {
         const [trunks] = await pool.query(`
-            SELECT trunkid, name, tech, outcid, maxchans, channelid, disabled
+            SELECT trunkid, name, tech, channelid, disabled
             FROM \`asterisk\`.\`trunks\`
             ORDER BY trunkid ASC
         `);
-
-        // For each trunk, fetch sip peer details if tech === 'sip'
-        for (const t of trunks) {
-            if (t.tech === 'sip') {
-                const trunkSipId = `tr-trunk-${t.trunkid}`;
-                const [sipRows] = await pool.query(`
-                    SELECT keyword, data FROM \`asterisk\`.\`sip\` WHERE id = ? OR id = ?
-                `, [trunkSipId, t.name]);
-                t.peerdetails = sipRows.map(r => `${r.keyword}=${r.data}`).join('\n');
-            } else {
-                t.peerdetails = '';
-            }
-        }
-
         res.json({ success: true, trunks });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-// POST /api/config/trunks - Create Trunk
+// POST /api/config/trunks - Create Custom Trunk
 app.post('/api/config/trunks', async (req, res) => {
     try {
-        const { name, outcid, maxchans, peerdetails } = req.body;
+        const { name, channelid } = req.body;
         if (!name || !name.trim()) {
             return res.status(400).json({ success: false, error: 'Trunk Name is required.' });
         }
-
-        const trunkName = String(name).trim();
-        const cid = String(outcid || '').trim();
-        const chans = String(maxchans || '').trim();
-
-        // 1. Insert into trunks
-        const [result] = await pool.query(`
-            INSERT INTO \`asterisk\`.\`trunks\` (name, tech, outcid, keepcid, maxchans, failscript, dialoutprefix, channelid, disabled, continue)
-            VALUES (?, 'sip', ?, 'off', ?, '', '', ?, 'off', 'off')
-        `, [trunkName, cid, chans, trunkName]);
-
-        const trunkId = result.insertId;
-        const sipId = `tr-trunk-${trunkId}`;
-
-        // 2. Parse PEER details text area lines (key=value)
-        if (peerdetails && peerdetails.trim()) {
-            const lines = peerdetails.split('\n');
-            let flag = 0;
-            for (const line of lines) {
-                const trimmed = line.trim();
-                if (!trimmed || trimmed.startsWith(';') || !trimmed.includes('=')) continue;
-                const eqIdx = trimmed.indexOf('=');
-                const key = trimmed.substring(0, eqIdx).trim();
-                const val = trimmed.substring(eqIdx + 1).trim();
-                if (key) {
-                    await pool.query(`
-                        INSERT INTO \`asterisk\`.\`sip\` (id, keyword, data, flags)
-                        VALUES (?, ?, ?, ?)
-                    `, [sipId, key, val, flag++]);
-                }
-            }
+        if (!channelid || !channelid.trim()) {
+            return res.status(400).json({ success: false, error: 'Custom Dial String is required.' });
         }
 
-        res.json({ success: true, message: `SIP Trunk '${trunkName}' created successfully.` });
+        const trunkName = String(name).trim();
+        const dialString = String(channelid).trim();
+
+        // Insert into trunks table as tech='custom'
+        await pool.query(`
+            INSERT INTO \`asterisk\`.\`trunks\` (name, tech, outcid, keepcid, maxchans, failscript, dialoutprefix, channelid, disabled, continue)
+            VALUES (?, 'custom', '', 'off', '', '', '', ?, 'off', 'off')
+        `, [trunkName, dialString]);
+
+        res.json({ success: true, message: `Custom Trunk '${trunkName}' created successfully.` });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-// PUT /api/config/trunks/:trunkid - Modify Trunk
+// PUT /api/config/trunks/:trunkid - Modify Custom Trunk
 app.put('/api/config/trunks/:trunkid', async (req, res) => {
     try {
         const trunkId = parseInt(req.params.trunkid, 10);
-        const { name, outcid, maxchans, peerdetails } = req.body;
+        const { name, channelid } = req.body;
+        if (!name || !name.trim()) {
+            return res.status(400).json({ success: false, error: 'Trunk Name is required.' });
+        }
+        if (!channelid || !channelid.trim()) {
+            return res.status(400).json({ success: false, error: 'Custom Dial String is required.' });
+        }
 
-        const trunkName = String(name || '').trim();
-        const cid = String(outcid || '').trim();
-        const chans = String(maxchans || '').trim();
+        const trunkName = String(name).trim();
+        const dialString = String(channelid).trim();
 
         await pool.query(`
             UPDATE \`asterisk\`.\`trunks\`
-            SET name = ?, outcid = ?, maxchans = ?, channelid = ?
+            SET name = ?, channelid = ?, tech = 'custom'
             WHERE trunkid = ?
-        `, [trunkName, cid, chans, trunkName, trunkId]);
+        `, [trunkName, dialString, trunkId]);
 
-        const sipId = `tr-trunk-${trunkId}`;
-        await pool.query('DELETE FROM `asterisk`.`sip` WHERE id = ? OR id = ?', [sipId, trunkName]);
-
-        if (peerdetails && peerdetails.trim()) {
-            const lines = peerdetails.split('\n');
-            let flag = 0;
-            for (const line of lines) {
-                const trimmed = line.trim();
-                if (!trimmed || trimmed.startsWith(';') || !trimmed.includes('=')) continue;
-                const eqIdx = trimmed.indexOf('=');
-                const key = trimmed.substring(0, eqIdx).trim();
-                const val = trimmed.substring(eqIdx + 1).trim();
-                if (key) {
-                    await pool.query(`
-                        INSERT INTO \`asterisk\`.\`sip\` (id, keyword, data, flags)
-                        VALUES (?, ?, ?, ?)
-                    `, [sipId, key, val, flag++]);
-                }
-            }
-        }
-
-        res.json({ success: true, message: `Trunk updated successfully.` });
+        res.json({ success: true, message: `Custom Trunk '${trunkName}' updated successfully.` });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
