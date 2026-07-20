@@ -104,7 +104,7 @@ app.use(session({
 }));
 
 // --- DATABASE INIT & AUTO-PROVISION ---
-const ALL_TABS = ['dashboard', 'cdr', 'voicemails', 'ext-stats', 'operator', 'gsm-dongles', 'users'];
+const ALL_TABS = ['dashboard', 'cdr', 'voicemails', 'ext-stats', 'operator', 'gsm-dongles', 'contacts', 'users', 'config'];
 
 async function initAuthDb() {
     const conn = await mysql.createConnection({
@@ -214,7 +214,8 @@ const TAB_ROUTE_MAP = {
     '/operator': 'operator',
     '/gsm-dongles': 'gsm-dongles',
     '/contacts': 'contacts',
-    '/users': 'users'
+    '/users': 'users',
+    '/config': 'config'
 };
 
 // --- AUTH MIDDLEWARE ---
@@ -270,7 +271,7 @@ app.use(async (req, res, next) => {
     res.locals.allowedTabs = req.session.userPermissions;
     if (req.session.userPermissions.includes(tab)) return next();
     // Denied — redirect to the first tab they *can* access, or /login
-    const tabToRoute = { dashboard: '/', cdr: '/cdr', voicemails: '/voicemails', 'ext-stats': '/ext-stats', operator: '/operator', 'gsm-dongles': '/gsm-dongles', users: '/users' };
+    const tabToRoute = { dashboard: '/', cdr: '/cdr', voicemails: '/voicemails', 'ext-stats': '/ext-stats', operator: '/operator', 'gsm-dongles': '/gsm-dongles', contacts: '/contacts', users: '/users', config: '/config' };
     const firstAllowed = req.session.userPermissions.find(p => tabToRoute[p]);
     res.redirect(firstAllowed ? tabToRoute[firstAllowed] : '/login');
 });
@@ -2726,6 +2727,548 @@ app.post('/api/contacts/delete', async (req, res) => {
         res.json({ success: true, message: 'Contact deleted successfully.' });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// --- PBX CONFIGURATION TAB VIEW & REST APIS ---
+
+// GET /config - render Configuration Management page
+app.get('/config', (req, res) => {
+    res.render('config', { moment });
+});
+
+// Helper function to reload PBX config via retrieve_conf & core reload
+function reloadPbxConfig(callback) {
+    const cmd = 'sudo -u asterisk /var/lib/asterisk/bin/retrieve_conf && /usr/sbin/asterisk -rx "core reload"';
+    exec(cmd, (error, stdout, stderr) => {
+        if (error) {
+            console.error('PBX Reload error:', error.message);
+            return callback({ success: false, error: error.message, details: stderr });
+        }
+        console.log('PBX Reload success:', stdout);
+        return callback({ success: true, output: stdout });
+    });
+}
+
+// POST /api/config/reload - Trigger retrieve_conf and core reload
+app.post('/api/config/reload', (req, res) => {
+    reloadPbxConfig((result) => {
+        if (!result.success) {
+            return res.status(500).json(result);
+        }
+        res.json(result);
+    });
+});
+
+// --- 1. EXTENSIONS MANAGEMENT APIs ---
+
+// GET /api/config/extensions - List all Extensions
+app.get('/api/config/extensions', async (req, res) => {
+    try {
+        const [extensions] = await pool.query(`
+            SELECT u.extension, u.name, u.outboundcid,
+                   s_secret.data AS secret, s_context.data AS context
+            FROM \`asterisk\`.\`users\` u
+            LEFT JOIN \`asterisk\`.\`sip\` s_secret ON s_secret.id = u.extension AND s_secret.keyword = 'secret'
+            LEFT JOIN \`asterisk\`.\`sip\` s_context ON s_context.id = u.extension AND s_context.keyword = 'context'
+            ORDER BY CAST(u.extension AS UNSIGNED) ASC
+        `);
+        res.json({ success: true, extensions });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// POST /api/config/extensions - Create new Extension
+app.post('/api/config/extensions', async (req, res) => {
+    try {
+        const { extension, name, secret, context } = req.body;
+        if (!extension || !/^\d+$/.test(extension)) {
+            return res.status(400).json({ success: false, error: 'Valid numeric Extension number is required.' });
+        }
+        if (!name || !name.trim()) {
+            return res.status(400).json({ success: false, error: 'Display Name is required.' });
+        }
+        if (!secret || !secret.trim()) {
+            return res.status(400).json({ success: false, error: 'Secret (password) is required.' });
+        }
+
+        const extNum = String(extension).trim();
+        const displayName = String(name).trim();
+        const extSecret = String(secret).trim();
+        const extContext = (context && context.trim()) ? context.trim() : 'from-internal';
+
+        // Check if extension already exists
+        const [existing] = await pool.query('SELECT extension FROM `asterisk`.`users` WHERE extension = ?', [extNum]);
+        if (existing.length > 0) {
+            return res.status(400).json({ success: false, error: `Extension ${extNum} already exists.` });
+        }
+
+        // 1. Insert into users
+        await pool.query(`
+            INSERT INTO \`asterisk\`.\`users\` (extension, password, name, voicemail, ringtimer, noanswer, recording, outboundcid, sipname, mohclass)
+            VALUES (?, '', ?, 'novm', 0, '', '', '', '', 'default')
+        `, [extNum, displayName]);
+
+        // 2. Insert into devices
+        await pool.query(`
+            INSERT INTO \`asterisk\`.\`devices\` (id, tech, dial, devicetype, user, description, emergency_cid)
+            VALUES (?, 'sip', CONCAT('SIP/', ?), 'fixed', ?, ?, '')
+        `, [extNum, extNum, extNum, displayName]);
+
+        // 3. Batch insert into sip table
+        const sipPairs = [
+            [extNum, 'account', extNum, 32],
+            [extNum, 'accountcode', '', 28],
+            [extNum, 'allow', '', 26],
+            [extNum, 'avpf', 'no', 15],
+            [extNum, 'callerid', `${displayName} <${extNum}>`, 33],
+            [extNum, 'canreinvite', 'no', 4],
+            [extNum, 'context', extContext, 5],
+            [extNum, 'deny', '0.0.0.0/0.0.0.0', 30],
+            [extNum, 'dial', `SIP/${extNum}`, 27],
+            [extNum, 'disallow', '', 25],
+            [extNum, 'dtmfmode', 'rfc2833', 3],
+            [extNum, 'encryption', 'no', 22],
+            [extNum, 'host', 'dynamic', 6],
+            [extNum, 'mailbox', `${extNum}@device`, 29],
+            [extNum, 'nat', 'yes', 10],
+            [extNum, 'permit', '0.0.0.0/0.0.0.0', 31],
+            [extNum, 'port', '5060', 11],
+            [extNum, 'qualify', 'yes', 12],
+            [extNum, 'qualifyfreq', '60', 13],
+            [extNum, 'secret', extSecret, 2],
+            [extNum, 'sendrpid', 'no', 8],
+            [extNum, 'transport', 'udp', 14],
+            [extNum, 'trustrpid', 'yes', 7],
+            [extNum, 'type', 'friend', 9]
+        ];
+
+        for (const [id, kw, data, flags] of sipPairs) {
+            await pool.query(`
+                INSERT INTO \`asterisk\`.\`sip\` (id, keyword, data, flags)
+                VALUES (?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE data = VALUES(data), flags = VALUES(flags)
+            `, [id, kw, data, flags]);
+        }
+
+        res.json({ success: true, message: `Extension ${extNum} created in Issabel DB successfully.` });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// PUT /api/config/extensions/:extension - Modify Extension
+app.put('/api/config/extensions/:extension', async (req, res) => {
+    try {
+        const extNum = String(req.params.extension).trim();
+        const { name, secret, context } = req.body;
+
+        const displayName = String(name || '').trim();
+        const extSecret = String(secret || '').trim();
+        const extContext = String(context || 'from-internal').trim();
+
+        if (displayName) {
+            await pool.query('UPDATE `asterisk`.`users` SET name = ? WHERE extension = ?', [displayName, extNum]);
+            await pool.query('UPDATE `asterisk`.`devices` SET description = ? WHERE id = ?', [displayName, extNum]);
+            await pool.query('UPDATE `asterisk`.`sip` SET data = ? WHERE id = ? AND keyword = "callerid"', [`${displayName} <${extNum}>`, extNum]);
+        }
+        if (extSecret) {
+            await pool.query('UPDATE `asterisk`.`sip` SET data = ? WHERE id = ? AND keyword = "secret"', [extSecret, extNum]);
+        }
+        if (extContext) {
+            await pool.query('UPDATE `asterisk`.`sip` SET data = ? WHERE id = ? AND keyword = "context"', [extContext, extNum]);
+        }
+
+        res.json({ success: true, message: `Extension ${extNum} updated successfully.` });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// DELETE /api/config/extensions/:extension - Delete Extension
+app.delete('/api/config/extensions/:extension', async (req, res) => {
+    try {
+        const extNum = String(req.params.extension).trim();
+        await pool.query('DELETE FROM `asterisk`.`users` WHERE extension = ?', [extNum]);
+        await pool.query('DELETE FROM `asterisk`.`devices` WHERE id = ?', [extNum]);
+        await pool.query('DELETE FROM `asterisk`.`sip` WHERE id = ?', [extNum]);
+
+        res.json({ success: true, message: `Extension ${extNum} deleted successfully.` });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// --- 2. RING GROUPS MANAGEMENT APIs ---
+
+// GET /api/config/ringgroups - List Ring Groups
+app.get('/api/config/ringgroups', async (req, res) => {
+    try {
+        const [ringgroups] = await pool.query(`
+            SELECT grpnum, strategy, grptime, grplist, description, postdest
+            FROM \`asterisk\`.\`ringgroups\`
+            ORDER BY CAST(grpnum AS UNSIGNED) ASC
+        `);
+        res.json({ success: true, ringgroups });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// POST /api/config/ringgroups - Create Ring Group
+app.post('/api/config/ringgroups', async (req, res) => {
+    try {
+        const { grpnum, description, grplist, strategy, grptime } = req.body;
+        if (!grpnum || !/^\d+$/.test(grpnum)) {
+            return res.status(400).json({ success: false, error: 'Valid numeric Ring Group number is required.' });
+        }
+        if (!description || !description.trim()) {
+            return res.status(400).json({ success: false, error: 'Description is required.' });
+        }
+        if (!grplist || !grplist.trim()) {
+            return res.status(400).json({ success: false, error: 'Extension List is required.' });
+        }
+
+        const num = String(grpnum).trim();
+        const desc = String(description).trim();
+
+        // Format extension list (e.g. "101-102-103")
+        const extListFormatted = String(grplist).replace(/[\r\n, ]+/g, '-').replace(/^-+|-+$/g, '');
+        const ringStrategy = strategy || 'ringall';
+        const ringTime = parseInt(grptime, 10) || 20;
+        const postDest = `ext-group,${num},1`;
+
+        const [existing] = await pool.query('SELECT grpnum FROM `asterisk`.`ringgroups` WHERE grpnum = ?', [num]);
+        if (existing.length > 0) {
+            return res.status(400).json({ success: false, error: `Ring Group ${num} already exists.` });
+        }
+
+        await pool.query(`
+            INSERT INTO \`asterisk\`.\`ringgroups\` 
+            (grpnum, strategy, grptime, grppre, grplist, annmsg_id, postdest, description, alertinfo, remotealert_id, needsconf, toolate_id, ringing, cwignore, cfignore, cpickup, recording)
+            VALUES (?, ?, ?, '', ?, 0, ?, ?, '', 0, '', 0, 'Ring', '', '', '', 'dontcare')
+        `, [num, ringStrategy, ringTime, extListFormatted, postDest, desc]);
+
+        res.json({ success: true, message: `Ring Group ${num} created successfully.` });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// PUT /api/config/ringgroups/:grpnum - Modify Ring Group
+app.put('/api/config/ringgroups/:grpnum', async (req, res) => {
+    try {
+        const num = String(req.params.grpnum).trim();
+        const { description, grplist, strategy, grptime } = req.body;
+
+        const desc = String(description || '').trim();
+        const extListFormatted = String(grplist || '').replace(/[\r\n, ]+/g, '-').replace(/^-+|-+$/g, '');
+        const ringStrategy = strategy || 'ringall';
+        const ringTime = parseInt(grptime, 10) || 20;
+
+        await pool.query(`
+            UPDATE \`asterisk\`.\`ringgroups\`
+            SET description = ?, grplist = ?, strategy = ?, grptime = ?
+            WHERE grpnum = ?
+        `, [desc, extListFormatted, ringStrategy, ringTime, num]);
+
+        res.json({ success: true, message: `Ring Group ${num} updated successfully.` });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// DELETE /api/config/ringgroups/:grpnum - Delete Ring Group
+app.delete('/api/config/ringgroups/:grpnum', async (req, res) => {
+    try {
+        const num = String(req.params.grpnum).trim();
+        await pool.query('DELETE FROM `asterisk`.`ringgroups` WHERE grpnum = ?', [num]);
+        res.json({ success: true, message: `Ring Group ${num} deleted successfully.` });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// --- 3. TRUNKS MANAGEMENT APIs ---
+
+// GET /api/config/trunks - List Trunks with PEER details
+app.get('/api/config/trunks', async (req, res) => {
+    try {
+        const [trunks] = await pool.query(`
+            SELECT trunkid, name, tech, outcid, maxchans, channelid, disabled
+            FROM \`asterisk\`.\`trunks\`
+            ORDER BY trunkid ASC
+        `);
+
+        // For each trunk, fetch sip peer details if tech === 'sip'
+        for (const t of trunks) {
+            if (t.tech === 'sip') {
+                const trunkSipId = `tr-trunk-${t.trunkid}`;
+                const [sipRows] = await pool.query(`
+                    SELECT keyword, data FROM \`asterisk\`.\`sip\` WHERE id = ? OR id = ?
+                `, [trunkSipId, t.name]);
+                t.peerdetails = sipRows.map(r => `${r.keyword}=${r.data}`).join('\n');
+            } else {
+                t.peerdetails = '';
+            }
+        }
+
+        res.json({ success: true, trunks });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// POST /api/config/trunks - Create Trunk
+app.post('/api/config/trunks', async (req, res) => {
+    try {
+        const { name, outcid, maxchans, peerdetails } = req.body;
+        if (!name || !name.trim()) {
+            return res.status(400).json({ success: false, error: 'Trunk Name is required.' });
+        }
+
+        const trunkName = String(name).trim();
+        const cid = String(outcid || '').trim();
+        const chans = String(maxchans || '').trim();
+
+        // 1. Insert into trunks
+        const [result] = await pool.query(`
+            INSERT INTO \`asterisk\`.\`trunks\` (name, tech, outcid, keepcid, maxchans, failscript, dialoutprefix, channelid, disabled, continue)
+            VALUES (?, 'sip', ?, 'off', ?, '', '', ?, 'off', 'off')
+        `, [trunkName, cid, chans, trunkName]);
+
+        const trunkId = result.insertId;
+        const sipId = `tr-trunk-${trunkId}`;
+
+        // 2. Parse PEER details text area lines (key=value)
+        if (peerdetails && peerdetails.trim()) {
+            const lines = peerdetails.split('\n');
+            let flag = 0;
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed || trimmed.startsWith(';') || !trimmed.includes('=')) continue;
+                const eqIdx = trimmed.indexOf('=');
+                const key = trimmed.substring(0, eqIdx).trim();
+                const val = trimmed.substring(eqIdx + 1).trim();
+                if (key) {
+                    await pool.query(`
+                        INSERT INTO \`asterisk\`.\`sip\` (id, keyword, data, flags)
+                        VALUES (?, ?, ?, ?)
+                    `, [sipId, key, val, flag++]);
+                }
+            }
+        }
+
+        res.json({ success: true, message: `SIP Trunk '${trunkName}' created successfully.` });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// PUT /api/config/trunks/:trunkid - Modify Trunk
+app.put('/api/config/trunks/:trunkid', async (req, res) => {
+    try {
+        const trunkId = parseInt(req.params.trunkid, 10);
+        const { name, outcid, maxchans, peerdetails } = req.body;
+
+        const trunkName = String(name || '').trim();
+        const cid = String(outcid || '').trim();
+        const chans = String(maxchans || '').trim();
+
+        await pool.query(`
+            UPDATE \`asterisk\`.\`trunks\`
+            SET name = ?, outcid = ?, maxchans = ?, channelid = ?
+            WHERE trunkid = ?
+        `, [trunkName, cid, chans, trunkName, trunkId]);
+
+        const sipId = `tr-trunk-${trunkId}`;
+        await pool.query('DELETE FROM `asterisk`.`sip` WHERE id = ? OR id = ?', [sipId, trunkName]);
+
+        if (peerdetails && peerdetails.trim()) {
+            const lines = peerdetails.split('\n');
+            let flag = 0;
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed || trimmed.startsWith(';') || !trimmed.includes('=')) continue;
+                const eqIdx = trimmed.indexOf('=');
+                const key = trimmed.substring(0, eqIdx).trim();
+                const val = trimmed.substring(eqIdx + 1).trim();
+                if (key) {
+                    await pool.query(`
+                        INSERT INTO \`asterisk\`.\`sip\` (id, keyword, data, flags)
+                        VALUES (?, ?, ?, ?)
+                    `, [sipId, key, val, flag++]);
+                }
+            }
+        }
+
+        res.json({ success: true, message: `Trunk updated successfully.` });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// DELETE /api/config/trunks/:trunkid - Delete Trunk
+app.delete('/api/config/trunks/:trunkid', async (req, res) => {
+    try {
+        const trunkId = parseInt(req.params.trunkid, 10);
+        const [tRows] = await pool.query('SELECT name FROM `asterisk`.`trunks` WHERE trunkid = ?', [trunkId]);
+        const name = tRows[0] ? tRows[0].name : '';
+
+        await pool.query('DELETE FROM `asterisk`.`trunks` WHERE trunkid = ?', [trunkId]);
+        await pool.query('DELETE FROM `asterisk`.`sip` WHERE id = ? OR id = ?', [`tr-trunk-${trunkId}`, name]);
+        await pool.query('DELETE FROM `asterisk`.`outbound_route_trunks` WHERE trunk_id = ?', [trunkId]);
+
+        res.json({ success: true, message: `Trunk deleted successfully.` });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// --- 4. INBOUND & OUTBOUND ROUTES MANAGEMENT APIs ---
+
+// GET /api/config/routes/inbound - List Inbound Routes
+app.get('/api/config/routes/inbound', async (req, res) => {
+    try {
+        const [routes] = await pool.query(`
+            SELECT cidnum, extension, destination, description
+            FROM \`asterisk\`.\`incoming\`
+            ORDER BY description ASC
+        `);
+        res.json({ success: true, routes });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// POST /api/config/routes/inbound - Create Inbound Route
+app.post('/api/config/routes/inbound', async (req, res) => {
+    try {
+        const { description, extension, cidnum, destination } = req.body;
+        if (!description || !description.trim()) {
+            return res.status(400).json({ success: false, error: 'Route Description is required.' });
+        }
+        if (!destination || !destination.trim()) {
+            return res.status(400).json({ success: false, error: 'Destination is required.' });
+        }
+
+        const desc = String(description).trim();
+        const ext = String(extension || '').trim();
+        const cid = String(cidnum || '').trim();
+        const dest = String(destination).trim();
+
+        await pool.query(`
+            INSERT INTO \`asterisk\`.\`incoming\`
+            (cidnum, extension, destination, answer, wait, privacyman, mohclass, description, grppre, delay_answer, pricid, pmmaxretries, pmminlength)
+            VALUES (?, ?, ?, NULL, NULL, 0, 'default', ?, '', 0, '', '3', '10')
+        `, [cid, ext, dest, desc]);
+
+        res.json({ success: true, message: `Inbound Route '${desc}' created successfully.` });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// DELETE /api/config/routes/inbound - Delete Inbound Route
+app.delete('/api/config/routes/inbound', async (req, res) => {
+    try {
+        const { extension, cidnum, description } = req.body;
+        await pool.query(`
+            DELETE FROM \`asterisk\`.\`incoming\`
+            WHERE (extension = ? OR (extension IS NULL AND ? = ''))
+              AND (cidnum = ? OR (cidnum IS NULL AND ? = ''))
+              AND description = ?
+        `, [extension || '', extension || '', cidnum || '', cidnum || '', description || '']);
+
+        res.json({ success: true, message: 'Inbound Route deleted successfully.' });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// GET /api/config/routes/outbound - List Outbound Routes
+app.get('/api/config/routes/outbound', async (req, res) => {
+    try {
+        const [routes] = await pool.query(`
+            SELECT r.route_id, r.name, r.outcid,
+                   p.match_pattern_prefix, p.match_pattern_pass, p.match_cid,
+                   t.trunk_id, tr.name AS trunk_name
+            FROM \`asterisk\`.\`outbound_routes\` r
+            LEFT JOIN \`asterisk\`.\`outbound_route_patterns\` p ON p.route_id = r.route_id
+            LEFT JOIN \`asterisk\`.\`outbound_route_trunks\` t ON t.route_id = r.route_id
+            LEFT JOIN \`asterisk\`.\`trunks\` tr ON tr.trunkid = t.trunk_id
+            ORDER BY r.route_id ASC
+        `);
+        res.json({ success: true, routes });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// POST /api/config/routes/outbound - Create Outbound Route
+app.post('/api/config/routes/outbound', async (req, res) => {
+    try {
+        const { name, match_pattern_prefix, match_pattern_pass, match_cid, trunk_id } = req.body;
+        if (!name || !name.trim()) {
+            return res.status(400).json({ success: false, error: 'Route Name is required.' });
+        }
+        if (!match_pattern_pass || !match_pattern_pass.trim()) {
+            return res.status(400).json({ success: false, error: 'Match Pattern is required.' });
+        }
+
+        const routeName = String(name).trim();
+        const prefix = String(match_pattern_prefix || '').trim();
+        const pattern = String(match_pattern_pass).trim();
+        const cid = String(match_cid || '').trim();
+        const trunkId = parseInt(trunk_id, 10);
+
+        // 1. Insert into outbound_routes
+        const [rResult] = await pool.query(`
+            INSERT INTO \`asterisk\`.\`outbound_routes\` (name, outcid, outcid_mode, password, emergency_route, intracompany_route, mohclass)
+            VALUES (?, '', '', '', '', '', 'default')
+        `, [routeName]);
+
+        const routeId = rResult.insertId;
+
+        // 2. Insert into outbound_route_patterns
+        await pool.query(`
+            INSERT INTO \`asterisk\`.\`outbound_route_patterns\` (route_id, match_pattern_prefix, match_pattern_pass, match_cid, prepend_digits)
+            VALUES (?, ?, ?, ?, '')
+        `, [routeId, prefix, pattern, cid]);
+
+        // 3. Insert into outbound_route_trunks
+        if (trunkId) {
+            await pool.query(`
+                INSERT INTO \`asterisk\`.\`outbound_route_trunks\` (route_id, trunk_id, seq)
+                VALUES (?, ?, 0)
+            `, [routeId, trunkId]);
+        }
+
+        // 4. Insert into outbound_route_sequence
+        await pool.query(`
+            INSERT INTO \`asterisk\`.\`outbound_route_sequence\` (route_id, seq)
+            VALUES (?, 0)
+        `, [routeId]);
+
+        res.json({ success: true, message: `Outbound Route '${routeName}' created successfully.` });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// DELETE /api/config/routes/outbound/:route_id - Delete Outbound Route
+app.delete('/api/config/routes/outbound/:route_id', async (req, res) => {
+    try {
+        const routeId = parseInt(req.params.route_id, 10);
+        await pool.query('DELETE FROM `asterisk`.`outbound_routes` WHERE route_id = ?', [routeId]);
+        await pool.query('DELETE FROM `asterisk`.`outbound_route_patterns` WHERE route_id = ?', [routeId]);
+        await pool.query('DELETE FROM `asterisk`.`outbound_route_trunks` WHERE route_id = ?', [routeId]);
+        await pool.query('DELETE FROM `asterisk`.`outbound_route_sequence` WHERE route_id = ?', [routeId]);
+
+        res.json({ success: true, message: 'Outbound Route deleted successfully.' });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
     }
 });
 

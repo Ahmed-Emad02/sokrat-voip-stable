@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="<%= currentLang %>" dir="<%= isRtl ? 'rtl' : 'ltr' %>">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PBX Configuration — Issabel Analytics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Light Theme Enforced Container */
+        .config-page-theme {
+            background-color: #f8fafc !important;
+            color: #0f172a !important;
+            font-family: 'Plus Jakarta Sans', 'Cairo', sans-serif;
+        }
+        .config-card {
+            background-color: #ffffff !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03) !important;
+            border-radius: 0.75rem !important;
+        }
+        .config-input {
+            background-color: #ffffff !important;
+            border: 1px solid #cbd5e1 !important;
+            color: #0f172a !important;
+            font-size: 0.875rem !important;
+            border-radius: 0.5rem !important;
+            padding: 0.5rem 0.75rem !important;
+        }
+        .config-input:focus {
+            outline: 2px solid #dc2626 !important;
+            border-color: #dc2626 !important;
+        }
+        .config-btn-primary {
+            background-color: #dc2626 !important;
+            color: #ffffff !important;
+            font-weight: 700 !important;
+            border-radius: 0.5rem !important;
+            transition: all 150ms ease-in-out !important;
+        }
+        .config-btn-primary:hover {
+            background-color: #b91c1c !important;
+        }
+        .config-btn-secondary {
+            background-color: #f1f5f9 !important;
+            color: #334155 !important;
+            border: 1px solid #cbd5e1 !important;
+            font-weight: 600 !important;
+            border-radius: 0.5rem !important;
+            transition: all 150ms ease-in-out !important;
+        }
+        .config-btn-secondary:hover {
+            background-color: #e2e8f0 !important;
+            color: #0f172a !important;
+        }
+        .config-tab-btn {
+            font-weight: 700;
+            font-size: 0.875rem;
+            padding: 0.625rem 1.25rem;
+            border-radius: 0.5rem;
+            transition: all 150ms ease;
+            cursor: pointer;
+        }
+        .config-tab-active {
+            background-color: #dc2626 !important;
+            color: #ffffff !important;
+            box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2) !important;
+        }
+        .config-tab-inactive {
+            background-color: #ffffff !important;
+            color: #475569 !important;
+            border: 1px solid #e2e8f0 !important;
+        }
+        .config-tab-inactive:hover {
+            background-color: #f8fafc !important;
+            color: #0f172a !important;
+        }
+    </style>
+</head>
+<body class="config-page-theme min-h-screen flex flex-col">
+
+    <%- include('sidebar') %>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-20 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <main class="flex-1 p-6 md:p-8 max-w-[1600px] w-full mx-auto">
+
+        <!-- Page Header & Global PBX Reload Action -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <div>
+                <div class="flex items-center gap-3">
+                    <div class="p-2.5 bg-red-50 text-red-600 rounded-lg border border-red-100">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-black text-slate-900 tracking-tight">
+                            <%= isRtl ? 'إدارة إعدادات المقسم (PBX Manager)' : 'PBX Configuration Manager' %>
+                        </h1>
+                        <p class="text-sm text-slate-500 font-medium mt-0.5">
+                            <%= isRtl ? 'التحكم المباشر في قاعدة بيانات Issabel/FreePBX وتطبيق التغييرات فوريًا' : 'Direct FreePBX/Issabel Database Controller & Core Reload Engine' %>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Apply PBX Configuration Button -->
+            <button id="reloadPbxBtn" onclick="reloadPbxConfig()" class="config-btn-primary px-5 py-3 flex items-center gap-2.5 text-sm cursor-pointer shadow-md hover:shadow-lg">
+                <svg id="reloadIcon" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span id="reloadBtnText"><%= isRtl ? 'تطبيق تغييرات المقسم (Apply PBX Changes)' : 'Apply PBX Configuration' %></span>
+            </button>
+        </div>
+
+        <!-- Sub-Navigation Bar -->
+        <div class="flex items-center gap-2 mb-6 border-b border-slate-200 pb-4 overflow-x-auto">
+            <button onclick="switchTab('extensions')" id="tab-btn-extensions" class="config-tab-btn config-tab-active flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                <span><%= isRtl ? 'التحويلات (Extensions)' : 'Extensions' %></span>
+            </button>
+            <button onclick="switchTab('ringgroups')" id="tab-btn-ringgroups" class="config-tab-btn config-tab-inactive flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                <span><%= isRtl ? 'مجموعات الاتصال (Ring Groups)' : 'Ring Groups' %></span>
+            </button>
+            <button onclick="switchTab('trunks')" id="tab-btn-trunks" class="config-tab-btn config-tab-inactive flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                <span><%= isRtl ? 'خطوط الربط (Trunks)' : 'Trunks' %></span>
+            </button>
+            <button onclick="switchTab('inbound')" id="tab-btn-inbound" class="config-tab-btn config-tab-inactive flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" /></svg>
+                <span><%= isRtl ? 'المسارات الواردة (Inbound Routes)' : 'Inbound Routes' %></span>
+            </button>
+            <button onclick="switchTab('outbound')" id="tab-btn-outbound" class="config-tab-btn config-tab-inactive flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                <span><%= isRtl ? 'المسارات الصادرة (Outbound Routes)' : 'Outbound Routes' %></span>
+            </button>
+        </div>
+
+        <!-- TAB 1: EXTENSIONS MANAGEMENT -->
+        <div id="section-extensions" class="tab-section">
+            <div class="config-card p-6">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+                    <div>
+                        <h2 class="text-lg font-extrabold text-slate-900"><%= isRtl ? 'إدارة التحويلات (SIP Extensions)' : 'SIP Extensions' %></h2>
+                        <p class="text-xs text-slate-500"><%= isRtl ? 'إنشاء وتعديل واستعراض التحويلات المسجلة في المقسم' : 'Manage extensions directly in Issabel/FreePBX MySQL database' %></p>
+                    </div>
+                    <button onclick="openExtensionModal()" class="config-btn-primary px-4 py-2 flex items-center gap-2 text-xs cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                        <span><%= isRtl ? 'إضافة تحويلة جديدة' : 'Add New Extension' %></span>
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600 uppercase tracking-wider">
+                                <th class="py-3 px-4"><%= isRtl ? 'رقم التحويلة' : 'Extension' %></th>
+                                <th class="py-3 px-4"><%= isRtl ? 'الاسم الظاهر' : 'Display Name' %></th>
+                                <th class="py-3 px-4"><%= isRtl ? 'كلمة السر (Secret)' : 'Secret' %></th>
+                                <th class="py-3 px-4"><%= isRtl ? 'النطاق (Domain / Context)' : 'Context / Domain' %></th>
+                                <th class="py-3 px-4 text-center"><%= isRtl ? 'الإجراءات' : 'Actions' %></th>
+                            </tr>
+                        </thead>
+                        <tbody id="extensions-table-body" class="divide-y divide-slate-100 text-sm font-medium text-slate-800">
+                            <tr><td colspan="5" class="py-8 text-center text-slate-400">Loading extensions...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: RING GROUPS MANAGEMENT -->
+        <div id="section-ringgroups" class="tab-section hidden">
+            <div class="config-card p-6">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+                    <div>
+                        <h2 class="text-lg font-extrabold text-slate-900"><%= isRtl ? 'مجموعات الاتصال (Ring Groups)' : 'Ring Groups' %></h2>
+                        <p class="text-xs text-slate-500"><%= isRtl ? 'تحديد مجموعات الاتصال وإجراءات توزيع المكالمات' : 'Create and configure ring groups for incoming call distribution' %></p>
+                    </div>
+                    <button onclick="openRingGroupModal()" class="config-btn-primary px-4 py-2 flex items-center gap-2 text-xs cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                        <span><%= isRtl ? 'إضافة مجموعة جديدة' : 'Add Ring Group' %></span>
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600 uppercase tracking-wider">
+                                <th class="py-3 px-4"><%= isRtl ? 'رقم المجموعة' : 'Group #' %></th>
+                                <th class="py-3 px-4"><%= isRtl ? 'الوصف' : 'Description' %></th>
+                                <th class="py-3 px-4"><%= isRtl ? 'استراتيجية الاتصال' : 'Strategy' %></th>
+                                <th class="py-3 px-4"><%= isRtl ? 'زمن الرنين (ث)' : 'Ring Time (s)' %></th>
+                                <th class="py-3 px-4"><%= isRtl ? 'قائمة التحويلات' : 'Extension List' %></th>
+                                <th class="py-3 px-4 text-center"><%= isRtl ? 'الإجراءات' : 'Actions' %></th>
+                            </tr>
+                        </thead>
+                        <tbody id="ringgroups-table-body" class="divide-y divide-slate-100 text-sm font-medium text-slate-800">
+                            <tr><td colspan="6" class="py-8 text-center text-slate-400">Loading ring groups...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: TRUNKS MANAGEMENT -->
+        <div id="section-trunks" class="tab-section hidden">
+            <div class="config-card p-6">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+                    <div>
+                        <h2 class="text-lg font-extrabold text-slate-900"><%= isRtl ? 'خطوط الربط (SIP Trunks)' : 'SIP Trunks' %></h2>
+                        <p class="text-xs text-slate-500"><%= isRtl ? 'إعداد خطوط الربط الخارجي وتفاصيل PEER' : 'Manage SIP trunks and PEER configurations' %></p>
+                    </div>
+                    <button onclick="openTrunkModal()" class="config-btn-primary px-4 py-2 flex items-center gap-2 text-xs cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                        <span><%= isRtl ? 'إضافة خط ربط جديد' : 'Add SIP Trunk' %></span>
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600 uppercase tracking-wider">
+                                <th class="py-3 px-4">ID</th>
+                                <th class="py-3 px-4"><%= isRtl ? 'اسم الخط' : 'Trunk Name' %></th>
+                                <th class="py-3 px-4"><%= isRtl ? 'التقنية' : 'Tech' %></th>
+                                <th class="py-3 px-4"><%= isRtl ? 'رقم المتصل الصادر' : 'Outbound CID' %></th>
+                                <th class="py-3 px-4"><%= isRtl ? 'الحد الأقصى للقنوات' : 'Max Channels' %></th>
+                                <th class="py-3 px-4 text-center"><%= isRtl ? 'الإجراءات' : 'Actions' %></th>
+                            </tr>
+                        </thead>
+                        <tbody id="trunks-table-body" class="divide-y divide-slate-100 text-sm font-medium text-slate-800">
+                            <tr><td colspan="6" class="py-8 text-center text-slate-400">Loading trunks...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: INBOUND ROUTES -->
+        <div id="section-inbound" class="tab-section hidden">
+            <div class="config-card p-6">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+                    <div>
+                        <h2 class="text-lg font-extrabold text-slate-900"><%= isRtl ? 'المسارات الواردة (Inbound Routes)' : 'Inbound Routes' %></h2>
+                        <p class="text-xs text-slate-500"><%= isRtl ? 'توجيه المكالمات الواردة حسب رقم DID أو رقم المتصل' : 'Route incoming DID/CID calls to destinations' %></p>
+                    </div>
+                    <button onclick="openInboundModal()" class="config-btn-primary px-4 py-2 flex items-center gap-2 text-xs cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                        <span><%= isRtl ? 'إضافة مسار وارد' : 'Add Inbound Route' %></span>
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600 uppercase tracking-wider">
+                                <th class="py-3 px-4"><%= isRtl ? 'الوصف' : 'Description' %></th>
+                                <th class="py-3 px-4"><%= isRtl ? 'رقم DID (Extension)' : 'DID Extension' %></th>
+                                <th class="py-3 px-4"><%= isRtl ? 'رقم المتصل (CID)' : 'CallerID Number' %></th>
+                                <th class="py-3 px-4"><%= isRtl ? 'الوجهة' : 'Destination' %></th>
+                                <th class="py-3 px-4 text-center"><%= isRtl ? 'الإجراءات' : 'Actions' %></th>
+                            </tr>
+                        </thead>
+                        <tbody id="inbound-table-body" class="divide-y divide-slate-100 text-sm font-medium text-slate-800">
+                            <tr><td colspan="5" class="py-8 text-center text-slate-400">Loading inbound routes...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 5: OUTBOUND ROUTES -->
+        <div id="section-outbound" class="tab-section hidden">
+            <div class="config-card p-6">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+                    <div>
+                        <h2 class="text-lg font-extrabold text-slate-900"><%= isRtl ? 'المسارات الصادرة (Outbound Routes)' : 'Outbound Routes' %></h2>
+                        <p class="text-xs text-slate-500"><%= isRtl ? 'قواعد توجيه المكالمات الصادرة عبر خطوط الربط' : 'Configure dial pattern matching and trunk sequencing for dialout' %></p>
+                    </div>
+                    <button onclick="openOutboundModal()" class="config-btn-primary px-4 py-2 flex items-center gap-2 text-xs cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                        <span><%= isRtl ? 'إضافة مسار صادر' : 'Add Outbound Route' %></span>
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600 uppercase tracking-wider">
+                                <th class="py-3 px-4">ID</th>
+                                <th class="py-3 px-4"><%= isRtl ? 'اسم المسار' : 'Route Name' %></th>
+                                <th class="py-3 px-4"><%= isRtl ? 'البادئة (Prefix)' : 'Prefix' %></th>
+                                <th class="py-3 px-4"><%= isRtl ? 'نمط المطابقة (Pattern)' : 'Match Pattern' %></th>
+                                <th class="py-3 px-4"><%= isRtl ? 'فلتر المتصل (CallerID)' : 'CallerID Match' %></th>
+                                <th class="py-3 px-4"><%= isRtl ? 'خط الربط' : 'Trunk' %></th>
+                                <th class="py-3 px-4 text-center"><%= isRtl ? 'الإجراءات' : 'Actions' %></th>
+                            </tr>
+                        </thead>
+                        <tbody id="outbound-table-body" class="divide-y divide-slate-100 text-sm font-medium text-slate-800">
+                            <tr><td colspan="7" class="py-8 text-center text-slate-400">Loading outbound routes...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MODAL 1: EXTENSION FORM -->
+    <div id="extensionModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-2xl max-w-lg w-full p-6">
+            <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-100">
+                <h3 id="extModalTitle" class="text-base font-extrabold text-slate-900">Add Extension</h3>
+                <button onclick="closeModal('extensionModal')" class="text-slate-400 hover:text-slate-600 cursor-pointer">✕</button>
+            </div>
+            <form id="extensionForm" onsubmit="saveExtension(event)">
+                <input type="hidden" id="extEditMode" value="false">
+                <div class="flex flex-col gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Extension Number *</label>
+                        <input type="text" id="extNum" required placeholder="e.g. 105" class="config-input w-full">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Display Name *</label>
+                        <input type="text" id="extName" required placeholder="e.g. Sales Desk 1" class="config-input w-full">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Secret (Password) *</label>
+                        <input type="text" id="extSecret" required placeholder="e.g. P@ssword123!" class="config-input w-full font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">SIP Domain / Context *</label>
+                        <input type="text" id="extContext" required value="from-internal" class="config-input w-full font-mono">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('extensionModal')" class="config-btn-secondary px-4 py-2 text-xs">Cancel</button>
+                    <button type="submit" class="config-btn-primary px-5 py-2 text-xs">Save Extension</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: RING GROUP FORM -->
+    <div id="ringGroupModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-2xl max-w-lg w-full p-6">
+            <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-100">
+                <h3 id="rgModalTitle" class="text-base font-extrabold text-slate-900">Add Ring Group</h3>
+                <button onclick="closeModal('ringGroupModal')" class="text-slate-400 hover:text-slate-600 cursor-pointer">✕</button>
+            </div>
+            <form id="ringGroupForm" onsubmit="saveRingGroup(event)">
+                <input type="hidden" id="rgEditMode" value="false">
+                <div class="flex flex-col gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Ring Group Number *</label>
+                        <input type="text" id="rgNum" required placeholder="e.g. 600" class="config-input w-full">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Description *</label>
+                        <input type="text" id="rgDesc" required placeholder="e.g. Support Team" class="config-input w-full">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Ring Strategy</label>
+                        <select id="rgStrategy" class="config-input w-full">
+                            <option value="ringall">ringall (Ring all available channels)</option>
+                            <option value="hunt">hunt (Take turns ringing)</option>
+                            <option value="memoryhunt">memoryhunt (First extension, then first+second...)</option>
+                            <option value="firstavailable">firstavailable (Ring first available channel only)</option>
+                            <option value="firstnotonphone">firstnotonphone (Ring first channel not on phone)</option>
+                            <option value="random">random (Ring random channel)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Ring Time (Seconds)</label>
+                        <input type="number" id="rgTime" value="20" class="config-input w-full">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Extension List * (Comma or dash separated)</label>
+                        <textarea id="rgList" required rows="3" placeholder="e.g. 101, 102, 103" class="config-input w-full font-mono"></textarea>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('ringGroupModal')" class="config-btn-secondary px-4 py-2 text-xs">Cancel</button>
+                    <button type="submit" class="config-btn-primary px-5 py-2 text-xs">Save Ring Group</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: TRUNK FORM -->
+    <div id="trunkModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-2xl max-w-xl w-full p-6">
+            <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-100">
+                <h3 id="trunkModalTitle" class="text-base font-extrabold text-slate-900">Add SIP Trunk</h3>
+                <button onclick="closeModal('trunkModal')" class="text-slate-400 hover:text-slate-600 cursor-pointer">✕</button>
+            </div>
+            <form id="trunkForm" onsubmit="saveTrunk(event)">
+                <input type="hidden" id="trunkEditId" value="">
+                <div class="flex flex-col gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Trunk Name *</label>
+                        <input type="text" id="trunkName" required placeholder="e.g. vodafone_trunk" class="config-input w-full font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Outbound CallerID</label>
+                        <input type="text" id="trunkCid" placeholder="e.g. 01012345678" class="config-input w-full">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Maximum Channels</label>
+                        <input type="number" id="trunkMaxChans" placeholder="e.g. 10" class="config-input w-full">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">PEER Details (Manual key=value lines)</label>
+                        <textarea id="trunkPeerDetails" rows="6" placeholder="host=192.168.100.50&#10;type=peer&#10;context=from-trunk&#10;secret=mysecret&#10;username=myuser&#10;insecure=port,invite&#10;disallow=all&#10;allow=ulaw,alaw" class="config-input w-full font-mono text-xs"></textarea>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('trunkModal')" class="config-btn-secondary px-4 py-2 text-xs">Cancel</button>
+                    <button type="submit" class="config-btn-primary px-5 py-2 text-xs">Save Trunk</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 4: INBOUND ROUTE FORM -->
+    <div id="inboundModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-2xl max-w-lg w-full p-6">
+            <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-100">
+                <h3 class="text-base font-extrabold text-slate-900">Add Inbound Route</h3>
+                <button onclick="closeModal('inboundModal')" class="text-slate-400 hover:text-slate-600 cursor-pointer">✕</button>
+            </div>
+            <form id="inboundForm" onsubmit="saveInboundRoute(event)">
+                <div class="flex flex-col gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Route Description *</label>
+                        <input type="text" id="inDescription" required placeholder="e.g. Sales Inbound" class="config-input w-full">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">DID Extension (Leave empty for ANY)</label>
+                        <input type="text" id="inExtension" placeholder="e.g. 01012345678 or leave empty" class="config-input w-full font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">CallerID Number (Leave empty for ANY)</label>
+                        <input type="text" id="inCidnum" placeholder="e.g. 0123456789 or leave empty" class="config-input w-full font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Destination *</label>
+                        <input type="text" id="inDestination" required placeholder="e.g. ext-group,600,1 or from-did-direct,101,1" class="config-input w-full font-mono">
+                        <p class="text-[11px] text-slate-400 mt-1">Format: <code>ext-group,600,1</code> (Ring Group 600) or <code>from-did-direct,101,1</code> (Extension 101)</p>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('inboundModal')" class="config-btn-secondary px-4 py-2 text-xs">Cancel</button>
+                    <button type="submit" class="config-btn-primary px-5 py-2 text-xs">Save Inbound Route</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 5: OUTBOUND ROUTE FORM -->
+    <div id="outboundModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-2xl max-w-lg w-full p-6">
+            <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-100">
+                <h3 class="text-base font-extrabold text-slate-900">Add Outbound Route</h3>
+                <button onclick="closeModal('outboundModal')" class="text-slate-400 hover:text-slate-600 cursor-pointer">✕</button>
+            </div>
+            <form id="outboundForm" onsubmit="saveOutboundRoute(event)">
+                <div class="flex flex-col gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Route Name *</label>
+                        <input type="text" id="outName" required placeholder="e.g. Outbound-All" class="config-input w-full">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Prefix (Optional)</label>
+                        <input type="text" id="outPrefix" placeholder="e.g. 9" class="config-input w-full font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Match Pattern *</label>
+                        <input type="text" id="outPattern" required placeholder="e.g. X. or _01XXXXXXXXX" class="config-input w-full font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">CallerID Match (Optional)</label>
+                        <input type="text" id="outCid" placeholder="e.g. 101 or leave empty" class="config-input w-full font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Trunk Sequence</label>
+                        <select id="outTrunkSelect" class="config-input w-full">
+                            <option value="">Loading trunks...</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('outboundModal')" class="config-btn-secondary px-4 py-2 text-xs">Cancel</button>
+                    <button type="submit" class="config-btn-primary px-5 py-2 text-xs">Save Outbound Route</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- CLIENT SCRIPT -->
+    <script>
+        const isRtl = <%= isRtl ? 'true' : 'false' %>;
+        let loadedTrunksList = [];
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bgClass = type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-red-600' : 'bg-slate-800';
+            toast.className = `${bgClass} text-white text-xs font-bold px-4 py-3 rounded-lg shadow-xl flex items-center gap-2 border border-white/20 transition-all duration-300 transform translate-y-2 opacity-0`;
+            toast.innerHTML = `<span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-section').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.config-tab-btn').forEach(btn => {
+                btn.classList.remove('config-tab-active');
+                btn.classList.add('config-tab-inactive');
+            });
+            document.getElementById('section-' + tabId).classList.remove('hidden');
+            const btn = document.getElementById('tab-btn-' + tabId);
+            btn.classList.remove('config-tab-inactive');
+            btn.classList.add('config-tab-active');
+
+            if (tabId === 'extensions') fetchExtensions();
+            if (tabId === 'ringgroups') fetchRingGroups();
+            if (tabId === 'trunks') fetchTrunks();
+            if (tabId === 'inbound') fetchInboundRoutes();
+            if (tabId === 'outbound') fetchOutboundRoutes();
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        // --- RELOAD PBX CONFIG ---
+        function reloadPbxConfig() {
+            const btn = document.getElementById('reloadPbxBtn');
+            const icon = document.getElementById('reloadIcon');
+            const btnText = document.getElementById('reloadBtnText');
+            
+            btn.disabled = true;
+            icon.classList.add('animate-spin');
+            btnText.textContent = isRtl ? 'جاري تطبيق التغييرات...' : 'Applying PBX Config...';
+
+            fetch('/api/config/reload', { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(isRtl ? 'تم تطبيق إعدادات المقسم بنجاح!' : 'PBX Configuration applied successfully!', 'success');
+                    } else {
+                        showToast(isRtl ? 'فشل تطبيق الإعدادات: ' + (data.error || '') : 'PBX Reload Failed: ' + (data.error || ''), 'error');
+                    }
+                })
+                .catch(err => showToast('Network Error: ' + err.message, 'error'))
+                .finally(() => {
+                    btn.disabled = false;
+                    icon.classList.remove('animate-spin');
+                    btnText.textContent = isRtl ? 'تطبيق تغييرات المقسم (Apply PBX Changes)' : 'Apply PBX Configuration';
+                });
+        }
+
+        // --- 1. EXTENSIONS ---
+        function fetchExtensions() {
+            const tbody = document.getElementById('extensions-table-body');
+            fetch('/api/config/extensions')
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success || !data.extensions) return;
+                    tbody.innerHTML = '';
+                    if (data.extensions.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5" class="py-6 text-center text-slate-400">No extensions found.</td></tr>';
+                        return;
+                    }
+                    data.extensions.forEach(ext => {
+                        const tr = document.createElement('tr');
+                        tr.className = 'hover:bg-slate-50 transition-colors';
+                        tr.innerHTML = `
+                            <td class="py-3 px-4 font-mono font-bold text-slate-900">${ext.extension}</td>
+                            <td class="py-3 px-4 font-bold text-slate-800">${ext.name || '-'}</td>
+                            <td class="py-3 px-4 font-mono text-xs text-slate-600">${ext.secret || '-'}</td>
+                            <td class="py-3 px-4 font-mono text-xs text-slate-600">${ext.context || 'from-internal'}</td>
+                            <td class="py-3 px-4 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button onclick="editExtension('${ext.extension}', '${ext.name}', '${ext.secret}', '${ext.context}')" class="px-2.5 py-1 text-xs font-semibold text-blue-600 hover:bg-blue-50 rounded border border-blue-200">Edit</button>
+                                    <button onclick="deleteExtension('${ext.extension}')" class="px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 rounded border border-red-200">Delete</button>
+                                </div>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                })
+                .catch(err => console.error(err));
+        }
+
+        function openExtensionModal() {
+            document.getElementById('extModalTitle').textContent = isRtl ? 'إضافة تحويلة جديدة' : 'Add New Extension';
+            document.getElementById('extEditMode').value = "false";
+            document.getElementById('extNum').disabled = false;
+            document.getElementById('extensionForm').reset();
+            document.getElementById('extContext').value = "from-internal";
+            openModal('extensionModal');
+        }
+
+        function editExtension(extNum, name, secret, context) {
+            document.getElementById('extModalTitle').textContent = (isRtl ? 'تعديل التحويلة ' : 'Edit Extension ') + extNum;
+            document.getElementById('extEditMode').value = "true";
+            document.getElementById('extNum').value = extNum;
+            document.getElementById('extNum').disabled = true;
+            document.getElementById('extName').value = name || '';
+            document.getElementById('extSecret').value = secret || '';
+            document.getElementById('extContext').value = context || 'from-internal';
+            openModal('extensionModal');
+        }
+
+        function saveExtension(e) {
+            e.preventDefault();
+            const isEdit = document.getElementById('extEditMode').value === "true";
+            const extNum = document.getElementById('extNum').value.trim();
+            const name = document.getElementById('extName').value.trim();
+            const secret = document.getElementById('extSecret').value.trim();
+            const context = document.getElementById('extContext').value.trim();
+
+            const url = isEdit ? '/api/config/extensions/' + extNum : '/api/config/extensions';
+            const method = isEdit ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ extension: extNum, name, secret, context })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    closeModal('extensionModal');
+                    fetchExtensions();
+                } else {
+                    showToast(data.error || 'Failed to save extension', 'error');
+                }
+            })
+            .catch(err => showToast(err.message, 'error'));
+        }
+
+        function deleteExtension(extNum) {
+            if (!confirm(`Delete extension ${extNum}?`)) return;
+            fetch('/api/config/extensions/' + extNum, { method: 'DELETE' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        fetchExtensions();
+                    } else showToast(data.error, 'error');
+                });
+        }
+
+        // --- 2. RING GROUPS ---
+        function fetchRingGroups() {
+            const tbody = document.getElementById('ringgroups-table-body');
+            fetch('/api/config/ringgroups')
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success || !data.ringgroups) return;
+                    tbody.innerHTML = '';
+                    if (data.ringgroups.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-slate-400">No ring groups found.</td></tr>';
+                        return;
+                    }
+                    data.ringgroups.forEach(rg => {
+                        const tr = document.createElement('tr');
+                        tr.className = 'hover:bg-slate-50 transition-colors';
+                        tr.innerHTML = `
+                            <td class="py-3 px-4 font-mono font-bold text-slate-900">${rg.grpnum}</td>
+                            <td class="py-3 px-4 font-bold text-slate-800">${rg.description || '-'}</td>
+                            <td class="py-3 px-4 font-mono text-xs text-slate-600">${rg.strategy || 'ringall'}</td>
+                            <td class="py-3 px-4 font-mono text-xs text-slate-600">${rg.grptime}s</td>
+                            <td class="py-3 px-4 font-mono text-xs text-slate-700">${rg.grppre ? rg.grppre + '-' : ''}${rg.grplist}</td>
+                            <td class="py-3 px-4 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button onclick="editRingGroup('${rg.grpnum}', '${rg.description}', '${rg.strategy}', '${rg.grptime}', '${rg.grplist}')" class="px-2.5 py-1 text-xs font-semibold text-blue-600 hover:bg-blue-50 rounded border border-blue-200">Edit</button>
+                                    <button onclick="deleteRingGroup('${rg.grpnum}')" class="px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 rounded border border-red-200">Delete</button>
+                                </div>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                })
+                .catch(err => console.error(err));
+        }
+
+        function openRingGroupModal() {
+            document.getElementById('rgModalTitle').textContent = isRtl ? 'إضافة مجموعة جديدة' : 'Add Ring Group';
+            document.getElementById('rgEditMode').value = "false";
+            document.getElementById('rgNum').disabled = false;
+            document.getElementById('ringGroupForm').reset();
+            openModal('ringGroupModal');
+        }
+
+        function editRingGroup(grpnum, description, strategy, grptime, grplist) {
+            document.getElementById('rgModalTitle').textContent = (isRtl ? 'تعديل المجموعة ' : 'Edit Ring Group ') + grpnum;
+            document.getElementById('rgEditMode').value = "true";
+            document.getElementById('rgNum').value = grpnum;
+            document.getElementById('rgNum').disabled = true;
+            document.getElementById('rgDesc').value = description || '';
+            document.getElementById('rgStrategy').value = strategy || 'ringall';
+            document.getElementById('rgTime').value = grptime || 20;
+            document.getElementById('rgList').value = grplist || '';
+            openModal('ringGroupModal');
+        }
+
+        function saveRingGroup(e) {
+            e.preventDefault();
+            const isEdit = document.getElementById('rgEditMode').value === "true";
+            const grpnum = document.getElementById('rgNum').value.trim();
+            const description = document.getElementById('rgDesc').value.trim();
+            const strategy = document.getElementById('rgStrategy').value;
+            const grptime = document.getElementById('rgTime').value;
+            const grplist = document.getElementById('rgList').value.trim();
+
+            const url = isEdit ? '/api/config/ringgroups/' + grpnum : '/api/config/ringgroups';
+            const method = isEdit ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ grpnum, description, strategy, grptime, grplist })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    closeModal('ringGroupModal');
+                    fetchRingGroups();
+                } else showToast(data.error, 'error');
+            });
+        }
+
+        function deleteRingGroup(grpnum) {
+            if (!confirm(`Delete ring group ${grpnum}?`)) return;
+            fetch('/api/config/ringgroups/' + grpnum, { method: 'DELETE' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        fetchRingGroups();
+                    } else showToast(data.error, 'error');
+                });
+        }
+
+        // --- 3. TRUNKS ---
+        function fetchTrunks() {
+            const tbody = document.getElementById('trunks-table-body');
+            fetch('/api/config/trunks')
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success || !data.trunks) return;
+                    loadedTrunksList = data.trunks;
+                    updateOutboundTrunkSelect();
+                    tbody.innerHTML = '';
+                    if (data.trunks.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-slate-400">No trunks found.</td></tr>';
+                        return;
+                    }
+                    data.trunks.forEach(t => {
+                        const tr = document.createElement('tr');
+                        tr.className = 'hover:bg-slate-50 transition-colors';
+                        tr.innerHTML = `
+                            <td class="py-3 px-4 font-mono font-bold text-slate-500">${t.trunkid}</td>
+                            <td class="py-3 px-4 font-bold text-slate-900 font-mono">${t.name}</td>
+                            <td class="py-3 px-4 font-mono text-xs uppercase text-slate-600">${t.tech}</td>
+                            <td class="py-3 px-4 font-mono text-xs text-slate-600">${t.outcid || '-'}</td>
+                            <td class="py-3 px-4 font-mono text-xs text-slate-600">${t.maxchans || 'Unlimited'}</td>
+                            <td class="py-3 px-4 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button onclick="editTrunk(${t.trunkid}, '${t.name}', '${t.outcid}', '${t.maxchans}', \`${t.peerdetails.replace(/`/g, '\\`')}\`)" class="px-2.5 py-1 text-xs font-semibold text-blue-600 hover:bg-blue-50 rounded border border-blue-200">Edit</button>
+                                    <button onclick="deleteTrunk(${t.trunkid})" class="px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 rounded border border-red-200">Delete</button>
+                                </div>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                })
+                .catch(err => console.error(err));
+        }
+
+        function openTrunkModal() {
+            document.getElementById('trunkModalTitle').textContent = isRtl ? 'إضافة خط ربط جديد' : 'Add SIP Trunk';
+            document.getElementById('trunkEditId').value = "";
+            document.getElementById('trunkForm').reset();
+            openModal('trunkModal');
+        }
+
+        function editTrunk(trunkid, name, outcid, maxchans, peerdetails) {
+            document.getElementById('trunkModalTitle').textContent = (isRtl ? 'تعديل خط الربط ' : 'Edit Trunk ') + name;
+            document.getElementById('trunkEditId').value = trunkid;
+            document.getElementById('trunkName').value = name || '';
+            document.getElementById('trunkCid').value = outcid || '';
+            document.getElementById('trunkMaxChans').value = maxchans || '';
+            document.getElementById('trunkPeerDetails').value = peerdetails || '';
+            openModal('trunkModal');
+        }
+
+        function saveTrunk(e) {
+            e.preventDefault();
+            const editId = document.getElementById('trunkEditId').value;
+            const name = document.getElementById('trunkName').value.trim();
+            const outcid = document.getElementById('trunkCid').value.trim();
+            const maxchans = document.getElementById('trunkMaxChans').value.trim();
+            const peerdetails = document.getElementById('trunkPeerDetails').value;
+
+            const url = editId ? '/api/config/trunks/' + editId : '/api/config/trunks';
+            const method = editId ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, outcid, maxchans, peerdetails })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    closeModal('trunkModal');
+                    fetchTrunks();
+                } else showToast(data.error, 'error');
+            });
+        }
+
+        function deleteTrunk(trunkid) {
+            if (!confirm(`Delete trunk ID ${trunkid}?`)) return;
+            fetch('/api/config/trunks/' + trunkid, { method: 'DELETE' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        fetchTrunks();
+                    } else showToast(data.error, 'error');
+                });
+        }
+
+        // --- 4. INBOUND ROUTES ---
+        function fetchInboundRoutes() {
+            const tbody = document.getElementById('inbound-table-body');
+            fetch('/api/config/routes/inbound')
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success || !data.routes) return;
+                    tbody.innerHTML = '';
+                    if (data.routes.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5" class="py-6 text-center text-slate-400">No inbound routes found.</td></tr>';
+                        return;
+                    }
+                    data.routes.forEach(r => {
+                        const tr = document.createElement('tr');
+                        tr.className = 'hover:bg-slate-50 transition-colors';
+                        tr.innerHTML = `
+                            <td class="py-3 px-4 font-bold text-slate-900">${r.description}</td>
+                            <td class="py-3 px-4 font-mono text-xs text-slate-700">${r.extension || '<span class="text-slate-400">ANY</span>'}</td>
+                            <td class="py-3 px-4 font-mono text-xs text-slate-700">${r.cidnum || '<span class="text-slate-400">ANY</span>'}</td>
+                            <td class="py-3 px-4 font-mono text-xs text-blue-700 font-bold">${r.destination}</td>
+                            <td class="py-3 px-4 text-center">
+                                <button onclick="deleteInboundRoute('${r.extension || ''}', '${r.cidnum || ''}', '${r.description}')" class="px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 rounded border border-red-200">Delete</button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                })
+                .catch(err => console.error(err));
+        }
+
+        function openInboundModal() {
+            document.getElementById('inboundForm').reset();
+            openModal('inboundModal');
+        }
+
+        function saveInboundRoute(e) {
+            e.preventDefault();
+            const description = document.getElementById('inDescription').value.trim();
+            const extension = document.getElementById('inExtension').value.trim();
+            const cidnum = document.getElementById('inCidnum').value.trim();
+            const destination = document.getElementById('inDestination').value.trim();
+
+            fetch('/api/config/routes/inbound', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ description, extension, cidnum, destination })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    closeModal('inboundModal');
+                    fetchInboundRoutes();
+                } else showToast(data.error, 'error');
+            });
+        }
+
+        function deleteInboundRoute(extension, cidnum, description) {
+            if (!confirm(`Delete inbound route '${description}'?`)) return;
+            fetch('/api/config/routes/inbound', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ extension, cidnum, description })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    fetchInboundRoutes();
+                } else showToast(data.error, 'error');
+            });
+        }
+
+        // --- 5. OUTBOUND ROUTES ---
+        function updateOutboundTrunkSelect() {
+            const sel = document.getElementById('outTrunkSelect');
+            sel.innerHTML = '<option value="">-- Select Trunk --</option>';
+            loadedTrunksList.forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t.trunkid;
+                opt.textContent = `${t.name} (ID: ${t.trunkid})`;
+                sel.appendChild(opt);
+            });
+        }
+
+        function fetchOutboundRoutes() {
+            const tbody = document.getElementById('outbound-table-body');
+            fetch('/api/config/routes/outbound')
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success || !data.routes) return;
+                    tbody.innerHTML = '';
+                    if (data.routes.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="7" class="py-6 text-center text-slate-400">No outbound routes found.</td></tr>';
+                        return;
+                    }
+                    data.routes.forEach(r => {
+                        const tr = document.createElement('tr');
+                        tr.className = 'hover:bg-slate-50 transition-colors';
+                        tr.innerHTML = `
+                            <td class="py-3 px-4 font-mono font-bold text-slate-500">${r.route_id}</td>
+                            <td class="py-3 px-4 font-bold text-slate-900">${r.name}</td>
+                            <td class="py-3 px-4 font-mono text-xs text-slate-600">${r.match_pattern_prefix || '-'}</td>
+                            <td class="py-3 px-4 font-mono text-xs text-blue-700 font-bold">${r.match_pattern_pass || '-'}</td>
+                            <td class="py-3 px-4 font-mono text-xs text-slate-600">${r.match_cid || '-'}</td>
+                            <td class="py-3 px-4 font-mono text-xs text-emerald-700 font-bold">${r.trunk_name || r.trunk_id || '-'}</td>
+                            <td class="py-3 px-4 text-center">
+                                <button onclick="deleteOutboundRoute(${r.route_id})" class="px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 rounded border border-red-200">Delete</button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                })
+                .catch(err => console.error(err));
+        }
+
+        function openOutboundModal() {
+            document.getElementById('outboundForm').reset();
+            updateOutboundTrunkSelect();
+            openModal('outboundModal');
+        }
+
+        function saveOutboundRoute(e) {
+            e.preventDefault();
+            const name = document.getElementById('outName').value.trim();
+            const match_pattern_prefix = document.getElementById('outPrefix').value.trim();
+            const match_pattern_pass = document.getElementById('outPattern').value.trim();
+            const match_cid = document.getElementById('outCid').value.trim();
+            const trunk_id = document.getElementById('outTrunkSelect').value;
+
+            fetch('/api/config/routes/outbound', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, match_pattern_prefix, match_pattern_pass, match_cid, trunk_id })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    closeModal('outboundModal');
+                    fetchOutboundRoutes();
+                } else showToast(data.error, 'error');
+            });
+        }
+
+        function deleteOutboundRoute(routeId) {
+            if (!confirm(`Delete outbound route ID ${routeId}?`)) return;
+            fetch('/api/config/routes/outbound/' + routeId, { method: 'DELETE' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        fetchOutboundRoutes();
+                    } else showToast(data.error, 'error');
+                });
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchExtensions();
+            fetchTrunks();
+        });
+    </script>
+</body>
+</html>
