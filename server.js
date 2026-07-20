@@ -2908,7 +2908,18 @@ function removeVmFile(dir, name) {
     });
 }
 
-function ensureVmBackups() {
+function writeSilentWav(path) {
+    const sr = 8000, bits = 16, channels = 1, samples = sr; // 1 second silence
+    const dataSize = samples * channels * (bits / 8);
+    const buf = Buffer.alloc(44 + dataSize);
+    buf.write('RIFF', 0); buf.writeUInt32LE(36 + dataSize, 4); buf.write('WAVE', 8);
+    buf.write('fmt ', 12); buf.writeUInt32LE(16, 16); buf.writeUInt16LE(1, 20);
+    buf.writeUInt16LE(channels, 22); buf.writeUInt32LE(sr, 24);
+    buf.writeUInt32LE(sr * channels * (bits / 8), 28);
+    buf.writeUInt16LE(channels * (bits / 8), 32); buf.writeUInt16LE(bits, 34);
+    buf.write('data', 36); buf.writeUInt32LE(dataSize, 40);
+    fs.writeFileSync(path, buf);
+}
     if (!fs.existsSync(VM_BACKUP_DIR)) fs.mkdirSync(VM_BACKUP_DIR, { recursive: true });
     ['unavailable', 'vm-leavemsg'].forEach(name => {
         const bak = path.join(VM_BACKUP_DIR, name + '.gsm.orig');
@@ -2994,6 +3005,7 @@ app.post('/api/voicemail-greeting/upload', (req, res) => {
                 }
                 writeVmSound('unavailable', wavPath);
                 removeVmSound('vm-leavemsg');
+                writeSilentWav(path.join(VM_SOUNDS_DIR, 'vm-leavemsg.wav'));
                 greetingConfig = { mode: 'universal', extensions: [] };
                 fs.writeFileSync(VM_GREETING_CONFIG_PATH, JSON.stringify(greetingConfig, null, 2));
                 require('child_process').exec('/usr/sbin/asterisk -rx "module reload sounds"', () => {});
@@ -3001,6 +3013,7 @@ app.post('/api/voicemail-greeting/upload', (req, res) => {
             } else {
                 // Per-extension: save to mailbox unavail, remove system vm-leavemsg so only custom plays
                 removeVmSound('vm-leavemsg');
+                writeSilentWav(path.join(VM_SOUNDS_DIR, 'vm-leavemsg.wav'));
                 for (const ext of exts) {
                     const dir = path.join(VM_MAILBOX_ROOT, ext);
                     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
