@@ -3106,6 +3106,54 @@ app.delete('/api/config/recordings/:id', async (req, res) => {
     }
 });
 
+// GET /api/config/recordings/audio/:id - Stream or download system recording
+app.get('/api/config/recordings/audio/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id, 10);
+        if (!id) return res.status(400).send("Invalid recording ID.");
+
+        const [rows] = await pool.query('SELECT filename, displayname FROM `asterisk`.`recordings` WHERE id = ?', [id]);
+        if (!rows.length || !rows[0].filename) return res.status(404).send("Recording not found.");
+
+        const relFile = rows[0].filename;
+        const soundPath = path.join('/var/lib/asterisk/sounds', relFile + '.wav');
+        if (!fs.existsSync(soundPath)) return res.status(404).send("Recording file missing on disk.");
+
+        const stat = fs.statSync(soundPath);
+        const fileSize = stat.size;
+        const contentType = 'audio/wav';
+        const isDownload = req.query.download === '1';
+        const displayFilename = (rows[0].displayname || path.basename(relFile)) + '.wav';
+
+        const range = req.headers.range;
+        if (range && !isDownload) {
+            const parts = range.replace(/bytes=/, '').split('-');
+            const start = parseInt(parts[0], 10);
+            const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+            const chunkSize = end - start + 1;
+            res.writeHead(206, {
+                'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+                'Accept-Ranges': 'bytes',
+                'Content-Length': chunkSize,
+                'Content-Type': contentType
+            });
+            fs.createReadStream(soundPath, { start, end }).pipe(res);
+        } else {
+            const disposition = isDownload ? 'attachment' : 'inline';
+            res.writeHead(200, {
+                'Content-Length': fileSize,
+                'Content-Type': contentType,
+                'Accept-Ranges': 'bytes',
+                'Content-Disposition': `${disposition}; filename="${encodeURIComponent(displayFilename)}"`
+            });
+            fs.createReadStream(soundPath).pipe(res);
+        }
+    } catch (err) {
+        res.status(500).send("Audio Error: " + err.message);
+    }
+});
+
+
 // --- 3. TRUNKS MANAGEMENT APIs ---
 
 // GET /api/config/trunks - List Trunks with PEER details
