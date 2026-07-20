@@ -66,6 +66,8 @@ const CDR_DB = safeIdentifier('CDR_DB', process.env.CDR_DB || process.env.DB_NAM
 const ASTERISK_BIN = process.env.ASTERISK_BIN || '/usr/sbin/asterisk';
 const RECORDING_ROOT = process.env.RECORDING_ROOT || '/var/spool/asterisk/monitor';
 const AMI_HOST = process.env.AMI_HOST || '127.0.0.1';
+const UPLOAD_TMP = '/tmp/dashboard-uploads';
+if (!fs.existsSync(UPLOAD_TMP)) fs.mkdirSync(UPLOAD_TMP, { recursive: true });
 
 function tableName(dbName, table) {
     return `\`${dbName}\`.\`${table}\``;
@@ -3800,9 +3802,7 @@ app.post('/api/contacts/csv-import', csvUpload.single('file'), async (req, res) 
 
 
 // --- RECORDING UPLOAD ---
-const UPLOAD_TMP = '/tmp/dashboard-uploads';
 const STAGING_DIR = '/tmp/dashboard-staging';
-if (!fs.existsSync(UPLOAD_TMP)) fs.mkdirSync(UPLOAD_TMP, { recursive: true });
 if (!fs.existsSync(STAGING_DIR)) fs.mkdirSync(STAGING_DIR, { recursive: true });
 
 const recordingStorage = multer.diskStorage({
