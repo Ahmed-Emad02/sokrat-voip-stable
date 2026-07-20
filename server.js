@@ -297,7 +297,7 @@ let peerStatus = {};
 let peerIPs = {};
 let pendingOffline = {};
 let isPeerListLoaded = false;
-let greetingConfig = { mode: 'none', extension: null };
+let greetingConfig = { mode: 'none', extensions: [] };
 const VM_GREETING_CONFIG_PATH = path.join(__dirname, 'vm_greeting_config.json');
 function reloadGreetingConfig() {
     try {
@@ -732,7 +732,7 @@ app.use(async (req, res, next) => {
         res.locals.currentLang = req.query.lang === 'ar' ? 'ar' : 'en';
         reloadGreetingConfig();
         res.locals.greetingMode = greetingConfig.mode || 'none';
-        res.locals.greetingExtension = greetingConfig.extension || '';
+        res.locals.greetingExtensions = greetingConfig.extensions || [];
         next();
     } catch (err) { next(err); }
 });
@@ -2909,8 +2909,26 @@ function ensureVmBackups() {
     if (!fs.existsSync(bak2) && fs.existsSync(src2)) fs.copyFileSync(src2, bak2);
 }
 
-function getExtensions() {
-    return Object.keys(peerStatus).sort();
+function getVoicemailMailboxes() {
+    const mailboxes = new Set();
+    try {
+        const vmconf = fs.readFileSync('/etc/asterisk/voicemail.conf', 'utf8');
+        let inSection = false;
+        for (const line of vmconf.split('\n')) {
+            const t = line.trim();
+            if (t.startsWith('[') && t.endsWith(']')) { inSection = !t.startsWith('[general]') && !t.startsWith('[') || (t.startsWith('[general]') ? false : true); inSection = t !== '[general]' && !t.startsWith('[template') && !t.startsWith(';;'); continue; }
+            if (inSection && t && !t.startsWith(';') && !t.startsWith('#')) {
+                const m = t.match(/^\s*(\d+)\s*=>/);
+                if (m) mailboxes.add(m[1]);
+            }
+        }
+    } catch {}
+    try {
+        if (fs.existsSync(VM_MAILBOX_ROOT)) {
+            fs.readdirSync(VM_MAILBOX_ROOT, { withFileTypes: true }).filter(d => d.isDirectory()).forEach(d => mailboxes.add(d.name));
+        }
+    } catch {}
+    return [...mailboxes].sort();
 }
 
 function convertToGsm(inputPath, outputPath) {
@@ -2933,14 +2951,17 @@ app.post('/api/voicemail-greeting/upload', (req, res) => {
         }
         if (!req.file) return res.status(400).json({ success: false, error: 'No file provided' });
         const mode = req.body.mode;
-        const extension = req.body.extension || null;
+        let exts = [];
+        if (mode === 'extension' && req.body.extensions) {
+            try { exts = JSON.parse(req.body.extensions); } catch { exts = []; }
+        }
         if (!mode || !['universal', 'extension'].includes(mode)) {
             if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
             return res.status(400).json({ success: false, error: 'Invalid mode.' });
         }
-        if (mode === 'extension' && !extension) {
+        if (mode === 'extension' && (!exts || !exts.length)) {
             if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-            return res.status(400).json({ success: false, error: 'Extension required.' });
+            return res.status(400).json({ success: false, error: 'At least one extension required.' });
         }
         const gsmPath = path.join(UPLOAD_TMP, 'vm-greeting-' + Date.now() + '.gsm');
         try {
@@ -2956,26 +2977,24 @@ app.post('/api/voicemail-greeting/upload', (req, res) => {
                 }
                 fs.copyFileSync(gsmPath, path.join(VM_SOUNDS_DIR, 'unavailable.gsm'));
                 fs.copyFileSync(gsmPath, path.join(VM_SOUNDS_DIR, 'vm-leavemsg.gsm'));
-                // Restore vm-leavemsg from backup if it was silently replaced for per-extension
-                const origLeaveMsg = path.join(VM_BACKUP_DIR, 'vm-leavemsg.gsm.orig');
-                fs.copyFileSync(gsmPath, path.join(VM_SOUNDS_DIR, 'vm-leavemsg.gsm'));
-                greetingConfig = { mode: 'universal', extension: null };
+                greetingConfig = { mode: 'universal', extensions: [] };
                 fs.writeFileSync(VM_GREETING_CONFIG_PATH, JSON.stringify(greetingConfig, null, 2));
                 require('child_process').exec('/usr/sbin/asterisk -rx "module reload sounds"', () => {});
                 res.json({ success: true, message: 'Universal greeting uploaded successfully.' });
             } else {
-                const mailboxDir = path.join(VM_MAILBOX_ROOT, extension);
-                if (!fs.existsSync(mailboxDir)) fs.mkdirSync(mailboxDir, { recursive: true });
-                fs.copyFileSync(gsmPath, path.join(mailboxDir, 'unavail.gsm'));
-                // Restore unavailable.gsm from backup, replace vm-leavemsg.gsm with custom
                 const origUnavail = path.join(VM_BACKUP_DIR, 'unavailable.gsm.orig');
                 const origLeaveMsg = path.join(VM_BACKUP_DIR, 'vm-leavemsg.gsm.orig');
                 if (fs.existsSync(origUnavail)) fs.copyFileSync(origUnavail, path.join(VM_SOUNDS_DIR, 'unavailable.gsm'));
                 fs.copyFileSync(gsmPath, path.join(VM_SOUNDS_DIR, 'vm-leavemsg.gsm'));
-                greetingConfig = { mode: 'extension', extension: extension };
+                for (const ext of exts) {
+                    const dir = path.join(VM_MAILBOX_ROOT, ext);
+                    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+                    fs.copyFileSync(gsmPath, path.join(dir, 'unavail.gsm'));
+                }
+                greetingConfig = { mode: 'extension', extensions: exts };
                 fs.writeFileSync(VM_GREETING_CONFIG_PATH, JSON.stringify(greetingConfig, null, 2));
                 require('child_process').exec('/usr/sbin/asterisk -rx "module reload sounds"', () => {});
-                res.json({ success: true, message: 'Greeting for extension ' + extension + ' uploaded successfully.' });
+                res.json({ success: true, message: 'Greeting for ' + exts.length + ' extension(s) uploaded successfully.' });
             }
             if (fs.existsSync(gsmPath)) fs.unlinkSync(gsmPath);
         } catch (convErr) {
@@ -2989,7 +3008,7 @@ app.post('/api/voicemail-greeting/upload', (req, res) => {
 
 app.get('/api/voicemail-greeting/status', (req, res) => {
     reloadGreetingConfig();
-    res.json({ mode: greetingConfig.mode, extension: greetingConfig.extension, extensions: getExtensions() });
+    res.json({ mode: greetingConfig.mode, extensions: greetingConfig.extensions, mailboxes: getVoicemailMailboxes() });
 });
 
 app.post('/api/voicemail-greeting/reset', (req, res) => {
@@ -3005,7 +3024,7 @@ app.post('/api/voicemail-greeting/reset', (req, res) => {
                 if (fs.existsSync(p)) fs.unlinkSync(p);
             });
         }
-        greetingConfig = { mode: 'none', extension: null };
+        greetingConfig = { mode: 'none', extensions: [] };
         fs.writeFileSync(VM_GREETING_CONFIG_PATH, JSON.stringify(greetingConfig, null, 2));
         require('child_process').exec('/usr/sbin/asterisk -rx "module reload sounds"', () => {});
         res.json({ success: true, message: 'Voicemail greeting reset to defaults.' });

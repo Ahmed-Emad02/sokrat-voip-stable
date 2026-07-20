@@ -17,6 +17,7 @@ const sidebarWords = {
         vmGreetingFail: "Upload failed",
         vmGreetingResetConfirm: "Reset to default Asterisk voicemail prompts?",
         vmGreetingChangeMode: "Changing mode will save a new greeting. Continue?",
+        vmSelectAll: "Select All",
         dashLink: "Dashboard", cdrLink: "CDR Analytics", vmLink: "Voicemails", empLink: "Employee Metrics", extLink: "Agent Stats", opLink: "Live Panel", dongleLink: "GSM Dongles", contactsLink: "Address Book", usersLink: "Users", liveClock: "System Clock", themeLabel: "Theme", langLabel: "Language", settingsTitle: "Settings", rowsLabel: "Rows per page", addRec: "Add a Recording", smtpSettings: "Setup Password Reset Email", netInfo: "Show Network Info", logoutLabel: "Sign Out",
         recTitle: "Add a Recording", recName: "Recording Name", recPlaceholder: "e.g. welcome_greeting", recFile: "Audio File", recNote: "Accepted: MP3, M4A, WAV, OGG, FLAC, AAC, MPEG (max 50MB)", recUploadStatus: "Uploading...", recCancel: "Cancel", recUpload: "Upload", recComplete: "Complete!", recFailed: "Failed", recSelectFileErr: "Please select a file", recNameErr: "Please enter a recording name"
     },
@@ -37,6 +38,7 @@ const sidebarWords = {
         vmGreetingFail: "فشل الرفع",
         vmGreetingResetConfirm: "إعادة تعيين ترحيب البريد الصوتي للافتراضي؟",
         vmGreetingChangeMode: "تغيير الوضع سيحفظ ترحيباً جديداً. هل تريد المتابعة؟",
+        vmSelectAll: "اختر الكل",
         dashLink: "لوحة التحكم", cdrLink: "تحليلات المكالمات", vmLink: "البريد الصوتي", empLink: "مقاييس الموظفين", extLink: "إحصائيات الوكلاء", opLink: "لوحه المراقبه", dongleLink: "شرائح GSM", contactsLink: "دفتر العناوين", usersLink: "المستخدمين", liveClock: "ساعة النظام", themeLabel: "المظهر", langLabel: "اللغة", settingsTitle: "الإعدادات", rowsLabel: "عدد الصفوف", addRec: "إضافة تسجيل صوتي", smtpSettings: "إعداد البريد لإعادة تعيين كلمة المرور", netInfo: "معلومات الشبكة", logoutLabel: "تسجيل الخروج",
         recTitle: "إضافة تسجيل صوتي", recName: "اسم التسجيل", recPlaceholder: "مثال: welcome_greeting", recFile: "ملف الصوت", recNote: "المرفقات المقبولة: MP3, M4A, WAV, OGG, FLAC, AAC, MPEG (الحد الأقصى 50 ميجابايت)", recUploadStatus: "جاري الرفع...", recCancel: "إلغاء", recUpload: "رفع", recComplete: "اكتمل الرفع!", recFailed: "فشل الرفع", recSelectFileErr: "يرجى اختيار ملف", recNameErr: "يرجى إدخال اسم التسجيل"
     },
@@ -1148,17 +1150,23 @@ document.addEventListener('DOMContentLoaded', function() { updateClock(); setInt
                     </label>
                 </div>
             </div>
-            <!-- Extension Dropdown (shown for extension mode) -->
+            <!-- Extension Checkboxes (shown for extension mode) -->
             <div id="vmGreetingExtWrap" class="<%= greetingMode === 'extension' ? '' : 'hidden' %>">
-                <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-1.5"><%= sbT.vmGreetingSelectExt %></label>
-                <select id="vmGreetingExt" name="extension" class="w-full bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-lg px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-color)]">
-                    <option value=""><%= sbT.vmGreetingSelectExt %>...</option>
-                </select>
+                <div class="flex items-center justify-between mb-1.5">
+                    <label class="block text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider"><%= sbT.vmGreetingSelectExt %></label>
+                    <label class="flex items-center gap-1.5 text-[10px] font-bold text-[var(--text-muted)] cursor-pointer hover:text-[var(--text-primary)] transition">
+                        <input type="checkbox" id="vmGreetingSelectAll" onchange="toggleAllVmExtensions()" class="accent-[var(--accent-color)]">
+                        <%= sbT.vmSelectAll %>
+                    </label>
+                </div>
+                <div id="vmGreetingCheckboxList" class="max-h-48 overflow-y-auto space-y-1.5 bg-[var(--bg-card)] rounded-lg border border-[var(--border-primary)] p-3">
+                </div>
+                <p id="vmGreetingNoMailboxes" class="text-[10px] text-[var(--text-muted)] mt-1 hidden">No voicemail-enabled extensions found.</p>
             </div>
             <!-- Current Status -->
             <div id="vmGreetingStatus" class="flex items-center gap-2 text-xs font-bold <%= greetingMode === 'none' ? 'text-zinc-500' : 'text-emerald-400' %>">
                 <span><%= sbT.vmGreetingCurrent %>:</span>
-                <span id="vmGreetingStatusText"><%= greetingMode === 'universal' ? sbT.vmGreetingUniversal : (greetingMode === 'extension' ? sbT.vmGreetingExtension + ' ' + (greetingExtension || '') : sbT.vmGreetingNone) %></span>
+                <span id="vmGreetingStatusText"><%= greetingMode === 'universal' ? sbT.vmGreetingUniversal : (greetingMode === 'extension' ? sbT.vmGreetingExtension + ' (' + (Array.isArray(greetingExtensions) ? greetingExtensions.join(', ') : '') + ')' : sbT.vmGreetingNone) %></span>
             </div>
             <!-- File Upload -->
             <div>
@@ -1337,7 +1345,6 @@ const vmGreetingWords = {
     uploadBtn: "<%= sbT.vmGreetingUploadBtn %>"
 };
 
-let greetingExtensions = [];
 
 function onVmGreetingModeChange() {
     const mode = document.querySelector('input[name="vmGreetingMode"]:checked');
@@ -1364,44 +1371,64 @@ function closeVmGreetingModal() {
 
 function fetchVmGreetingStatus() {
     fetch('/api/voicemail-greeting/status').then(r => r.json()).then(data => {
-        greetingExtensions = data.extensions || [];
+        const mailboxes = data.mailboxes || [];
         const mode = data.mode || 'none';
-        const ext = data.extension || '';
+        const selectedExts = data.extensions || [];
         const statusText = document.getElementById('vmGreetingStatusText');
         const resetBtn = document.getElementById('vmGreetingResetBtn');
         if (mode === 'universal') statusText.textContent = vmGreetingWords.universal;
-        else if (mode === 'extension') statusText.textContent = vmGreetingWords.extension + ' ' + ext;
+        else if (mode === 'extension') statusText.textContent = vmGreetingWords.extension + ' (' + selectedExts.join(', ') + ')';
         else statusText.textContent = vmGreetingWords.none;
         document.getElementById('vmGreetingStatus').className = 'flex items-center gap-2 text-xs font-bold ' + (mode === 'none' ? 'text-zinc-500' : 'text-emerald-400');
         resetBtn.disabled = mode === 'none';
         resetBtn.classList.toggle('opacity-30', mode === 'none');
         resetBtn.classList.toggle('cursor-not-allowed', mode === 'none');
-        // Populate extension dropdown
-        const sel = document.getElementById('vmGreetingExt');
-        sel.innerHTML = '<option value=""><%= sbT.vmGreetingSelectExt %>...</option>';
-        greetingExtensions.forEach(e => {
-            const opt = document.createElement('option');
-            opt.value = e;
-            opt.textContent = e;
-            if (mode === 'extension' && e === ext) opt.selected = true;
-            sel.appendChild(opt);
-        });
+        // Populate checkboxes
+        const list = document.getElementById('vmGreetingCheckboxList');
+        const noMailboxesMsg = document.getElementById('vmGreetingNoMailboxes');
+        list.innerHTML = '';
+        if (!mailboxes.length) {
+            noMailboxesMsg.classList.remove('hidden');
+        } else {
+            noMailboxesMsg.classList.add('hidden');
+            mailboxes.forEach(mb => {
+                const label = document.createElement('label');
+                label.className = 'flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-[var(--bg-hover)] transition cursor-pointer text-xs font-semibold text-[var(--text-primary)]';
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.value = mb;
+                cb.className = 'vm-ext-cb accent-[var(--accent-color)]';
+                if (mode === 'extension' && selectedExts.includes(mb)) cb.checked = true;
+                label.appendChild(cb);
+                label.appendChild(document.createTextNode(' ' + mb));
+                list.appendChild(label);
+            });
+        }
         // Set radio to match current mode
         document.querySelectorAll('input[name="vmGreetingMode"]').forEach(r => {
             r.checked = r.value === mode;
         });
+        document.getElementById('vmGreetingSelectAll').checked = false;
         onVmGreetingModeChange();
     }).catch(() => {});
+}
+
+function toggleAllVmExtensions() {
+    const checked = document.getElementById('vmGreetingSelectAll').checked;
+    document.querySelectorAll('.vm-ext-cb').forEach(cb => cb.checked = checked);
 }
 
 async function submitVmGreeting(event) {
     event.preventDefault();
     const mode = document.querySelector('input[name="vmGreetingMode"]:checked');
     if (!mode) { showToast('Please select a mode', 'error'); return; }
-    const extension = document.getElementById('vmGreetingExt').value;
     const fileInput = document.getElementById('vmGreetingFile');
     if (!fileInput.files.length) { showToast('Please select an audio file', 'error'); return; }
-    if (mode.value === 'extension' && !extension) { showToast('Please select an extension', 'error'); return; }
+    let exts = [];
+    if (mode.value === 'extension') {
+        document.querySelectorAll('.vm-ext-cb:checked').forEach(cb => exts.push(cb.value));
+        if (!exts.length) { showToast('Please select at least one extension', 'error'); return; }
+    }
     const submitBtn = document.getElementById('vmGreetingSubmitBtn');
     const progressWrap = document.getElementById('vmGreetingProgressWrap');
     const progressBar = document.getElementById('vmGreetingProgressBar');
@@ -1413,7 +1440,7 @@ async function submitVmGreeting(event) {
     const formData = new FormData();
     formData.append('file', fileInput.files[0]);
     formData.append('mode', mode.value);
-    formData.append('extension', extension);
+    formData.append('extensions', JSON.stringify(exts));
     try {
         const result = await new Promise(function(resolve, reject) {
             const xhr = new XMLHttpRequest();
