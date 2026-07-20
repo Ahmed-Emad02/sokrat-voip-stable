@@ -2769,15 +2769,38 @@ app.post('/api/config/reload', (req, res) => {
 
 // --- 1. EXTENSIONS MANAGEMENT APIs ---
 
+// Helper function to sync extension astdb recording & user settings
+function setExtensionAstdbDefaults(extNum, displayName) {
+    const commands = [
+        `database put AMPUSER ${extNum}/recording/in/external always`,
+        `database put AMPUSER ${extNum}/recording/out/external always`,
+        `database put AMPUSER ${extNum}/recording/in/internal always`,
+        `database put AMPUSER ${extNum}/recording/out/internal always`,
+        `database put AMPUSER ${extNum}/recording/ondemand disabled`,
+        `database put AMPUSER ${extNum}/recording/priority 10`,
+        `database put AMPUSER ${extNum}/cidname "${displayName}"`,
+        `database put AMPUSER ${extNum}/cidnum "${extNum}"`,
+        `database put AMPUSER ${extNum}/device "${extNum}"`,
+        `database put AMPUSER ${extNum}/ringtimer 0`,
+        `database put AMPUSER ${extNum}/voicemail novm`
+    ];
+    commands.forEach(cmd => {
+        exec(`${ASTERISK_BIN} -rx '${cmd}'`, (err) => {
+            if (err) console.error(`AstDB error (${cmd}):`, err.message);
+        });
+    });
+}
+
 // GET /api/config/extensions - List all Extensions
 app.get('/api/config/extensions', async (req, res) => {
     try {
         const [extensions] = await pool.query(`
-            SELECT u.extension, u.name, u.outboundcid,
-                   s_secret.data AS secret, s_context.data AS context
+            SELECT u.extension, u.name, u.outboundcid, u.recording,
+                   s_secret.data AS secret, s_context.data AS context, s_nat.data AS nat
             FROM \`asterisk\`.\`users\` u
             LEFT JOIN \`asterisk\`.\`sip\` s_secret ON s_secret.id = u.extension AND s_secret.keyword = 'secret'
             LEFT JOIN \`asterisk\`.\`sip\` s_context ON s_context.id = u.extension AND s_context.keyword = 'context'
+            LEFT JOIN \`asterisk\`.\`sip\` s_nat ON s_nat.id = u.extension AND s_nat.keyword = 'nat'
             ORDER BY CAST(u.extension AS UNSIGNED) ASC
         `);
         res.json({ success: true, extensions });
@@ -2786,10 +2809,10 @@ app.get('/api/config/extensions', async (req, res) => {
     }
 });
 
-// POST /api/config/extensions - Create new Extension
+// POST /api/config/extensions - Create new Generic SIP Extension
 app.post('/api/config/extensions', async (req, res) => {
     try {
-        const { extension, name, secret, context } = req.body;
+        const { extension, name, secret } = req.body;
         if (!extension || !/^\d+$/.test(extension)) {
             return res.status(400).json({ success: false, error: 'Valid numeric Extension number is required.' });
         }
@@ -2803,7 +2826,7 @@ app.post('/api/config/extensions', async (req, res) => {
         const extNum = String(extension).trim();
         const displayName = String(name).trim();
         const extSecret = String(secret).trim();
-        const extContext = (context && context.trim()) ? context.trim() : 'from-internal';
+        const extContext = 'from-internal';
 
         // Check if extension already exists
         const [existing] = await pool.query('SELECT extension FROM `asterisk`.`users` WHERE extension = ?', [extNum]);
@@ -2811,19 +2834,19 @@ app.post('/api/config/extensions', async (req, res) => {
             return res.status(400).json({ success: false, error: `Extension ${extNum} already exists.` });
         }
 
-        // 1. Insert into users
+        // 1. Insert into users with recording='out=always|in=always'
         await pool.query(`
             INSERT INTO \`asterisk\`.\`users\` (extension, password, name, voicemail, ringtimer, noanswer, recording, outboundcid, sipname, mohclass)
-            VALUES (?, '', ?, 'novm', 0, '', '', '', '', 'default')
+            VALUES (?, '', ?, 'novm', 0, '', 'out=always|in=always', '', '', 'default')
         `, [extNum, displayName]);
 
-        // 2. Insert into devices
+        // 2. Insert into devices (Generic SIP Device)
         await pool.query(`
             INSERT INTO \`asterisk\`.\`devices\` (id, tech, dial, devicetype, user, description, emergency_cid)
             VALUES (?, 'sip', CONCAT('SIP/', ?), 'fixed', ?, ?, '')
         `, [extNum, extNum, extNum, displayName]);
 
-        // 3. Batch insert into sip table
+        // 3. Batch insert into sip table with nat=yes
         const sipPairs = [
             [extNum, 'account', extNum, 32],
             [extNum, 'accountcode', '', 28],
@@ -2859,7 +2882,10 @@ app.post('/api/config/extensions', async (req, res) => {
             `, [id, kw, data, flags]);
         }
 
-        res.json({ success: true, message: `Extension ${extNum} created in Issabel DB successfully.` });
+        // 4. Update astdb entries for call recording ALWAYS
+        setExtensionAstdbDefaults(extNum, displayName);
+
+        res.json({ success: true, message: `Generic SIP Extension ${extNum} created with NAT=yes & Always Recording successfully.` });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
@@ -2869,11 +2895,10 @@ app.post('/api/config/extensions', async (req, res) => {
 app.put('/api/config/extensions/:extension', async (req, res) => {
     try {
         const extNum = String(req.params.extension).trim();
-        const { name, secret, context } = req.body;
+        const { name, secret } = req.body;
 
         const displayName = String(name || '').trim();
         const extSecret = String(secret || '').trim();
-        const extContext = String(context || 'from-internal').trim();
 
         if (displayName) {
             await pool.query('UPDATE `asterisk`.`users` SET name = ? WHERE extension = ?', [displayName, extNum]);
@@ -2883,9 +2908,12 @@ app.put('/api/config/extensions/:extension', async (req, res) => {
         if (extSecret) {
             await pool.query('UPDATE `asterisk`.`sip` SET data = ? WHERE id = ? AND keyword = "secret"', [extSecret, extNum]);
         }
-        if (extContext) {
-            await pool.query('UPDATE `asterisk`.`sip` SET data = ? WHERE id = ? AND keyword = "context"', [extContext, extNum]);
-        }
+
+        // Ensure nat=yes and recording='out=always|in=always'
+        await pool.query('UPDATE `asterisk`.`users` SET recording = "out=always|in=always" WHERE extension = ?', [extNum]);
+        await pool.query('UPDATE `asterisk`.`sip` SET data = "yes" WHERE id = ? AND keyword = "nat"', [extNum]);
+        
+        setExtensionAstdbDefaults(extNum, displayName || extNum);
 
         res.json({ success: true, message: `Extension ${extNum} updated successfully.` });
     } catch (error) {
@@ -2900,6 +2928,11 @@ app.delete('/api/config/extensions/:extension', async (req, res) => {
         await pool.query('DELETE FROM `asterisk`.`users` WHERE extension = ?', [extNum]);
         await pool.query('DELETE FROM `asterisk`.`devices` WHERE id = ?', [extNum]);
         await pool.query('DELETE FROM `asterisk`.`sip` WHERE id = ?', [extNum]);
+
+        // Clean up astdb AMPUSER
+        exec(`${ASTERISK_BIN} -rx 'database deltree AMPUSER ${extNum}'`, (err) => {
+            if (err) console.error(`AstDB deltree error for ${extNum}:`, err.message);
+        });
 
         res.json({ success: true, message: `Extension ${extNum} deleted successfully.` });
     } catch (error) {
