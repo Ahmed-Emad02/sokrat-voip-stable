@@ -3832,6 +3832,31 @@ function isTabAllowed(tabName) {
                     }
                 });
         }
+
+        function parseTcDestination(gotoStr) {
+            if (!gotoStr) return { type: '', target: '' };
+            if (gotoStr.startsWith('from-did-direct,')) {
+                const parts = gotoStr.split(',');
+                return { type: 'extensions', target: parts[1] };
+            }
+            if (gotoStr.startsWith('ext-group,')) {
+                const parts = gotoStr.split(',');
+                return { type: 'ringgroups', target: parts[1] };
+            }
+            if (gotoStr.startsWith('ext-local,vmu')) {
+                const ext = gotoStr.substring(13).split(',')[0];
+                return { type: 'voicemail', target: ext };
+            }
+            if (gotoStr.startsWith('timeconditions,')) {
+                const parts = gotoStr.split(',');
+                return { type: 'timeconditions', target: parts[1] };
+            }
+            if (gotoStr.startsWith('app-blackhole,')) {
+                const parts = gotoStr.split(',');
+                return { type: 'terminate', target: parts[1] };
+            }
+            return { type: 'custom', target: gotoStr };
+        }
     </script>
 </body>
 </html>
