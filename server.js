@@ -3764,6 +3764,14 @@ app.get('/api/config/diagram', async (req, res) => {
             ORDER BY description ASC
         `);
 
+        // Query Time Conditions
+        const [timeconditions] = await pool.query(`
+            SELECT tc.timeconditions_id, tc.displayname, tc.time AS timegroup_id, tg.description AS timegroup_name, tc.truegoto, tc.falsegoto
+            FROM \`asterisk\`.\`timeconditions\` tc
+            LEFT JOIN \`asterisk\`.\`timegroups_groups\` tg ON tg.id = tc.time
+            ORDER BY tc.timeconditions_id ASC
+        `);
+
         // Query Outbound Routes
         const [outboundRows] = await pool.query(`
             SELECT route_id, name FROM \`asterisk\`.\`outbound_routes\`
@@ -3809,6 +3817,7 @@ app.get('/api/config/diagram', async (req, res) => {
         res.json({
             success: true,
             inbound,
+            timeconditions,
             ringgroups,
             extensions,
             outbound,
