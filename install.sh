@@ -310,10 +310,50 @@ else
     echo "  chan_dongle already installed"
 fi
 
-# 9c — Apply dongle.conf
-echo "  [9c] Applying dongle.conf..."
-cp "$INSTALL_DIR/dongle.conf" /etc/asterisk/dongle.conf
-echo "  dongle.conf copied (4 dongles configured)"
+# 9c — Configure and apply dongle.conf
+echo "  [9c] Configuring and applying dongle.conf..."
+NUM_DONGLES=4
+if [ -t 0 ]; then
+    while true; do
+        read -rp "Enter the number of GSM dongles to activate on this server (1-25) [default: 4]: " user_val
+        if [ -z "$user_val" ]; then
+            NUM_DONGLES=4
+            break
+        elif [[ "$user_val" =~ ^[0-9]+$ ]] && [ "$user_val" -ge 1 ] && [ "$user_val" -le 25 ]; then
+            NUM_DONGLES=$user_val
+            break
+        else
+            echo "Invalid input. Please enter a number between 1 and 25."
+        fi
+    done
+fi
+
+echo "  Configuring $NUM_DONGLES dongle(s)..."
+
+TEMP_CONF="/tmp/dongle.conf.tmp"
+rm -f "$TEMP_CONF"
+
+# Extract everything up to [dongle0] from repository template
+sed -n '1,/^\[dongle0\]/ { /^\[dongle0\]/! p }' "$INSTALL_DIR/dongle.conf" > "$TEMP_CONF"
+
+# Append device sections dynamically based on the input
+for ((i=0; i<NUM_DONGLES; i++)); do
+    audio_port=$((i * 3 + 1))
+    data_port=$((i * 3 + 2))
+    cat >> "$TEMP_CONF" << EOF
+
+[dongle$i]
+audio=/dev/ttyUSB$audio_port
+data=/dev/ttyUSB$data_port
+imei=
+imsi=
+EOF
+done
+
+# Copy to Asterisk configuration folder
+cp "$TEMP_CONF" /etc/asterisk/dongle.conf
+rm -f "$TEMP_CONF"
+echo "  dongle.conf successfully generated with $NUM_DONGLES dongle(s) at /etc/asterisk/dongle.conf"
 
 # 8c2 — Ensure /var/log/asterisk/full captures VERBOSE messages (required for SMS/USSD parsing)
 echo "  [9c2] Enabling verbose logging in Asterisk logger.conf..."
