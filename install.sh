@@ -6,7 +6,7 @@
 set -euo pipefail
 
 INSTALL_DIR=/opt/issabel-dashboard
-REPO_URL=https://github.com/Ahmed-Emad02/issabel-analytics.git
+REPO_URL=https://github.com/Ahmed-Emad02/sokrat-voip-dev.git
 NODE_SETUP_URL=https://rpm.nodesource.com/setup_22.x
 MYSQL_ROOT_PWD=$(grep mysqlrootpwd /etc/issabel.conf | cut -d= -f2- | xargs)
 
