@@ -3692,14 +3692,28 @@ app.post('/api/config/routes/inbound', async (req, res) => {
         const cid = ''; // Default cidnum to empty string
         const dest = String(destination).trim();
 
-        await pool.query(`
-            INSERT INTO \`asterisk\`.\`incoming\`
-            (cidnum, extension, destination, answer, wait, privacyman, mohclass, description, grppre, delay_answer, pricid, pmmaxretries, pmminlength)
-            VALUES (?, ?, ?, NULL, NULL, 0, 'default', ?, '', 0, '', '3', '10')
-        `, [cid, ext, dest, desc]);
+        // Check if route with this DID (extension) and CID already exists
+        const [existing] = await pool.query(
+            'SELECT extension FROM `asterisk`.`incoming` WHERE extension = ? AND (cidnum = "" OR cidnum IS NULL)',
+            [ext]
+        );
+
+        if (existing.length > 0) {
+            await pool.query(`
+                UPDATE \`asterisk\`.\`incoming\`
+                SET description = ?, destination = ?, mohclass = 'default'
+                WHERE extension = ? AND (cidnum = '' OR cidnum IS NULL)
+            `, [desc, dest, ext]);
+        } else {
+            await pool.query(`
+                INSERT INTO \`asterisk\`.\`incoming\`
+                (cidnum, extension, destination, answer, wait, privacyman, mohclass, description, grppre, delay_answer, pricid, pmmaxretries, pmminlength)
+                VALUES (?, ?, ?, NULL, NULL, 0, 'default', ?, '', 0, '', '3', '10')
+            `, [cid, ext, dest, desc]);
+        }
 
         reloadPbxConfig();
-        res.json({ success: true, message: `Inbound Route '${desc}' created successfully.` });
+        res.json({ success: true, message: `Inbound Route '${desc}' saved successfully.` });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
@@ -3719,14 +3733,16 @@ app.put('/api/config/routes/inbound', async (req, res) => {
         const desc = String(description).trim();
         const ext = String(extension || '').trim();
         const dest = String(destination).trim();
+        const origExt = String(originalExtension || '').trim();
+        const origDesc = String(originalDescription || '').trim();
 
         await pool.query(`
             UPDATE \`asterisk\`.\`incoming\`
             SET description = ?, extension = ?, destination = ?
             WHERE (extension = ? OR (extension IS NULL AND ? = ''))
               AND (cidnum = '' OR cidnum IS NULL)
-              AND description = ?
-        `, [desc, ext, dest, originalExtension || '', originalExtension || '', originalDescription || '']);
+              AND (description = ? OR ? = '')
+        `, [desc, ext, dest, origExt, origExt, origDesc, origDesc]);
 
         reloadPbxConfig();
         res.json({ success: true, message: `Inbound Route '${desc}' updated successfully.` });
@@ -3739,12 +3755,15 @@ app.put('/api/config/routes/inbound', async (req, res) => {
 app.delete('/api/config/routes/inbound', async (req, res) => {
     try {
         const { extension, description } = req.body;
+        const ext = String(extension || '').trim();
+        const desc = String(description || '').trim();
+
         await pool.query(`
             DELETE FROM \`asterisk\`.\`incoming\`
             WHERE (extension = ? OR (extension IS NULL AND ? = ''))
               AND (cidnum = '' OR cidnum IS NULL)
-              AND description = ?
-        `, [extension || '', extension || '', description || '']);
+              AND (description = ? OR ? = '')
+        `, [ext, ext, desc, desc]);
 
         reloadPbxConfig();
         res.json({ success: true, message: 'Inbound Route deleted successfully.' });

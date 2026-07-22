@@ -3242,8 +3242,9 @@ function isTabAllowed(tabName) {
             // 1. Inbound Nodes
             inbound.forEach((route, i) => {
                 const startY = (viewHeight - (inbound.length * ySpacing)) / 2 + 30;
+                const nodeId = 'inbound-' + (route.did || 'any') + '-' + i;
                 diagramNodesList.push({
-                    id: 'inbound-' + route.did,
+                    id: nodeId,
                     x: 50,
                     y: startY + i * ySpacing,
                     type: 'inbound',
@@ -3367,7 +3368,7 @@ function isTabAllowed(tabName) {
                 if (targetId) {
                     diagramLinks.push({
                         id: `link-inbound-${idx}`,
-                        source: 'inbound-' + route.did,
+                        source: 'inbound-' + (route.did || 'any') + '-' + idx,
                         target: targetId,
                         type: wireType
                     });
