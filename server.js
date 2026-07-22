@@ -3607,6 +3607,7 @@ app.post('/api/config/trunks', async (req, res) => {
             VALUES (?, 'custom', '', 'off', '', '', '', ?, 'off', 'off')
         `, [trunkName, dialString]);
 
+        reloadPbxConfig();
         res.json({ success: true, message: `Custom Trunk '${trunkName}' created successfully.` });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -3634,6 +3635,7 @@ app.put('/api/config/trunks/:trunkid', async (req, res) => {
             WHERE trunkid = ?
         `, [trunkName, dialString, trunkId]);
 
+        reloadPbxConfig();
         res.json({ success: true, message: `Custom Trunk '${trunkName}' updated successfully.` });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -3651,6 +3653,7 @@ app.delete('/api/config/trunks/:trunkid', async (req, res) => {
         await pool.query('DELETE FROM `asterisk`.`sip` WHERE id = ? OR id = ?', [`tr-trunk-${trunkId}`, name]);
         await pool.query('DELETE FROM `asterisk`.`outbound_route_trunks` WHERE trunk_id = ?', [trunkId]);
 
+        reloadPbxConfig();
         res.json({ success: true, message: `Trunk deleted successfully.` });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -3695,6 +3698,7 @@ app.post('/api/config/routes/inbound', async (req, res) => {
             VALUES (?, ?, ?, NULL, NULL, 0, 'default', ?, '', 0, '', '3', '10')
         `, [cid, ext, dest, desc]);
 
+        reloadPbxConfig();
         res.json({ success: true, message: `Inbound Route '${desc}' created successfully.` });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -3724,6 +3728,7 @@ app.put('/api/config/routes/inbound', async (req, res) => {
               AND description = ?
         `, [desc, ext, dest, originalExtension || '', originalExtension || '', originalDescription || '']);
 
+        reloadPbxConfig();
         res.json({ success: true, message: `Inbound Route '${desc}' updated successfully.` });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -3741,6 +3746,7 @@ app.delete('/api/config/routes/inbound', async (req, res) => {
               AND description = ?
         `, [extension || '', extension || '', description || '']);
 
+        reloadPbxConfig();
         res.json({ success: true, message: 'Inbound Route deleted successfully.' });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -3843,6 +3849,7 @@ app.post('/api/config/routes/outbound', async (req, res) => {
             VALUES (?, 0)
         `, [routeId]);
 
+        reloadPbxConfig();
         res.json({ success: true, message: `Outbound Route '${routeName}' created successfully.` });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -3891,6 +3898,7 @@ app.put('/api/config/routes/outbound/:route_id', async (req, res) => {
             `, [routeId, parseInt(trunks[i], 10), i]);
         }
 
+        reloadPbxConfig();
         res.json({ success: true, message: `Outbound Route '${routeName}' updated successfully.` });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -3906,6 +3914,7 @@ app.delete('/api/config/routes/outbound/:route_id', async (req, res) => {
         await pool.query('DELETE FROM `asterisk`.`outbound_route_trunks` WHERE route_id = ?', [routeId]);
         await pool.query('DELETE FROM `asterisk`.`outbound_route_sequence` WHERE route_id = ?', [routeId]);
 
+        reloadPbxConfig();
         res.json({ success: true, message: 'Outbound Route deleted successfully.' });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
