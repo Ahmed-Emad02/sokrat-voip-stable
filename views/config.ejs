@@ -1828,7 +1828,7 @@ function isTabAllowed(tabName) {
             const el = document.getElementById(inputId);
             if (!el) return [];
             const val = el.value || '';
-            return val.split(/[\s\-,]+/).map(s => s.trim()).filter(Boolean);
+            return val.split(/[\r\n\s\-,]+/).map(s => s.trim()).filter(Boolean);
         }
 
         function clearAllQueueAgents() {
@@ -1935,9 +1935,13 @@ function isTabAllowed(tabName) {
             document.getElementById('queueAutofill').value = q.autofill || 'yes';
             document.getElementById('queueSkipBusy').value = (q.cwignore == 1 || q.cwignore === '1') ? 'yes' : 'no';
 
-            const staticStr = Array.isArray(q.static_members) ? q.static_members.join(', ') : '';
-            document.getElementById('queueStaticList').value = staticStr;
-            document.getElementById('queueDynList').value = q.dynmembers || '';
+            const staticArr = Array.isArray(q.static_members) ? q.static_members : (q.static_members ? String(q.static_members).split(/[\r\n, ]+/) : []);
+            const dynArr = Array.isArray(q.dynmembers) ? q.dynmembers : (q.dynmembers ? String(q.dynmembers).split(/[\r\n, ]+/) : []);
+            const allAgents = Array.from(new Set([...staticArr, ...dynArr].map(e => String(e).trim()).filter(Boolean)));
+            const agentsStr = allAgents.join(', ');
+
+            document.getElementById('queueStaticList').value = agentsStr;
+            document.getElementById('queueDynList').value = agentsStr;
 
             populateQueueAnnouncementsDropdown();
             document.getElementById('queueAnnMsg').value = q.joinannounce_id || 0;

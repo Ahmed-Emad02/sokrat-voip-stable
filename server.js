@@ -3220,7 +3220,7 @@ app.get('/api/config/queues', async (req, res) => {
                 timeout: d.timeout || '15',
                 retry: d.retry || '5',
                 static_members: staticMembers,
-                dynmembers: d.dynmembers || ''
+                dynmembers: (d.dynmembers || '').split(/[\r\n, ]+/).filter(Boolean).join(', ')
             };
         });
 
