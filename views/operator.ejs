@@ -514,7 +514,6 @@ const isRtl = currentLang === 'ar';
                 } else if (action === 'barge') {
                     launchSipUrl('sip:224' + extension);
                 } else if (action === 'hijack') {
-                    if (!confirm(isRtl ? `هل أنت تأكد من سحب المكالمة وفصل الموظف ${extension}؟` : `Are you sure you want to hijack this call and disconnect employee ${extension}?`)) return;
                     launchSipUrl('sip:225' + extension);
                 } else if (action === 'hangup') {
                     if (confirm('<%= isRtl ? "هل أنت متأكد من إنهاء المكالمة؟" : "Are you sure you want to end this call?" %>')) {
