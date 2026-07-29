@@ -6,7 +6,7 @@
 set -euo pipefail
 
 INSTALL_DIR=/opt/sokrat-voip
-REPO_URL=https://github.com/Ahmed-Emad02/sokrat-voip-dev.git
+REPO_URL=https://github.com/Ahmed-Emad02/sokrat-voip-stable.git
 NODE_SETUP_URL=https://rpm.nodesource.com/setup_22.x
 MYSQL_ROOT_PWD=$(grep mysqlrootpwd /etc/issabel.conf | cut -d= -f2- | xargs)
 
